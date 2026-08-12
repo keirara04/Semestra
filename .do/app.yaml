@@ -1,0 +1,163 @@
+# DigitalOcean App Platform spec — see mdfile/semester-command-center.md,
+# "Hosting and domain", for the reasoning behind this shape.
+#
+# Values in ${...} are App Platform secrets/bindables, set via
+# `doctl apps update` or the dashboard — never written here directly.
+# First deploy: create the app from this spec (`doctl apps create --spec
+# .do/app.yaml`), then attach the Managed Postgres/Redis resources and
+# fill in secrets before traffic is expected to work.
+
+name: semestra
+region: nyc
+
+databases:
+  - name: semestra-db
+    engine: PG
+    production: true
+    version: "16"
+  - name: semestra-redis
+    engine: REDIS
+    production: true
+    version: "7"
+
+services:
+  - name: frontend
+    github:
+      repo: keirara04/Semestra
+      branch: main
+      deploy_on_push: true
+    source_dir: frontend
+    dockerfile_path: frontend/Dockerfile
+    http_port: 3000
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+    routes:
+      - path: /
+    envs:
+      - key: NEXT_PUBLIC_API_URL
+        scope: BUILD_TIME
+        value: https://api.${_self.DOMAIN}
+
+  - name: backend
+    github:
+      repo: keirara04/Semestra
+      branch: main
+      deploy_on_push: true
+    source_dir: backend
+    dockerfile_path: backend/Dockerfile
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+    routes:
+      - path: /
+    health_check:
+      http_path: /up
+    envs:
+      - key: APP_ENV
+        value: production
+      - key: APP_KEY
+        type: SECRET
+      - key: APP_URL
+        value: https://api.${_self.DOMAIN}
+      - key: FRONTEND_URL
+        value: https://${frontend.DOMAIN}
+      - key: SANCTUM_STATEFUL_DOMAINS
+        value: ${frontend.DOMAIN}
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        value: ${semestra-db.HOSTNAME}
+      - key: DB_PORT
+        value: ${semestra-db.PORT}
+      - key: DB_DATABASE
+        value: ${semestra-db.DATABASE}
+      - key: DB_USERNAME
+        value: ${semestra-db.USERNAME}
+      - key: DB_PASSWORD
+        type: SECRET
+        value: ${semestra-db.PASSWORD}
+      - key: REDIS_HOST
+        value: ${semestra-redis.HOSTNAME}
+      - key: REDIS_PORT
+        value: ${semestra-redis.PORT}
+      - key: REDIS_PASSWORD
+        type: SECRET
+        value: ${semestra-redis.PASSWORD}
+      - key: FILESYSTEM_DISK
+        value: spaces
+      - key: DO_SPACES_KEY
+        type: SECRET
+      - key: DO_SPACES_SECRET
+        type: SECRET
+      - key: DO_SPACES_ENDPOINT
+        type: SECRET
+      - key: DO_SPACES_REGION
+        type: SECRET
+      - key: DO_SPACES_BUCKET
+        type: SECRET
+      - key: OPENAI_API_KEY
+        type: SECRET
+
+  - name: queue
+    github:
+      repo: keirara04/Semestra
+      branch: main
+      deploy_on_push: true
+    source_dir: backend
+    dockerfile_path: backend/Dockerfile
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+    run_command: php artisan queue:work --tries=3
+    envs:
+      - key: APP_ENV
+        value: production
+      - key: APP_KEY
+        type: SECRET
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        value: ${semestra-db.HOSTNAME}
+      - key: DB_PORT
+        value: ${semestra-db.PORT}
+      - key: DB_DATABASE
+        value: ${semestra-db.DATABASE}
+      - key: DB_USERNAME
+        value: ${semestra-db.USERNAME}
+      - key: DB_PASSWORD
+        type: SECRET
+        value: ${semestra-db.PASSWORD}
+      - key: REDIS_HOST
+        value: ${semestra-redis.HOSTNAME}
+      - key: REDIS_PORT
+        value: ${semestra-redis.PORT}
+      - key: REDIS_PASSWORD
+        type: SECRET
+        value: ${semestra-redis.PASSWORD}
+
+jobs:
+  - name: migrate
+    kind: PRE_DEPLOY
+    github:
+      repo: keirara04/Semestra
+      branch: main
+    source_dir: backend
+    dockerfile_path: backend/Dockerfile
+    run_command: php artisan migrate --force
+    envs:
+      - key: APP_ENV
+        value: production
+      - key: APP_KEY
+        type: SECRET
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        value: ${semestra-db.HOSTNAME}
+      - key: DB_PORT
+        value: ${semestra-db.PORT}
+      - key: DB_DATABASE
+        value: ${semestra-db.DATABASE}
+      - key: DB_USERNAME
+        value: ${semestra-db.USERNAME}
+      - key: DB_PASSWORD
+        type: SECRET
+        value: ${semestra-db.PASSWORD}

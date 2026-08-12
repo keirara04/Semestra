@@ -1,0 +1,9 @@
+# Local dev only — full node_modules, source bind-mounted by docker-compose,
+# hot reload via `next dev`. Not used in production.
+
+FROM node:20-alpine
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+EXPOSE 3000
+CMD ["npm", "run", "dev"]

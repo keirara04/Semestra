@@ -16,6 +16,12 @@ return Application::configure(basePath: dirname(__DIR__))
         // Sanctum SPA token auth for the separate Next.js frontend — see
         // Technical direction / Hosting and domain in the plan.
         $middleware->statefulApi();
+
+        // JSON API only, no Blade login view/route — without this, an
+        // unauthenticated request without an explicit Accept: application/json
+        // header 500s trying to redirect to a nonexistent "login" route
+        // instead of returning 401.
+        $middleware->redirectGuestsTo(fn () => null);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
