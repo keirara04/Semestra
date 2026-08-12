@@ -3,8 +3,8 @@
 
 FROM php:8.4-cli-alpine
 
-RUN apk add --no-cache postgresql-dev $PHPIZE_DEPS \
-    && docker-php-ext-install pdo pdo_pgsql bcmath pcntl
+RUN apk add --no-cache postgresql-dev icu-dev icu-libs $PHPIZE_DEPS \
+    && docker-php-ext-install pdo pdo_pgsql bcmath pcntl intl
 
 WORKDIR /app
 

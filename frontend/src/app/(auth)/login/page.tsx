@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { AppleIcon, EyeIcon, GoogleIcon } from "@/components/auth/icons";
 
 export default function LoginPage() {
   const { login } = useAuth();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -29,37 +31,79 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 px-4">
-      <h1 className="text-2xl font-semibold">Log in</h1>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          required
-          className="rounded border px-3 py-2"
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          required
-          className="rounded border px-3 py-2"
-        />
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          type="submit"
-          disabled={submitting}
-          className="rounded bg-black px-3 py-2 text-white disabled:opacity-50"
-        >
-          {submitting ? "Logging in…" : "Log in"}
+    <div>
+      <p className="fn-eyebrow">Welcome back</p>
+      <div className="fn-divider-accent mt-2" />
+
+      <div className="mt-8 flex flex-col gap-3">
+        <button type="button" className="fn-oauth-btn">
+          <GoogleIcon className="h-5 w-5" />
+          Continue with Google
+        </button>
+        <button type="button" className="fn-oauth-btn">
+          <AppleIcon className="h-5 w-5" />
+          Continue with Apple
+        </button>
+      </div>
+
+      <div className="fn-mono my-7 flex items-center gap-4 text-xs tracking-wider text-[var(--fn-muted)] uppercase">
+        <span className="h-px flex-1 bg-[var(--fn-rule)]" />
+        Or use email
+        <span className="h-px flex-1 bg-[var(--fn-rule)]" />
+      </div>
+
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <label className="flex flex-col gap-2">
+          <span className="fn-label">Email address</span>
+          <input
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            required
+            autoComplete="email"
+            className="fn-input"
+          />
+        </label>
+
+        <label className="flex flex-col gap-2">
+          <span className="fn-label">Password</span>
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              required
+              autoComplete="current-password"
+              className="fn-input pr-11"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((value) => !value)}
+              className="absolute top-1/2 right-3 -translate-y-1/2 text-[var(--fn-muted)]"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              <EyeIcon open={showPassword} className="h-5 w-5" />
+            </button>
+          </div>
+        </label>
+
+        {error && (
+          <p role="alert" className="text-sm text-[var(--fn-oxide)]">
+            {error}
+          </p>
+        )}
+
+        <button type="submit" disabled={submitting} className="fn-btn-primary">
+          {submitting ? "Signing in…" : "Sign in"}
         </button>
       </form>
-      <p className="text-sm">
-        Need an account? <Link href="/register" className="underline">Register</Link>
+
+      <p className="mt-6 text-sm text-[var(--fn-muted)]">
+        New to Semestra?{" "}
+        <Link href="/register" className="text-[var(--fn-cobalt)] underline underline-offset-2">
+          Create an account
+        </Link>
       </p>
-    </main>
+    </div>
   );
 }

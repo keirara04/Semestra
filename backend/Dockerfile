@@ -10,8 +10,9 @@ RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
 
 FROM php:8.4-fpm-alpine AS runtime
 
-RUN apk add --no-cache nginx supervisor postgresql-dev \
-    && docker-php-ext-install pdo pdo_pgsql bcmath pcntl opcache \
+RUN apk add --no-cache nginx supervisor postgresql-dev icu-dev icu-libs $PHPIZE_DEPS \
+    && docker-php-ext-install pdo pdo_pgsql bcmath pcntl opcache intl \
+    && apk del icu-dev $PHPIZE_DEPS \
     && mkdir -p /run/php /run/nginx
 
 WORKDIR /app

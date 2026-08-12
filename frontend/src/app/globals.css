@@ -24,3 +24,174 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ============================================================
+   Field Notes — Semestra's design system (see mdfile/DESIGN.md)
+   Scoped to .fn so it doesn't leak into pages not yet restyled.
+   ============================================================ */
+
+.fn {
+  --fn-canvas: #efede7;
+  --fn-paper: #f8f7f3;
+  --fn-ink: #222933;
+  --fn-muted: #68707b;
+  --fn-rule: #cdd0cf;
+  --fn-sidebar: #20262e;
+  --fn-cobalt: #2857a0;
+  --fn-oxide: #ae4d40;
+  --fn-sage: #64816c;
+  --fn-ochre: #b68a2c;
+
+  background: var(--fn-canvas);
+  color: var(--fn-ink);
+  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  min-height: 100vh;
+}
+
+.fn-mono {
+  font-family: var(--font-ibm-plex-mono), ui-monospace, SFMono-Regular, monospace;
+}
+
+.fn-hand {
+  font-family: var(--font-caveat), cursive;
+}
+
+/* Ledger-ruled paper: faint horizontal rules + a red margin line. */
+.fn-sheet {
+  background-color: var(--fn-paper);
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 31px,
+    var(--fn-rule) 31px,
+    var(--fn-rule) 32px
+  );
+}
+
+.fn-margin::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: clamp(2rem, 8vw, 6rem);
+  width: 1px;
+  background: var(--fn-oxide);
+  opacity: 0.55;
+}
+
+.fn-eyebrow {
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fn-oxide);
+}
+
+.fn-divider-accent {
+  height: 2px;
+  width: 3rem;
+  background: var(--fn-oxide);
+}
+
+.fn-label {
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  font-size: 0.8rem;
+  color: var(--fn-ink);
+}
+
+.fn-input {
+  border: 1px solid var(--fn-rule);
+  border-radius: 6px;
+  background: var(--fn-paper);
+  padding: 0.7rem 0.9rem;
+  font-size: 0.95rem;
+  color: var(--fn-ink);
+  width: 100%;
+  transition: border-color 0.15s ease;
+}
+
+.fn-input:focus-visible {
+  outline: 2px solid var(--fn-cobalt);
+  outline-offset: 1px;
+  border-color: var(--fn-cobalt);
+}
+
+.fn-oauth-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  width: 100%;
+  border: 1px solid var(--fn-rule);
+  border-radius: 6px;
+  background: #ffffff;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--fn-ink);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.fn-oauth-btn:hover {
+  border-color: var(--fn-muted);
+}
+
+.fn-oauth-btn:focus-visible {
+  outline: 2px solid var(--fn-cobalt);
+  outline-offset: 2px;
+}
+
+.fn-btn-primary {
+  width: 100%;
+  border-radius: 6px;
+  background: var(--fn-cobalt);
+  padding: 0.8rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #ffffff;
+  transition: opacity 0.15s ease;
+}
+
+.fn-btn-primary:hover {
+  opacity: 0.92;
+}
+
+.fn-btn-primary:disabled {
+  opacity: 0.5;
+}
+
+.fn-btn-primary:focus-visible {
+  outline: 2px solid var(--fn-ink);
+  outline-offset: 2px;
+}
+
+.fn-step-connector {
+  width: 1px;
+  flex: 1;
+  background: var(--fn-oxide);
+  opacity: 0.5;
+}
+
+.fn-step-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  border: 1.5px solid var(--fn-oxide);
+  color: var(--fn-oxide);
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  font-weight: 600;
+  font-size: 0.9rem;
+  background: var(--fn-paper);
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fn-oauth-btn,
+  .fn-btn-primary {
+    transition: none;
+  }
+}
