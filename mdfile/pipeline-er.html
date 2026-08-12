@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Semestra · Planning pipeline ER model (Laravel/PostgreSQL)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #f5f5f5;
+      --color-ink:     #2d3142;
+      --color-muted:   #4f5d75;
+      --color-accent:  #eb6c36;
+      --font-sans:     'Geist', system-ui, sans-serif;
+      --font-serif:    'Instrument Serif', serif;
+      --font-mono:     'Geist Mono', ui-monospace, monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+
+    .frame { max-width: 1200px; width: 100%; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.5rem;
+    }
+
+    svg { width: 100%; min-width: 900px; display: block; }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">ER · Semestra · Laravel + PostgreSQL (DigitalOcean)</p>
+    <h1>Planning pipeline · data model</h1>
+
+    <svg viewBox="0 0 1000 800" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+            <circle cx="1" cy="1" r="0.9" fill="rgba(45,49,66,0.10)"/>
+          </pattern>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#f5f5f5"/>
+        <rect width="100%" height="100%" fill="url(#dots)" opacity="0.5"/>
+
+        <!-- ===== Relationship lines (drawn first) ===== -->
+
+        <!-- C1: Course -> Assessment (1:N, straight) -->
+        <line x1="260" y1="150" x2="340" y2="150" stroke="#4f5d75" stroke-width="1"/>
+        <!-- C2: Assessment -> GradeItem (0..1:1, straight) -->
+        <line x1="580" y1="170" x2="660" y2="170" stroke="#4f5d75" stroke-width="1"/>
+        <!-- C3: Assessment -> Task (1:N, straight vertical) -->
+        <line x1="460" y1="240" x2="460" y2="280" stroke="#4f5d75" stroke-width="1"/>
+        <!-- C4: Topic -> Task (1:N, straight) -->
+        <line x1="260" y1="340" x2="340" y2="340" stroke="#4f5d75" stroke-width="1"/>
+        <!-- C5: Course -> Task (1:N, elbow, "SCHEDULES") -->
+        <path d="M 160,220 V 242 Q 160,250 168,250 H 392 Q 400,250 400,258 V 280" fill="none" stroke="#4f5d75" stroke-width="1"/>
+        <!-- C6: StudyPlan -> CalendarBlock (1:N, elbow, "PRODUCES") -->
+        <path d="M 760,400 V 492 Q 760,500 752,500 H 408 Q 400,500 400,508 V 520" fill="none" stroke="#4f5d75" stroke-width="1"/>
+        <!-- C7: Task -> CalendarBlock (1:N, straight vertical) -->
+        <line x1="460" y1="480" x2="460" y2="520" stroke="#4f5d75" stroke-width="1"/>
+        <!-- C8: CalendarBlock -> StudySession (1:0..1, straight) -->
+        <line x1="580" y1="560" x2="660" y2="560" stroke="#4f5d75" stroke-width="1"/>
+
+        <!-- ===== Cardinality tags ===== -->
+
+        <!-- C1 -->
+        <rect x="266" y="142" width="12" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="272" y="152" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">1</text>
+        <rect x="322" y="142" width="16" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="330" y="152" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">N</text>
+
+        <!-- C2 -->
+        <rect x="586" y="162" width="30" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="601" y="172" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">0..1</text>
+        <rect x="642" y="162" width="16" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="650" y="172" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">1</text>
+
+        <!-- C3 -->
+        <rect x="446" y="216" width="16" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="454" y="226" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">1</text>
+        <rect x="446" y="284" width="16" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="454" y="294" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">N</text>
+
+        <!-- C4 -->
+        <rect x="266" y="322" width="16" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="274" y="332" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">1</text>
+        <rect x="320" y="322" width="16" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="328" y="332" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">N</text>
+
+        <!-- C5 -->
+        <rect x="166" y="204" width="16" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="174" y="214" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">1</text>
+        <rect x="384" y="262" width="16" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="392" y="272" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">N</text>
+        <rect x="216" y="234" width="72" height="14" rx="2" fill="#f5f5f5"/>
+        <text x="252" y="244" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.1em">SCHEDULES</text>
+
+        <!-- C6 -->
+        <rect x="766" y="404" width="16" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="774" y="414" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">1</text>
+        <rect x="384" y="504" width="16" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="392" y="514" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">N</text>
+        <rect x="560" y="466" width="72" height="14" rx="2" fill="#f5f5f5"/>
+        <text x="596" y="476" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.1em">PRODUCES</text>
+
+        <!-- C7 -->
+        <rect x="446" y="456" width="16" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="454" y="466" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">1</text>
+        <rect x="446" y="524" width="16" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="454" y="534" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">N</text>
+
+        <!-- C8 -->
+        <rect x="586" y="552" width="16" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="594" y="562" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">1</text>
+        <rect x="628" y="552" width="30" height="12" rx="2" fill="#f5f5f5"/>
+        <text x="643" y="562" fill="#4f5d75" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" font-weight="600">0..1</text>
+
+        <!-- ===== Entity: Course ===== -->
+        <rect x="60" y="80" width="200" height="140" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <rect x="60" y="80" width="200" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+        <rect x="60" y="112" width="200" height="8" fill="rgba(45,49,66,0.04)"/>
+        <line x1="60" y1="120" x2="260" y2="120" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+        <text x="76" y="96" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">ENTITY</text>
+        <text x="76" y="112" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">Course</text>
+        <text x="76" y="140" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace"># id</text>
+        <text x="244" y="140" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+        <text x="76" y="160" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">title</text>
+        <text x="244" y="160" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">text</text>
+        <text x="76" y="180" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">code</text>
+        <text x="244" y="180" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">text</text>
+        <text x="76" y="200" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">colour</text>
+        <text x="244" y="200" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">hex</text>
+
+        <!-- ===== Entity: Assessment ===== -->
+        <rect x="340" y="80" width="240" height="160" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <rect x="340" y="80" width="240" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+        <rect x="340" y="112" width="240" height="8" fill="rgba(45,49,66,0.04)"/>
+        <line x1="340" y1="120" x2="580" y2="120" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+        <text x="356" y="96" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">ENTITY</text>
+        <text x="356" y="112" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">Assessment</text>
+        <text x="356" y="140" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace"># id</text>
+        <text x="564" y="140" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+        <text x="356" y="160" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ course_id</text>
+        <text x="564" y="160" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+        <text x="356" y="180" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">due_date</text>
+        <text x="564" y="180" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">timestamptz</text>
+        <text x="356" y="200" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ grade_item_id</text>
+        <text x="564" y="200" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid?</text>
+        <text x="356" y="220" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">status</text>
+        <text x="564" y="220" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">string · enum</text>
+
+        <!-- ===== Entity: GradeItem ===== -->
+        <rect x="660" y="80" width="200" height="140" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <rect x="660" y="80" width="200" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+        <rect x="660" y="112" width="200" height="8" fill="rgba(45,49,66,0.04)"/>
+        <line x1="660" y1="120" x2="860" y2="120" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+        <text x="676" y="96" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">ENTITY</text>
+        <text x="676" y="112" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">GradeItem</text>
+        <text x="676" y="140" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace"># id</text>
+        <text x="844" y="140" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+        <text x="676" y="160" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">weighting</text>
+        <text x="844" y="160" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">decimal</text>
+        <text x="676" y="180" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">achieved_score</text>
+        <text x="844" y="180" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">decimal?</text>
+        <text x="676" y="200" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">expected_score</text>
+        <text x="844" y="200" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">decimal?</text>
+
+        <!-- ===== Entity: Topic ===== -->
+        <rect x="60" y="280" width="200" height="140" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <rect x="60" y="280" width="200" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+        <rect x="60" y="312" width="200" height="8" fill="rgba(45,49,66,0.04)"/>
+        <line x1="60" y1="320" x2="260" y2="320" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+        <text x="76" y="296" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">ENTITY</text>
+        <text x="76" y="312" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">Topic</text>
+        <text x="76" y="340" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace"># id</text>
+        <text x="244" y="340" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+        <text x="76" y="360" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ course_id</text>
+        <text x="244" y="360" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+        <text x="76" y="380" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">confidence</text>
+        <text x="244" y="380" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">string · enum</text>
+        <text x="76" y="400" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">next_review_at</text>
+        <text x="244" y="400" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">date</text>
+
+        <!-- ===== Entity: Task (FOCAL — the only schedulable unit) ===== -->
+        <rect x="340" y="280" width="240" height="200" rx="6" fill="rgba(235,108,54,0.04)" stroke="#eb6c36" stroke-width="1"/>
+        <rect x="340" y="280" width="240" height="40" rx="6" fill="rgba(235,108,54,0.10)" stroke="none"/>
+        <rect x="340" y="312" width="240" height="8" fill="rgba(235,108,54,0.10)"/>
+        <line x1="340" y1="320" x2="580" y2="320" stroke="rgba(235,108,54,0.40)" stroke-width="1"/>
+        <text x="356" y="296" fill="#eb6c36" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">ENTITY · AGGREGATE ROOT</text>
+        <text x="356" y="312" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">Task</text>
+        <text x="356" y="340" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace"># id</text>
+        <text x="564" y="340" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+        <text x="356" y="360" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ course_id</text>
+        <text x="564" y="360" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+        <text x="356" y="380" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ assessment_id</text>
+        <text x="564" y="380" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid?</text>
+        <text x="356" y="400" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ topic_id</text>
+        <text x="564" y="400" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid?</text>
+        <text x="356" y="420" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">remaining_estimate_min</text>
+        <text x="564" y="420" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">int</text>
+        <text x="356" y="440" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">priority_score</text>
+        <text x="564" y="440" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">decimal</text>
+        <text x="356" y="460" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">status</text>
+        <text x="564" y="460" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">string · enum</text>
+
+        <!-- ===== Entity: StudyPlan ===== -->
+        <rect x="660" y="280" width="200" height="120" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <rect x="660" y="280" width="200" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+        <rect x="660" y="312" width="200" height="8" fill="rgba(45,49,66,0.04)"/>
+        <line x1="660" y1="320" x2="860" y2="320" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+        <text x="676" y="296" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">ENTITY</text>
+        <text x="676" y="312" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">StudyPlan</text>
+        <text x="676" y="340" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace"># id</text>
+        <text x="844" y="340" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+        <text x="676" y="360" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">planner_run_id</text>
+        <text x="844" y="360" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+        <text x="676" y="380" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">generated_at</text>
+        <text x="844" y="380" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">timestamptz</text>
+
+        <!-- ===== Entity: CalendarBlock ===== -->
+        <rect x="340" y="520" width="240" height="160" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <rect x="340" y="520" width="240" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+        <rect x="340" y="552" width="240" height="8" fill="rgba(45,49,66,0.04)"/>
+        <line x1="340" y1="560" x2="580" y2="560" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+        <text x="356" y="536" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">ENTITY</text>
+        <text x="356" y="552" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">CalendarBlock</text>
+        <text x="356" y="580" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace"># id</text>
+        <text x="564" y="580" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+        <text x="356" y="600" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ task_id</text>
+        <text x="564" y="600" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid?</text>
+        <text x="356" y="620" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">type</text>
+        <text x="564" y="620" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">string · enum</text>
+        <text x="356" y="640" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">status</text>
+        <text x="564" y="640" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">string · enum</text>
+        <text x="356" y="660" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">start_at</text>
+        <text x="564" y="660" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">timestamptz</text>
+
+        <!-- ===== Entity: StudySession ===== -->
+        <rect x="660" y="520" width="200" height="140" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <rect x="660" y="520" width="200" height="40" rx="6" fill="rgba(45,49,66,0.04)" stroke="none"/>
+        <rect x="660" y="552" width="200" height="8" fill="rgba(45,49,66,0.04)"/>
+        <line x1="660" y1="560" x2="860" y2="560" stroke="rgba(45,49,66,0.22)" stroke-width="1"/>
+        <text x="676" y="536" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.14em">ENTITY</text>
+        <text x="676" y="552" fill="#2d3142" font-size="14" font-weight="600" font-family="'Geist', sans-serif">StudySession</text>
+        <text x="676" y="580" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace"># id</text>
+        <text x="844" y="580" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+        <text x="676" y="600" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">→ calendar_block_id</text>
+        <text x="844" y="600" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">uuid</text>
+        <text x="676" y="620" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">actual_minutes</text>
+        <text x="844" y="620" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">int</text>
+        <text x="676" y="640" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace">outcome</text>
+        <text x="844" y="640" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" text-anchor="end">string · enum</text>
+
+        <!-- ===== Legend ===== -->
+        <line x1="40" y1="716" x2="960" y2="716" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+        <text x="40" y="732" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.18em">LEGEND</text>
+
+        <rect x="40" y="748" width="14" height="10" rx="2" fill="rgba(235,108,54,0.04)" stroke="#eb6c36" stroke-width="1"/>
+        <text x="60" y="756" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Aggregate root</text>
+
+        <rect x="180" y="748" width="14" height="10" rx="2" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+        <text x="200" y="756" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Entity</text>
+
+        <text x="284" y="756" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace" font-weight="600">#</text>
+        <text x="300" y="756" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Primary key</text>
+
+        <text x="392" y="756" fill="#2d3142" font-size="10" font-family="'Geist Mono', monospace" font-weight="600">→</text>
+        <text x="408" y="756" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Foreign key</text>
+
+        <text x="500" y="756" fill="#4f5d75" font-size="10" font-family="'Geist Mono', monospace" font-weight="600">1 / N</text>
+        <text x="532" y="756" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif">Cardinality</text>
+
+        <text x="644" y="756" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif" font-style="italic">Task is the only schedulable unit — Assessment, Topic, and Course work all converge into it.</text>
+
+        <text x="40" y="780" fill="#4f5d75" font-size="8" font-family="'Geist Mono', monospace" letter-spacing="0.1em">STACK</text>
+        <text x="112" y="780" fill="#4f5d75" font-size="8.5" font-family="'Geist', sans-serif" font-style="italic">Eloquent models on DigitalOcean Managed PostgreSQL · uuid primary/foreign keys via Laravel's HasUuids trait · enum columns stored as string, cast to PHP backed enums.</text>
+      </svg>
+  </div>
+</body>
+</html>
