@@ -10,6 +10,7 @@ use App\Engine\Planning\FeasibilityCalculator;
 use App\Engine\Planning\TaskDemandInput;
 use App\Engine\Ranking\RankingCalculator;
 use App\Engine\Ranking\TaskRankingInput;
+use App\Engine\Revision\RevisionScheduler;
 use App\Http\Controllers\Concerns\BuildsCapacityInputs;
 use App\Models\CalendarBlock;
 use App\Models\StudyPlan;
@@ -44,7 +45,12 @@ class PlanningRunner
         $timezone = new DateTimeZone($user->timezone);
         $today = Carbon::now($timezone)->format('Y-m-d');
 
-        $openTasks = Task::with(['assessment.gradeItem', 'dependsOnTask'])
+        // Generate/maintain due revision tasks before the ranking queue is
+        // built — "revision items ... enter the same ranking queue as
+        // assessment tasks, not a separate silo."
+        app(RevisionPlanner::class)->plan($user, app(RevisionScheduler::class));
+
+        $openTasks = Task::with(['assessment.gradeItem', 'dependsOnTask', 'topic'])
             ->where('status', 'open')
             ->get();
 
@@ -98,7 +104,8 @@ class PlanningRunner
                 $task->estimate_confidence,
                 $task->updated_at->format('Y-m-d'),
                 $today,
-                false,
+                $task->topic?->confidence,
+                $task->topic?->last_reviewed_at?->format('Y-m-d'),
             );
         })->all();
 

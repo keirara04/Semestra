@@ -9,8 +9,10 @@ use App\Http\Controllers\ClassSessionExceptionController;
 use App\Http\Controllers\CommitmentController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\CourseGradesController;
+use App\Http\Controllers\ExamReadinessController;
 use App\Http\Controllers\GradeCategoryController;
 use App\Http\Controllers\GradeItemController;
+use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\MilestoneController;
 use App\Http\Controllers\PlanningFeasibilityController;
 use App\Http\Controllers\PlanningRankingController;
@@ -22,6 +24,7 @@ use App\Http\Controllers\StudySessionController;
 use App\Http\Controllers\SubmissionController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TodayController;
+use App\Http\Controllers\TopicController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -54,6 +57,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('grade-categories', GradeCategoryController::class);
     Route::apiResource('grade-items', GradeItemController::class);
     Route::apiResource('assessments', AssessmentController::class);
+    // Academic Intelligence Phase D — Exam mode. Thin controller over
+    // App\Engine\Exam (pure PHP, fixture-tested separately).
+    Route::get('/assessments/{assessment}/readiness', ExamReadinessController::class);
     Route::apiResource('milestones', MilestoneController::class);
     Route::apiResource('tasks', TaskController::class);
     Route::apiResource('submissions', SubmissionController::class);
@@ -86,4 +92,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Planning Engine Phase E — Plan stability + runs.
     Route::get('/planning/plans/latest', [StudyPlanController::class, 'latest']);
+
+    // Academic Intelligence Phase A — Materials library.
+    Route::apiResource('materials', MaterialController::class);
+
+    // Academic Intelligence Phase B — Topics + confidence.
+    Route::apiResource('topics', TopicController::class);
 });

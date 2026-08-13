@@ -2,8 +2,9 @@
 
 import { use, useEffect, useState, type FormEvent } from "react";
 import { apiFetch, ApiError } from "@/lib/api";
-import type { Assessment, AssessmentStatus, Milestone } from "@/lib/types";
+import type { Assessment, AssessmentStatus, ExamReadiness, Milestone, Topic } from "@/lib/types";
 import { formatMinutes } from "@/lib/format";
+import { ConfidenceBar } from "@/components/Confidence";
 
 const STATUSES: AssessmentStatus[] = ["not_started", "in_progress", "blocked", "done"];
 
@@ -88,6 +89,10 @@ export default function AssessmentDetailPage({
         onChange={(milestones) => setAssessment((current) => (current ? { ...current, milestones } : current))}
       />
 
+      {assessment.type === "exam" && (
+        <ExamMode assessmentId={assessment.id} courseId={assessment.course_id} />
+      )}
+
       {error && (
         <p role="alert" className="mt-4 text-sm text-[var(--fn-oxide)]">
           {error}
@@ -144,7 +149,7 @@ function MilestonesSection({
           <li key={milestone.id} className="flex items-center gap-3 py-2 text-sm">
             <input
               type="checkbox"
-              checked={milestone.done}
+              checked={!!milestone.done}
               onChange={() => toggleDone(milestone)}
               className="h-4 w-4 accent-[var(--fn-cobalt)]"
             />
@@ -181,6 +186,112 @@ function MilestonesSection({
           Add
         </button>
       </form>
+    </div>
+  );
+}
+
+function formatReadiness(percent: number | null): string {
+  return percent === null ? "—" : `${Math.round(percent)}%`;
+}
+
+// Exam mode — see "Exam mode" in mdfile/semester-command-center.md.
+// Readiness is the one large number on screen, always with its
+// constituent topics available on expand (which ones are dragging it
+// down) — never an unexplained number.
+function ExamMode({ assessmentId, courseId }: { assessmentId: number; courseId: number }) {
+  const [readiness, setReadiness] = useState<ExamReadiness | null>(null);
+  const [courseTopics, setCourseTopics] = useState<Topic[]>([]);
+
+  function load() {
+    apiFetch<ExamReadiness>(`/api/assessments/${assessmentId}/readiness`).then(setReadiness);
+    apiFetch<Topic[]>("/api/topics").then((list) =>
+      setCourseTopics(list.filter((topic) => topic.course_id === courseId)),
+    );
+  }
+
+  useEffect(load, [assessmentId, courseId]);
+
+  async function toggleLinked(topic: Topic) {
+    const currentIds = topic.assessments?.map((a) => a.id) ?? [];
+    const linked = currentIds.includes(assessmentId);
+    const nextIds = linked
+      ? currentIds.filter((id) => id !== assessmentId)
+      : [...currentIds, assessmentId];
+
+    await apiFetch(`/api/topics/${topic.id}`, {
+      method: "PUT",
+      body: JSON.stringify({ assessment_ids: nextIds }),
+    });
+    load();
+  }
+
+  if (!readiness) return null;
+
+  const linkedTopicIds = new Set(readiness.topics.map((t) => t.id));
+
+  return (
+    <div className="mt-8 border-t border-[var(--fn-rule)] pt-6">
+      <p className="fn-eyebrow">Exam mode</p>
+
+      <div className="mt-3 flex items-baseline gap-3">
+        <span className="fn-mono text-4xl font-semibold">{formatReadiness(readiness.readiness_percent)}</span>
+        <span className="text-sm text-[var(--fn-muted)]">readiness</span>
+        {readiness.days_remaining >= 0 && (
+          <span className="fn-mono text-xs text-[var(--fn-muted)]">
+            {readiness.days_remaining} day{readiness.days_remaining === 1 ? "" : "s"} remaining
+          </span>
+        )}
+      </div>
+
+      {readiness.suggested_pace_minutes_per_day !== null && (
+        <p className="mt-2 text-sm text-[var(--fn-muted)]">
+          Suggested pace: {formatMinutes(Math.round(readiness.suggested_pace_minutes_per_day))}/day
+        </p>
+      )}
+
+      <p className="fn-eyebrow mt-6">Coverage</p>
+      <ul className="mt-3 flex flex-col divide-y divide-[var(--fn-rule)]">
+        {courseTopics
+          .filter((topic) => linkedTopicIds.has(topic.id))
+          .map((topic) => (
+            <li key={topic.id} className="flex items-center justify-between gap-3 py-2 text-sm">
+              <span className="min-w-0 flex-1 truncate">{topic.title}</span>
+              <ConfidenceBar confidence={topic.confidence} />
+              <button
+                type="button"
+                onClick={() => toggleLinked(topic)}
+                className="shrink-0 text-[11px] text-[var(--fn-oxide)] underline underline-offset-2"
+              >
+                Remove
+              </button>
+            </li>
+          ))}
+        {readiness.topics.length === 0 && (
+          <li className="py-2 text-sm text-[var(--fn-muted)]">
+            No topics linked yet — add some below.
+          </li>
+        )}
+      </ul>
+
+      {courseTopics.some((topic) => !linkedTopicIds.has(topic.id)) && (
+        <div className="mt-4">
+          <p className="fn-label">Add coverage</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {courseTopics
+              .filter((topic) => !linkedTopicIds.has(topic.id))
+              .map((topic) => (
+                <button
+                  key={topic.id}
+                  type="button"
+                  onClick={() => toggleLinked(topic)}
+                  className="rounded-full border border-[var(--fn-rule)] px-3 py-1 text-xs hover:bg-[var(--fn-canvas)]"
+                >
+                  + {topic.title}
+                </button>
+              ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

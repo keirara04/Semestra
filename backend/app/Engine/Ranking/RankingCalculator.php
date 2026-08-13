@@ -16,9 +16,6 @@ use DateTimeImmutable;
  * weighting directly as the impact proxy, not weighting × gap-to-target —
  * computing a live gap-to-target would mean re-running the grade tracker
  * per course on every ranking call. Documented simplification, not a bug.
- * revision_need is always 0 — RevisionItem/Topic don't exist until
- * Academic Intelligence ships; the parameter exists so this doesn't need
- * reshaping later.
  */
 final class RankingCalculator
 {
@@ -41,9 +38,7 @@ final class RankingCalculator
         $academicImpact = $this->academicImpact($task);
         $effortRisk = $this->effortRisk($task);
         $staleness = $this->staleness($task);
-        // Always 0 until Academic Intelligence ships Topic/RevisionItem —
-        // there's no confidence/days-since-review data to compute from yet.
-        $revisionNeed = 0.0;
+        $revisionNeed = $this->revisionNeed($task);
 
         $factors = new RankingFactors($urgency, $academicImpact, $effortRisk, $staleness, $revisionNeed);
 
@@ -106,6 +101,27 @@ final class RankingCalculator
         return RankingConstants::clamp(($daysSinceTouched / $runwayDays) * 100);
     }
 
+    private function revisionNeed(TaskRankingInput $task): float
+    {
+        if ($task->topicConfidence === null) {
+            return 0.0;
+        }
+
+        $confidenceScore = RankingConstants::REVISION_CONFIDENCE_SCORE[$task->topicConfidence]
+            ?? RankingConstants::REVISION_CONFIDENCE_DEFAULT;
+
+        if ($task->topicLastReviewedAt === null) {
+            $recencyScore = 100.0;
+        } else {
+            $now = new DateTimeImmutable($task->now);
+            $lastReviewed = new DateTimeImmutable($task->topicLastReviewedAt);
+            $daysSinceReviewed = max(0, $now->diff($lastReviewed)->days);
+            $recencyScore = RankingConstants::clamp(($daysSinceReviewed / RankingConstants::REVISION_RECENCY_REFERENCE_DAYS) * 100);
+        }
+
+        return RankingConstants::clamp(($confidenceScore + $recencyScore) / 2);
+    }
+
     /**
      * @return string[]
      */
@@ -127,6 +143,10 @@ final class RankingCalculator
 
         if ($factors->staleness >= 60) {
             $reasons[] = 'Not worked on in a while relative to time left: rising staleness.';
+        }
+
+        if ($factors->revisionNeed >= 60) {
+            $reasons[] = 'Confidence is low and it has been a while since review: due for revision.';
         }
 
         if (count($reasons) === 0) {

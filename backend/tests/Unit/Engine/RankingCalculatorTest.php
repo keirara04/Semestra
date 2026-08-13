@@ -59,7 +59,8 @@ class RankingCalculatorTest extends TestCase
                 $task['estimate_confidence'],
                 $task['last_touched_at'],
                 $data['now'],
-                $task['is_revision_linked'],
+                $task['topic_confidence'],
+                $task['topic_last_reviewed_at'],
             ),
             $data['tasks'],
         );
@@ -74,6 +75,7 @@ class RankingCalculatorTest extends TestCase
             'urgency high' => ['ranking_urgency_high'],
             'no due date' => ['ranking_no_due_date'],
             'high impact low confidence' => ['ranking_high_impact_low_confidence'],
+            'revision linked low confidence' => ['ranking_revision_linked_low_confidence'],
         ];
     }
 }

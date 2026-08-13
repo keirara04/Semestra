@@ -44,6 +44,11 @@ class Task extends Model
         return $this->belongsTo(Task::class, 'depends_on_task_id');
     }
 
+    public function topic(): BelongsTo
+    {
+        return $this->belongsTo(Topic::class);
+    }
+
     /**
      * True if setting $task's dependency to $dependsOnId would close a
      * cycle — walks the candidate's dependency chain looking for $task's

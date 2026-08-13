@@ -37,6 +37,42 @@ export interface Course {
   grade_target: string | null;
 }
 
+export interface ExamReadiness {
+  readiness_percent: number | null;
+  target_minutes_remaining: number;
+  suggested_pace_minutes_per_day: number | null;
+  days_remaining: number;
+  topics: { id: number; title: string; confidence: Topic["confidence"] }[];
+}
+
+export interface Topic {
+  id: number;
+  course_id: number;
+  title: string;
+  confidence: "not_started" | "learning" | "comfortable" | "confident";
+  last_reviewed_at: string | null;
+  next_review_at: string | null;
+  assessments?: { id: number; title: string }[];
+  materials?: { id: number; title: string }[];
+}
+
+export type MaterialType = "slide" | "pdf" | "reading" | "recording" | "link";
+
+export interface Material {
+  id: number;
+  course_id: number;
+  type: MaterialType;
+  title: string;
+  disk: string | null;
+  path: string | null;
+  url: string | null;
+  file_url: string | null;
+  week: number | null;
+  mime_type: string | null;
+  size_bytes: number | null;
+  assessments?: { id: number; title: string }[];
+}
+
 export type ClassSessionType = "lecture" | "tutorial" | "lab" | "exam";
 
 export interface ClassSession {

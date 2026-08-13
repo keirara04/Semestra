@@ -6,6 +6,8 @@ FROM php:8.4-cli-alpine
 RUN apk add --no-cache postgresql-dev icu-dev icu-libs $PHPIZE_DEPS \
     && docker-php-ext-install pdo pdo_pgsql bcmath pcntl intl
 
+COPY docker/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
+
 WORKDIR /app
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

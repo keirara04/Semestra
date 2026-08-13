@@ -45,4 +45,14 @@ class Course extends Model
     {
         return $this->hasMany(Assessment::class);
     }
+
+    public function materials(): HasMany
+    {
+        return $this->hasMany(Material::class);
+    }
+
+    public function topics(): HasMany
+    {
+        return $this->hasMany(Topic::class);
+    }
 }

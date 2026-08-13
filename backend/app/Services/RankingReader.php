@@ -33,7 +33,7 @@ class RankingReader
         $timezone = new DateTimeZone($user->timezone);
         $today = Carbon::now($timezone)->format('Y-m-d');
 
-        $openTasks = Task::with('assessment.gradeItem')->where('status', 'open')->get();
+        $openTasks = Task::with(['assessment.gradeItem', 'topic'])->where('status', 'open')->get();
 
         if ($openTasks->isEmpty()) {
             return [];
@@ -83,7 +83,8 @@ class RankingReader
                 $task->estimate_confidence,
                 $task->updated_at->format('Y-m-d'),
                 $today,
-                false,
+                $task->topic?->confidence,
+                $task->topic?->last_reviewed_at?->format('Y-m-d'),
             );
         })->all();
 

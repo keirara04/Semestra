@@ -45,6 +45,19 @@ final class RankingConstants
     /** No due date → a fixed runway assumption for the staleness ratio. */
     public const STALENESS_DEFAULT_RUNWAY_DAYS = 14;
 
+    /** revision_need: lower confidence -> higher need. */
+    public const REVISION_CONFIDENCE_SCORE = [
+        'not_started' => 100.0,
+        'learning' => 66.0,
+        'comfortable' => 33.0,
+        'confident' => 10.0,
+    ];
+
+    public const REVISION_CONFIDENCE_DEFAULT = 66.0;
+
+    /** Days since last review scaled against this reference for the recency half of revision_need. */
+    public const REVISION_RECENCY_REFERENCE_DAYS = 14;
+
     public static function clamp(float $value): float
     {
         return max(0.0, min(100.0, $value));

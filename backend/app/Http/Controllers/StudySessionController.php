@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Engine\Revision\RevisionConstants;
 use App\Http\Requests\ReflectStudySessionRequest;
 use App\Http\Requests\StartStudySessionRequest;
 use App\Models\StudySession;
@@ -129,6 +130,24 @@ class StudySessionController extends Controller
             }
 
             $task->update($taskUpdates);
+
+            // Completing a revision task (topic_id set) advances the
+            // spaced cadence from the *actual* completion date — this is
+            // what makes a late review "merge into the next scheduled
+            // review" rather than needing separate merge logic. See
+            // RevisionScheduler's docblock.
+            if ($validated['outcome'] === 'completed' && $task->topic_id) {
+                $topic = $task->topic;
+                $nextStage = $topic->review_stage + 1;
+                $intervalDays = RevisionConstants::INTERVAL_DAYS[$nextStage] ?? null;
+
+                $topic->update([
+                    'review_stage' => $nextStage,
+                    'last_reviewed_at' => Date::now(),
+                    'next_review_at' => $intervalDays !== null ? Date::now()->addDays($intervalDays) : null,
+                    'missed_decay_applied_at' => null,
+                ]);
+            }
         }
 
         return response()->json($studySession->fresh());

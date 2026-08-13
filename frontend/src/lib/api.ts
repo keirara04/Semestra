@@ -41,13 +41,16 @@ export async function apiFetch<T>(
   options: RequestInit = {},
 ): Promise<T> {
   const xsrfToken = readCookie("XSRF-TOKEN");
+  // FormData bodies (file uploads) need the browser to set their own
+  // multipart boundary header — forcing application/json here would break it.
+  const isFormData = options.body instanceof FormData;
 
   const response = await fetch(`${API_URL}${path}`, {
     ...options,
     credentials: "include",
     headers: {
       Accept: "application/json",
-      "Content-Type": "application/json",
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
       ...(xsrfToken ? { "X-XSRF-TOKEN": xsrfToken } : {}),
       ...options.headers,
     },

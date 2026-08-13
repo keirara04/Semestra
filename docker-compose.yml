@@ -36,7 +36,7 @@ services:
       redis:
         condition: service_healthy
     command: >
-      sh -c "composer install && php artisan serve --host=0.0.0.0 --port=8000"
+      sh -c "composer install && php artisan storage:link --force && php artisan serve --host=0.0.0.0 --port=8000"
 
   queue:
     build:

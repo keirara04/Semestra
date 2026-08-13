@@ -15,6 +15,8 @@ RUN apk add --no-cache nginx supervisor postgresql-dev icu-dev icu-libs $PHPIZE_
     && apk del icu-dev $PHPIZE_DEPS \
     && mkdir -p /run/php /run/nginx
 
+COPY docker/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
+
 WORKDIR /app
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

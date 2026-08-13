@@ -14,7 +14,8 @@ return [
             'grade_weight' => null,
             'estimate_confidence' => 'high',
             'last_touched_at' => '2025-12-20',
-            'is_revision_linked' => false,
+            'topic_confidence' => null,
+            'topic_last_reviewed_at' => null,
         ],
     ],
     'expected' => [

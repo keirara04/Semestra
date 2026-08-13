@@ -15,7 +15,8 @@ final class TaskRankingInput
      * @param  float|null  $gradeWeight  Parent assessment's GradeItem.weighting (0-100). Null if ungraded/no assessment.
      * @param  string|null  $estimateConfidence  "low"|"medium"|"high"|null.
      * @param  string  $lastTouchedAt  "Y-m-d" — proxy for last-updated.
-     * @param  bool  $isRevisionLinked  Always false until Academic Intelligence ships RevisionItem/Topic.
+     * @param  string|null  $topicConfidence  "not_started"|"learning"|"comfortable"|"confident"|null. Null = not revision-linked.
+     * @param  string|null  $topicLastReviewedAt  "Y-m-d". Null with a non-null $topicConfidence means never reviewed (max need).
      */
     public function __construct(
         public readonly int $id,
@@ -26,6 +27,7 @@ final class TaskRankingInput
         public readonly ?string $estimateConfidence,
         public readonly string $lastTouchedAt,
         public readonly string $now,
-        public readonly bool $isRevisionLinked = false,
+        public readonly ?string $topicConfidence = null,
+        public readonly ?string $topicLastReviewedAt = null,
     ) {}
 }
