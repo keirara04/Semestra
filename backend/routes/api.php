@@ -15,6 +15,7 @@ use App\Http\Controllers\MilestoneController;
 use App\Http\Controllers\PlanningFeasibilityController;
 use App\Http\Controllers\PlanningRankingController;
 use App\Http\Controllers\PlanningRunController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SemesterController;
 use App\Http\Controllers\StudyPlanController;
 use App\Http\Controllers\StudySessionController;
@@ -31,6 +32,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+    // Settings — see "Settings" in mdfile/DESIGN.md.
+    Route::patch('/user', [ProfileController::class, 'update']);
+    Route::delete('/user', [ProfileController::class, 'destroy']);
 
     // Foundation Phase 1 — Core data model. Route-model binding is
     // automatically owner-scoped by BelongsToUser's global scope; the

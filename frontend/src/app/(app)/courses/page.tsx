@@ -50,7 +50,7 @@ export default function CoursesPage() {
   }
 
   return (
-    <main className="fn-sheet mx-auto min-h-dvh max-w-2xl px-6 py-10 md:my-6 md:rounded-2xl md:shadow-sm">
+    <main className="fn-sheet min-h-dvh w-full px-8 py-10 md:px-12">
       <p className="fn-eyebrow">Courses</p>
       <h1 className="mt-1 text-2xl font-semibold">Your courses</h1>
 

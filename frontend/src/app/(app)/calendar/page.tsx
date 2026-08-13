@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api";
-import type { CalendarBlock, DayCapacity } from "@/lib/types";
+import type { CalendarBlock, DayCapacity, Semester } from "@/lib/types";
 import { WeekStateMarker, weekState } from "@/components/WeekState";
+import { pickCurrentSemester, weekNumberSince } from "@/lib/semester";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -33,6 +34,15 @@ function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 }
 
+function weekLabel(semester: Semester, weekStart: Date): string {
+  const week = weekNumberSince(semester.start_date, weekStart);
+  if (week < 1) return `Before ${semester.name}`;
+  if (week > weekNumberSince(semester.start_date, new Date(semester.end_date))) {
+    return `After ${semester.name}`;
+  }
+  return `Week ${week} of ${semester.name}`;
+}
+
 // Suggested blocks get a dashed outline, committed (accepted/moved/done)
 // blocks a solid one — the distinction between "the plan suggested this"
 // and "you committed to this" is load-bearing for trust, per "Calendar
@@ -52,6 +62,7 @@ export default function CalendarPage() {
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
   const [days, setDays] = useState<DayCapacity[] | null>(null);
   const [blocks, setBlocks] = useState<CalendarBlock[]>([]);
+  const [semester, setSemester] = useState<Semester | null>(null);
   const [running, setRunning] = useState(false);
 
   function load() {
@@ -65,6 +76,10 @@ export default function CalendarPage() {
   }
 
   useEffect(load, [weekStart]);
+
+  useEffect(() => {
+    apiFetch<Semester[]>("/api/semesters").then((list) => setSemester(pickCurrentSemester(list)));
+  }, []);
 
   function shiftWeek(delta: number) {
     setWeekStart((current) => {
@@ -93,13 +108,16 @@ export default function CalendarPage() {
   }
 
   return (
-    <main className="fn-sheet mx-auto min-h-dvh max-w-4xl px-6 py-10 md:my-6 md:rounded-2xl md:shadow-sm">
+    <main className="fn-sheet min-h-dvh w-full px-8 py-10 md:px-12">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <p className="fn-eyebrow">Calendar</p>
           <h1 className="mt-1 text-2xl font-semibold">
-            Week of {weekStart.toLocaleDateString(undefined, { month: "long", day: "numeric" })}
+            {semester ? weekLabel(semester, weekStart) : "Calendar"}
           </h1>
+          <p className="fn-mono text-xs text-[var(--fn-muted)]">
+            {weekStart.toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+          </p>
         </div>
         <div className="flex gap-1">
           <button

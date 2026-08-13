@@ -1,17 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { apiFetch } from "@/lib/api";
 import type { Today } from "@/lib/types";
 import { WEEK_STATE_LABEL, WeekStateMarker, weekState } from "@/components/WeekState";
-
-function formatMinutes(minutes: number): string {
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-  return [hours ? `${hours}h` : null, mins ? `${mins}m` : null].filter(Boolean).join(" ") || "0m";
-}
+import { daysUntil, formatMinutes } from "@/lib/format";
 
 function greeting(): string {
   const hour = new Date().getHours();
@@ -26,31 +20,18 @@ function dayEyebrow(date: Date): string {
   return `${day} · ${rest}`;
 }
 
-function daysUntil(dueAt: string): string {
-  const days = Math.ceil((new Date(dueAt).getTime() - Date.now()) / 86_400_000);
-  if (days <= 0) return "due today";
-  if (days === 1) return "due tomorrow";
-  return `due in ${days}d`;
-}
-
 // Today dashboard — see "Today dashboard" in mdfile/DESIGN.md. The focus
 // list is the real "Smart study planner" ranking (Planning Engine) — each
 // row's reason is collapsed by default and expands on tap, per DESIGN.md's
 // planner-reason disclosure pattern.
 export default function DashboardPage() {
-  const { user, logout } = useAuth();
-  const router = useRouter();
+  const { user } = useAuth();
   const [today, setToday] = useState<Today | null>(null);
   const [expandedTaskId, setExpandedTaskId] = useState<number | null>(null);
 
   useEffect(() => {
     apiFetch<Today>("/api/today").then(setToday);
   }, []);
-
-  async function handleLogout() {
-    await logout();
-    router.push("/login");
-  }
 
   if (!today) return null;
 
@@ -61,30 +42,21 @@ export default function DashboardPage() {
   const overflowCount = today.tasks.length - visibleTasks.length;
 
   return (
-    <main className="fn-sheet mx-auto min-h-dvh max-w-2xl px-6 py-10 md:my-6 md:rounded-2xl md:shadow-sm">
+    <main className="fn-sheet min-h-dvh w-full px-8 py-10 md:px-12">
       {/* Greeting strip */}
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="fn-eyebrow">{dayEyebrow(date)}</p>
-          <h1 className="mt-1 text-2xl font-semibold break-words">
-            {greeting()}, {user?.name}
-          </h1>
-          {nextClass ? (
-            <p className="fn-mono mt-1 text-sm text-[var(--fn-muted)]">
-              Next: {nextClass.course_title} {nextClass.type} · {nextClass.start_time.slice(0, 5)}–
-              {nextClass.end_time.slice(0, 5)}
-            </p>
-          ) : (
-            <p className="mt-1 text-sm text-[var(--fn-muted)]">No classes today</p>
-          )}
-        </div>
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="shrink-0 rounded-md border border-[var(--fn-rule)] px-3 py-1.5 text-sm text-[var(--fn-ink)] hover:bg-[var(--fn-canvas)]"
-        >
-          Log out
-        </button>
+      <div className="min-w-0">
+        <p className="fn-eyebrow">{dayEyebrow(date)}</p>
+        <h1 className="mt-1 text-2xl font-semibold break-words">
+          {greeting()}, {user?.name}
+        </h1>
+        {nextClass ? (
+          <p className="fn-mono mt-1 text-sm text-[var(--fn-muted)]">
+            Next: {nextClass.course_title} {nextClass.type} · {nextClass.start_time.slice(0, 5)}–
+            {nextClass.end_time.slice(0, 5)}
+          </p>
+        ) : (
+          <p className="mt-1 text-sm text-[var(--fn-muted)]">No classes today</p>
+        )}
       </div>
 
       {/* Today's focus */}

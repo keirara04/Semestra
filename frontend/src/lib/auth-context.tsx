@@ -30,6 +30,8 @@ interface AuthContextValue {
   register: (input: RegisterInput) => Promise<void>;
   login: (input: LoginInput) => Promise<void>;
   logout: () => Promise<void>;
+  updateProfile: (input: Partial<User>) => Promise<void>;
+  deleteAccount: (password: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -91,8 +93,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const updateProfile = useCallback(async (input: Partial<User>) => {
+    const updated = await apiFetch<User>("/api/user", {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    });
+    setUser(updated);
+  }, []);
+
+  const deleteAccount = useCallback(async (password: string) => {
+    await apiFetch("/api/user", {
+      method: "DELETE",
+      body: JSON.stringify({ password }),
+    });
+    setUser(null);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, loading, register, login, logout }}>
+    <AuthContext.Provider
+      value={{ user, loading, register, login, logout, updateProfile, deleteAccount }}
+    >
       {children}
     </AuthContext.Provider>
   );

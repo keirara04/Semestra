@@ -30,7 +30,7 @@ export default function CourseWorkspacePage({
   if (!course) return null;
 
   return (
-    <main className="fn-sheet mx-auto min-h-dvh max-w-2xl px-6 py-10 md:my-6 md:rounded-2xl md:shadow-sm">
+    <main className="fn-sheet min-h-dvh w-full px-8 py-10 md:px-12">
       <div className="flex items-center gap-3">
         <span
           className="h-9 w-1.5 shrink-0 rounded-full"

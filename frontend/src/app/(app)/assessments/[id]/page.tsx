@@ -3,15 +3,9 @@
 import { use, useEffect, useState, type FormEvent } from "react";
 import { apiFetch, ApiError } from "@/lib/api";
 import type { Assessment, AssessmentStatus, Milestone } from "@/lib/types";
+import { formatMinutes } from "@/lib/format";
 
 const STATUSES: AssessmentStatus[] = ["not_started", "in_progress", "blocked", "done"];
-
-function formatMinutes(minutes: number | null | undefined): string {
-  if (!minutes) return "0m";
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-  return [hours ? `${hours}h` : null, mins ? `${mins}m` : null].filter(Boolean).join(" ");
-}
 
 // Assessment detail — see "Assessment and project planner" in
 // mdfile/semester-command-center.md. Recommended/latest-safe-start dates
@@ -45,7 +39,7 @@ export default function AssessmentDetailPage({
   }
 
   return (
-    <main className="fn-sheet mx-auto min-h-dvh max-w-2xl px-6 py-10 md:my-6 md:rounded-2xl md:shadow-sm">
+    <main className="fn-sheet min-h-dvh w-full px-8 py-10 md:px-12">
       <p className="fn-eyebrow">{assessment.type}</p>
       <h1 className="mt-1 text-2xl font-semibold">{assessment.title}</h1>
       <p className="fn-mono mt-1 text-sm text-[var(--fn-muted)]">

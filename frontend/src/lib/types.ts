@@ -1,11 +1,21 @@
+export interface DeepWorkWindow {
+  start: string; // "H:i"
+  end: string;
+}
+
+export interface QuietHours {
+  start: string; // "H:i"
+  end: string;
+}
+
 export interface User {
   id: number;
   name: string;
   email: string;
   timezone: string;
   max_study_hours_per_day: number;
-  deep_work_windows: unknown | null;
-  quiet_hours: unknown | null;
+  deep_work_windows: DeepWorkWindow[] | null;
+  quiet_hours: QuietHours | null;
   grade_scale: string;
 }
 

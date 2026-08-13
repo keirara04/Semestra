@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { apiFetch, ApiError } from "@/lib/api";
 import type { Assessment, AssessmentType, Course } from "@/lib/types";
+import { daysUntil } from "@/lib/format";
 
 const TYPES: AssessmentType[] = [
   "report",
@@ -23,14 +24,6 @@ const STATUS_LABEL: Record<Assessment["status"], string> = {
   blocked: "Blocked",
   done: "Done",
 };
-
-function daysUntil(dueAt: string): string {
-  const days = Math.ceil((new Date(dueAt).getTime() - Date.now()) / 86_400_000);
-  if (days < 0) return "overdue";
-  if (days === 0) return "due today";
-  if (days === 1) return "due tomorrow";
-  return `due in ${days}d`;
-}
 
 export default function AssessmentsPage() {
   const [assessments, setAssessments] = useState<Assessment[] | null>(null);
@@ -75,7 +68,7 @@ export default function AssessmentsPage() {
   }
 
   return (
-    <main className="fn-sheet mx-auto min-h-dvh max-w-2xl px-6 py-10 md:my-6 md:rounded-2xl md:shadow-sm">
+    <main className="fn-sheet min-h-dvh w-full px-8 py-10 md:px-12">
       <p className="fn-eyebrow">Assessments</p>
       <h1 className="mt-1 text-2xl font-semibold">Every assessment, across courses</h1>
 
