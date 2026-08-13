@@ -33,14 +33,15 @@ function daysUntil(dueAt: string): string {
   return `due in ${days}d`;
 }
 
-// Today dashboard — see "Today dashboard" in mdfile/DESIGN.md. No ranking
-// engine yet (Planning Engine release): the focus list is plain due-date
-// order, not a real priority score — the copy says so via `ranking_is_basic`
-// rather than pretend this is finished.
+// Today dashboard — see "Today dashboard" in mdfile/DESIGN.md. The focus
+// list is the real "Smart study planner" ranking (Planning Engine) — each
+// row's reason is collapsed by default and expands on tap, per DESIGN.md's
+// planner-reason disclosure pattern.
 export default function DashboardPage() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const [today, setToday] = useState<Today | null>(null);
+  const [expandedTaskId, setExpandedTaskId] = useState<number | null>(null);
 
   useEffect(() => {
     apiFetch<Today>("/api/today").then(setToday);
@@ -88,14 +89,7 @@ export default function DashboardPage() {
 
       {/* Today's focus */}
       <section className="mt-8">
-        <div className="flex items-baseline justify-between">
-          <p className="fn-eyebrow">Today&apos;s focus</p>
-          {today.ranking_is_basic && (
-            <span className="fn-mono text-[11px] text-[var(--fn-muted)]">
-              sorted by due date — real ranking coming soon
-            </span>
-          )}
-        </div>
+        <p className="fn-eyebrow">Today&apos;s focus</p>
 
         {visibleTasks.length === 0 ? (
           <p className="mt-3 text-sm text-[var(--fn-muted)]">
@@ -103,25 +97,44 @@ export default function DashboardPage() {
           </p>
         ) : (
           <ul className="mt-3 flex flex-col divide-y divide-[var(--fn-rule)]">
-            {visibleTasks.map((task) => (
-              <li key={task.id} className="flex items-center gap-3 py-2.5 text-sm">
-                <span
-                  className="h-2.5 w-2.5 shrink-0 rounded-full"
-                  style={{ backgroundColor: task.course_colour }}
-                  aria-hidden
-                />
-                <span className="min-w-0 flex-1 truncate">{task.title}</span>
-                <span className="fn-mono shrink-0 text-[var(--fn-muted)]">{task.course_title}</span>
-                {task.remaining_estimate_minutes != null && (
-                  <span className="fn-mono shrink-0 text-[var(--fn-muted)]">
-                    {formatMinutes(task.remaining_estimate_minutes)}
-                  </span>
-                )}
-                {task.due_at && (
-                  <span className="fn-mono shrink-0 text-[var(--fn-muted)]">{daysUntil(task.due_at)}</span>
-                )}
-              </li>
-            ))}
+            {visibleTasks.map((task) => {
+              const expanded = expandedTaskId === task.id;
+              return (
+                <li key={task.id} className="py-2.5">
+                  <button
+                    type="button"
+                    onClick={() => setExpandedTaskId(expanded ? null : task.id)}
+                    className="flex w-full items-center gap-3 text-left text-sm"
+                  >
+                    <span
+                      className="h-2.5 w-2.5 shrink-0 rounded-full"
+                      style={{ backgroundColor: task.course_colour }}
+                      aria-hidden
+                    />
+                    <span className="min-w-0 flex-1 truncate">{task.title}</span>
+                    <span className="fn-mono shrink-0 text-[var(--fn-muted)]">{task.course_title}</span>
+                    {task.remaining_estimate_minutes != null && (
+                      <span className="fn-mono shrink-0 text-[var(--fn-muted)]">
+                        {formatMinutes(task.remaining_estimate_minutes)}
+                      </span>
+                    )}
+                    {task.due_at && (
+                      <span className="fn-mono shrink-0 text-[var(--fn-muted)]">{daysUntil(task.due_at)}</span>
+                    )}
+                  </button>
+                  {expanded && (
+                    <div className="fn-mono mt-1.5 ml-5.5 text-xs text-[var(--fn-muted)]">
+                      Suggested because:
+                      <ul className="mt-1 list-inside list-disc">
+                        {task.reasons.map((reason) => (
+                          <li key={reason}>{reason}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
         {overflowCount > 0 && (

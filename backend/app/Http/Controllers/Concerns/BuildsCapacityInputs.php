@@ -7,8 +7,10 @@ use App\Engine\Capacity\ClassSessionInput;
 use App\Engine\Capacity\CommitmentInput;
 use App\Engine\Capacity\DateRangeExclusion;
 use App\Models\AcademicCalendarException;
+use App\Models\CalendarBlock;
 use App\Models\ClassSession;
 use App\Models\Commitment;
+use DateTimeImmutable;
 
 /**
  * Shared translation from the authenticated user's Eloquent rows into the
@@ -65,5 +67,33 @@ trait BuildsCapacityInputs
                 $break->end_date->format('Y-m-d'),
             ),
         )->all();
+    }
+
+    /**
+     * Accepted/done CalendarBlocks are committed capacity even before
+     * they're completed — see "Placement" in
+     * mdfile/semester-command-center.md ("Pinned blocks are never moved
+     * ... counts as committed capacity even if not yet completed").
+     * Feasibility, Ranking, and Placement all need this subtracted from
+     * a day's raw capacity before they reason about what's still free.
+     *
+     * @return array<string, int> Date ("Y-m-d") => committed minutes.
+     */
+    private function committedMinutesByDate(DateTimeImmutable $from, DateTimeImmutable $to): array
+    {
+        $committed = [];
+
+        // "moved" is a manual move, treated the same as pinned — see
+        // "Manual calendar moves persist as intentional changes" in the plan.
+        CalendarBlock::whereIn('status', ['accepted', 'done', 'moved'])
+            ->whereBetween('start_at', [$from, $to->modify('+1 day')])
+            ->get()
+            ->each(function (CalendarBlock $block) use (&$committed) {
+                $date = $block->start_at->format('Y-m-d');
+                $minutes = $block->start_at->diffInMinutes($block->end_at);
+                $committed[$date] = ($committed[$date] ?? 0) + $minutes;
+            });
+
+        return $committed;
     }
 }

@@ -140,6 +140,8 @@ export interface TodayTask {
   remaining_estimate_minutes: number | null;
   course_title: string;
   course_colour: string;
+  score: number;
+  reasons: string[];
 }
 
 export interface Today {

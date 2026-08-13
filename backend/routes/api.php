@@ -12,7 +12,11 @@ use App\Http\Controllers\CourseGradesController;
 use App\Http\Controllers\GradeCategoryController;
 use App\Http\Controllers\GradeItemController;
 use App\Http\Controllers\MilestoneController;
+use App\Http\Controllers\PlanningFeasibilityController;
+use App\Http\Controllers\PlanningRankingController;
+use App\Http\Controllers\PlanningRunController;
 use App\Http\Controllers\SemesterController;
+use App\Http\Controllers\StudyPlanController;
 use App\Http\Controllers\StudySessionController;
 use App\Http\Controllers\SubmissionController;
 use App\Http\Controllers\TaskController;
@@ -66,4 +70,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Foundation Phase 5 — Today dashboard.
     Route::get('/today', TodayController::class);
+
+    // Planning Engine Phase B — Feasibility pass.
+    Route::get('/planning/feasibility', PlanningFeasibilityController::class);
+
+    // Planning Engine Phase C — Ranking.
+    Route::get('/planning/ranking', PlanningRankingController::class);
+
+    // Planning Engine Phase D — Placement. Writes suggested CalendarBlocks.
+    Route::post('/planning/run', PlanningRunController::class);
+
+    // Planning Engine Phase E — Plan stability + runs.
+    Route::get('/planning/plans/latest', [StudyPlanController::class, 'latest']);
 });

@@ -35,7 +35,18 @@ class CalendarBlockController extends Controller
     {
         $this->authorize('update', $calendarBlock);
 
-        $calendarBlock->update($request->validated());
+        $validated = $request->validated();
+
+        // A manual time change is itself the "accept this, but at a
+        // different time" signal — see "Manual calendar moves persist as
+        // intentional changes" in the plan. Treated the same as pinned:
+        // the next run must not silently move it back.
+        $timesChanged = array_key_exists('start_at', $validated) || array_key_exists('end_at', $validated);
+        if ($timesChanged && ! array_key_exists('status', $validated) && $calendarBlock->status !== 'done') {
+            $validated['status'] = 'moved';
+        }
+
+        $calendarBlock->update($validated);
 
         return response()->json($calendarBlock);
     }

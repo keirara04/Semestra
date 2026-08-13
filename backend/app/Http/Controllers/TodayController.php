@@ -8,6 +8,7 @@ use App\Models\Assessment;
 use App\Models\CalendarBlock;
 use App\Models\ClassSession;
 use App\Models\Task;
+use App\Services\RankingReader;
 use DateTimeImmutable;
 use DateTimeZone;
 use Illuminate\Http\JsonResponse;
@@ -15,17 +16,17 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
 /**
- * Foundation Phase 5 — Today dashboard. No ranking engine yet (that's
- * Planning Engine): the task list here is plain due-date order, not the
- * real priority score from "Smart study planner". This honest limitation
- * is surfaced in the response (`ranking_is_basic: true`) so the frontend
- * copy can say so rather than look finished.
+ * Today dashboard. The focus list is the real "Smart study planner"
+ * ranking (see App\Services\RankingReader) as of Planning Engine Phase G
+ * — no longer a plain due-date sort. `ranking_is_basic` stays in the
+ * response as `false` so old frontend builds relying on the flag degrade
+ * safely rather than break.
  */
 class TodayController extends Controller
 {
     use BuildsCapacityInputs;
 
-    public function __invoke(Request $request, CapacityCalculator $calculator): JsonResponse
+    public function __invoke(Request $request, CapacityCalculator $calculator, RankingReader $rankingReader): JsonResponse
     {
         $user = $request->user();
         $timezone = new DateTimeZone($user->timezone);
@@ -72,12 +73,13 @@ class TodayController extends Controller
                 'course_colour' => $assessment->course->colour,
             ]);
 
-        $tasks = Task::with('course')
-            ->where('status', 'open')
-            ->orderByRaw('due_at IS NULL, due_at ASC')
-            ->limit(10)
-            ->get()
-            ->map(fn (Task $task) => [
+        $ranking = array_slice($rankingReader->rank($user), 0, 5);
+        $rankedTasksById = Task::with('course')->whereIn('id', array_map(fn ($result) => $result->taskId, $ranking))->get()->keyBy('id');
+
+        $tasks = collect($ranking)->map(function ($result) use ($rankedTasksById) {
+            $task = $rankedTasksById[$result->taskId];
+
+            return [
                 'id' => $task->id,
                 'title' => $task->title,
                 'due_at' => $task->due_at,
@@ -85,7 +87,10 @@ class TodayController extends Controller
                 'remaining_estimate_minutes' => $task->remaining_estimate_minutes,
                 'course_title' => $task->course->title,
                 'course_colour' => $task->course->colour,
-            ]);
+                'score' => $result->score,
+                'reasons' => $result->reasons,
+            ];
+        });
 
         $calendarBlocksToday = CalendarBlock::whereBetween('start_at', [$today, $todayEnd])
             ->orderBy('start_at')
@@ -111,7 +116,7 @@ class TodayController extends Controller
             'classes_today' => $classesToday,
             'assessments_due_soon' => $assessmentsDueSoon,
             'tasks' => $tasks,
-            'ranking_is_basic' => true,
+            'ranking_is_basic' => false,
             'calendar_blocks_today' => $calendarBlocksToday,
             'planned_minutes_today' => (int) $plannedMinutesToday,
             'capacity' => $capacity->toArray(),

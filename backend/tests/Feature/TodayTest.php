@@ -44,7 +44,7 @@ class TodayTest extends TestCase
 
         $response->assertOk()
             ->assertJsonPath('date', '2026-05-04')
-            ->assertJsonPath('ranking_is_basic', true)
+            ->assertJsonPath('ranking_is_basic', false)
             ->assertJsonPath('classes_today.0.course_title', 'Deep Learning')
             ->assertJsonPath('assessments_due_soon.0.title', 'Report')
             ->assertJsonPath('tasks.0.title', 'Draft methodology')
