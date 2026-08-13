@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 648 360" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Semestra onboarding pipeline diagrams</title>
+  <desc id="desc">Three blue course planning mini-diagrams: scheduled course blocks, assessment milestones, and available time windows.</desc>
+  <defs>
+    <pattern id="availability-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#2857A0" stroke-width="2"/>
+    </pattern>
+  </defs>
+
+  <!-- Courses: course work appears as placed blocks. -->
+  <g aria-label="Courses" stroke="#2857A0" stroke-linecap="square">
+    <g stroke-width="1.5" opacity=".32" stroke-dasharray="3 5">
+      <path d="M112 12V108M220 12V108M328 12V108M436 12V108M544 12V108"/>
+    </g>
+    <g stroke-width="1.75" opacity=".78">
+      <path d="M84 27H580M84 54H580M84 81H580"/>
+    </g>
+    <g stroke-width="3" fill="#F8F7F3">
+      <rect x="157" y="39" width="92" height="24" rx="1"/>
+      <rect x="329" y="65" width="91" height="24" rx="1"/>
+      <rect x="465" y="91" width="88" height="24" rx="1"/>
+    </g>
+  </g>
+
+  <!-- Assessments: each diamond is an assessment milestone. -->
+  <g transform="translate(0 126)" aria-label="Assessments" stroke="#2857A0" stroke-linecap="square">
+    <g stroke-width="1.5" opacity=".32" stroke-dasharray="3 5">
+      <path d="M112 12V108M220 12V108M328 12V108M436 12V108M544 12V108"/>
+    </g>
+    <g stroke-width="1.75" opacity=".78">
+      <path d="M84 27H580M84 54H580M84 81H580"/>
+    </g>
+    <g stroke-width="3" fill="#F8F7F3">
+      <path d="M181 54l10-10 10 10-10 10-10-10Z"/>
+      <path d="M382 80l10-10 10 10-10 10-10-10Z"/>
+      <path d="M516 106l10-10 10 10-10 10-10-10Z"/>
+    </g>
+  </g>
+
+  <!-- Availability: hatched blocks are protected, usable study time. -->
+  <g transform="translate(0 252)" aria-label="Available time" stroke="#2857A0" stroke-linecap="square">
+    <g stroke-width="1.5" opacity=".32" stroke-dasharray="3 5">
+      <path d="M112 12V108M220 12V108M328 12V108M436 12V108M544 12V108"/>
+    </g>
+    <g stroke-width="1.75" opacity=".78">
+      <path d="M84 27H580M84 54H580M84 81H580"/>
+    </g>
+    <g stroke-width="3" fill="url(#availability-hatch)">
+      <rect x="167" y="39" width="92" height="24" rx="1"/>
+      <rect x="413" y="65" width="89" height="24" rx="1"/>
+    </g>
+  </g>
+</svg>

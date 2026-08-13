@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { Caveat, DM_Sans, IBM_Plex_Mono } from "next/font/google";
 import { AvailableTimeDiagram, AssessmentsDiagram, CoursesDiagram } from "@/components/auth/StepDiagram";
-import { BookIcon } from "@/components/auth/icons";
+import SplitFlapText from "@/components/SplitFlapText";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -45,35 +45,52 @@ const steps = [
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div className={`${dmSans.variable} ${ibmPlexMono.variable} ${caveat.variable} fn`}>
-      <div className="mx-auto grid min-h-screen max-w-6xl grid-cols-1 lg:grid-cols-2">
+      <div className="grid min-h-dvh w-full grid-cols-1 lg:grid-cols-2">
         {/* Left panel — brand + the product's own semester-map vocabulary as a preview */}
-        <div className="fn-sheet fn-margin relative hidden flex-col justify-between px-12 py-14 lg:flex xl:pl-24">
-          <div>
-            <div className="flex items-center gap-3">
-              <BookIcon className="h-8 w-8 text-[var(--fn-ink)]" />
-              <span className="text-4xl font-bold tracking-tight">Semestra</span>
-            </div>
-            <div className="fn-divider-accent mt-4" />
-            <p className="mt-6 text-xl text-[var(--fn-ink)]">Your semester, in one view.</p>
+        <div className="fn-sheet fn-margin relative hidden flex-col px-12 py-14 lg:flex xl:pl-24 xl:pr-16">
+          {/* Hero wordmark — pinned to the top, not part of the centered block below */}
+          <div className="flex items-center gap-4">
+            {/* Settles once on mount (blank -> SEMESTRA), doesn't loop —
+                a single deliberate moment, not a marquee. */}
+            <SplitFlapText
+              words={["        ", "SEMESTRA"]}
+              flipDuration={0.12}
+              stagger={0.05}
+              cycleDelay={300}
+              charset="alpha"
+              flipsPerChar={6}
+              tileColor="#20262E"
+              textColor="#F8F7F3"
+              tileRadius={8}
+              gap={5}
+              fontSize={52}
+              loop={false}
+              padTo={8}
+            />
+          </div>
+          <div className="fn-divider-accent mt-5" />
 
-            <ol className="mt-10 flex flex-col">
+          <div className="flex flex-1 flex-col justify-center">
+            <p className="text-xl text-[var(--fn-ink)]">Your semester, in one view.</p>
+
+            <ol className="mt-12 flex flex-col">
               {steps.map((step, index) => {
                 const Diagram = step.diagram;
                 const isLast = index === steps.length - 1;
                 return (
-                  <li key={step.number} className="flex gap-4">
+                  <li key={step.number} className="flex gap-5">
                     <div className="flex flex-col items-center">
                       <span className="fn-step-number">{step.number}</span>
                       {!isLast && <span className="fn-step-connector" />}
                     </div>
-                    <div className="grid flex-1 grid-cols-[1fr_auto] items-start gap-4 pb-8">
+                    <div className="grid flex-1 grid-cols-[minmax(0,1fr)_minmax(0,260px)] items-center gap-6 pb-10">
                       <div>
                         <p className="fn-mono text-sm font-semibold tracking-wide uppercase">
                           {step.title}
                         </p>
-                        <p className="mt-1 text-[15px] text-[var(--fn-muted)]">{step.description}</p>
+                        <p className="mt-1.5 text-base text-[var(--fn-muted)]">{step.description}</p>
                       </div>
-                      <Diagram />
+                      <Diagram baseDelay={index * 220} />
                     </div>
                   </li>
                 );

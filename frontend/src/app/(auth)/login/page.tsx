@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import { AppleIcon, EyeIcon, GoogleIcon } from "@/components/auth/icons";
+import { AppleIcon, BookIcon, EyeIcon, GoogleIcon } from "@/components/auth/icons";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -32,6 +32,15 @@ export default function LoginPage() {
 
   return (
     <div>
+      <div className="mb-10 text-center lg:hidden">
+        <div className="flex items-center justify-center gap-2.5">
+          <BookIcon className="h-7 w-7 text-[var(--fn-ink)]" />
+          <span className="text-3xl font-bold tracking-tight">Semestra</span>
+        </div>
+        <p className="mt-2 text-sm text-[var(--fn-muted)]">Your semester, in one view.</p>
+        <div className="fn-divider-accent mx-auto mt-4" />
+      </div>
+
       <p className="fn-eyebrow">Welcome back</p>
       <div className="fn-divider-accent mt-2" />
 
@@ -66,7 +75,15 @@ export default function LoginPage() {
         </label>
 
         <label className="flex flex-col gap-2">
-          <span className="fn-label">Password</span>
+          <div className="flex items-center justify-between">
+            <span className="fn-label">Password</span>
+            <Link
+              href="/forgot-password"
+              className="fn-mono text-[0.7rem] tracking-wide text-[var(--fn-cobalt)] underline underline-offset-2 uppercase"
+            >
+              Forgot password?
+            </Link>
+          </div>
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
