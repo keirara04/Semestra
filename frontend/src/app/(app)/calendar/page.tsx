@@ -108,7 +108,7 @@ export default function CalendarPage() {
   }
 
   return (
-    <main className="fn-sheet min-h-dvh w-full px-8 py-10 md:px-12">
+    <main className="bg-[var(--fn-paper)] min-h-dvh w-full px-8 py-10 md:px-12">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <p className="fn-eyebrow">Calendar</p>

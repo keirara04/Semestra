@@ -14,6 +14,7 @@ import type {
   Topic,
 } from "@/lib/types";
 import { ConfidenceBar, type Confidence } from "@/components/Confidence";
+import { SyllabusExtractionPanel } from "@/components/SyllabusExtractionPanel";
 
 const TABS = ["Overview", "Assessments", "Materials", "Revision", "Grades", "Insights"] as const;
 
@@ -40,7 +41,7 @@ export default function CourseWorkspacePage({
   if (!course) return null;
 
   return (
-    <main className="fn-sheet min-h-dvh w-full px-8 py-10 md:px-12">
+    <main className="bg-[var(--fn-paper)] min-h-dvh w-full px-8 py-10 md:px-12">
       <div className="flex items-center gap-3">
         <span
           className="h-9 w-1.5 shrink-0 rounded-full"
@@ -583,6 +584,8 @@ function Materials({ courseId }: { courseId: number }) {
           {error}
         </p>
       )}
+
+      <SyllabusExtractionPanel courseId={courseId} materials={materials ?? []} />
     </div>
   );
 }

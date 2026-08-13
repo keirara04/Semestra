@@ -32,6 +32,7 @@ interface AuthContextValue {
   logout: () => Promise<void>;
   updateProfile: (input: Partial<User>) => Promise<void>;
   deleteAccount: (password: string) => Promise<void>;
+  setAiConsent: (enabled: boolean) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -109,9 +110,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const setAiConsent = useCallback(async (enabled: boolean) => {
+    const result = await apiFetch<{ ai_syllabus_extraction_consent_at: string | null }>("/api/ai/consent", {
+      method: "PATCH",
+      body: JSON.stringify({ enabled }),
+    });
+    setUser((current) => (current ? { ...current, ...result } : current));
+  }, []);
+
   return (
     <AuthContext.Provider
-      value={{ user, loading, register, login, logout, updateProfile, deleteAccount }}
+      value={{ user, loading, register, login, logout, updateProfile, deleteAccount, setAiConsent }}
     >
       {children}
     </AuthContext.Provider>

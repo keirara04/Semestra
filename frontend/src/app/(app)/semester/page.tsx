@@ -31,7 +31,7 @@ export default function SemesterPage() {
   const current = semesters ? pickCurrentSemester(semesters) : null;
 
   return (
-    <main className="fn-sheet min-h-dvh w-full px-8 py-10 md:px-12">
+    <main className="min-h-dvh w-full bg-[var(--fn-paper)] px-8 py-10 md:px-12">
       <div className="flex items-baseline justify-between">
         <div>
           <p className="fn-eyebrow">Semester</p>
@@ -419,8 +419,9 @@ function SemesterMap({ semester }: { semester: Semester }) {
     <div className="mt-6">
       <p className="fn-eyebrow">Semester map</p>
 
+      <div className="mt-3">
       {/* Week axis — see week-axis.svg for the reference layout */}
-      <div className="fn-mono mt-3 min-w-full overflow-x-auto text-[13px]">
+      <div className="fn-mono min-w-full overflow-x-auto text-[13px]">
         <div
           className="grid border-b border-[var(--fn-rule)]"
           style={{ gridTemplateColumns: `repeat(${Math.max(weeks.length, 1)}, minmax(2.5rem, 1fr))` }}
@@ -480,7 +481,7 @@ function SemesterMap({ semester }: { semester: Semester }) {
                       ) : (
                         <AssessmentMarker className="h-4 w-4" />
                       )}
-                      <span className="fn-mono absolute top-full mt-1 w-max max-w-32 truncate text-center text-[11px] text-[var(--fn-muted)]">
+                      <span className="fn-mono absolute top-full mt-1 w-max max-w-32 truncate text-center text-[11px] text-[var(--fn-ink)]">
                         {assessment.title}
                         {weighting ? ` · ${weighting}%` : ""}
                       </span>
@@ -538,7 +539,7 @@ function SemesterMap({ semester }: { semester: Semester }) {
                   <div className="absolute inset-x-0 top-0 h-2 bg-[var(--fn-oxide)]" title="High-load week" />
                 )}
               </div>
-              <span className="fn-mono text-[10px] text-[var(--fn-muted)]">{week.label}</span>
+              <span className="fn-mono text-[10px] text-[var(--fn-ink)]">{week.label}</span>
             </div>
           );
         })}
@@ -554,6 +555,7 @@ function SemesterMap({ semester }: { semester: Semester }) {
           .
         </p>
       )}
+      </div>
     </div>
   );
 }

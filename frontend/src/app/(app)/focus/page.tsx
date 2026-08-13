@@ -115,7 +115,7 @@ function StartSession({
   }
 
   return (
-    <main className="fn-sheet min-h-dvh w-full px-8 py-10 md:px-12">
+    <main className="bg-[var(--fn-paper)] min-h-dvh w-full px-8 py-10 md:px-12">
       <p className="fn-eyebrow">Focus</p>
       <h1 className="mt-1 text-2xl font-semibold">Start a session</h1>
 
@@ -323,7 +323,7 @@ function ReflectionForm({
   }
 
   return (
-    <main className="fn-sheet min-h-dvh w-full px-8 py-10 md:px-12">
+    <main className="bg-[var(--fn-paper)] min-h-dvh w-full px-8 py-10 md:px-12">
       <p className="fn-eyebrow">Session ended</p>
       <h1 className="mt-1 text-2xl font-semibold">
         {session.actual_minutes ?? 0} minutes logged

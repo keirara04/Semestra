@@ -137,7 +137,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           >
             {!collapsed && <span className="fn-eyebrow text-[#c9cdd3]">Semestra</span>}
             <div className="flex items-center gap-1">
-              <NotificationBell collapsed={collapsed} />
+              <NotificationBell />
               <button
                 type="button"
                 onClick={toggleCollapsed}

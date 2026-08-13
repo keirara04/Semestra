@@ -38,9 +38,9 @@ export default function ReviewPage() {
 
   if (review === undefined) return null;
 
-  if (review === null) {
+  if (review === null || !review.week_start_date) {
     return (
-      <main className="fn-sheet flex min-h-dvh w-full flex-col items-center justify-center gap-2 px-8 py-10 text-center">
+      <main className="bg-[var(--fn-paper)] flex min-h-dvh w-full flex-col items-center justify-center gap-2 px-8 py-10 text-center">
         <p className="fn-eyebrow">Weekly review</p>
         <h1 className="text-xl font-semibold">No review yet</h1>
         <p className="max-w-sm text-sm text-[var(--fn-muted)]">
@@ -70,7 +70,7 @@ export default function ReviewPage() {
   }
 
   return (
-    <main className="fn-sheet min-h-dvh w-full px-8 py-10 md:px-12">
+    <main className="bg-[var(--fn-paper)] min-h-dvh w-full px-8 py-10 md:px-12">
       <div className="mx-auto max-w-2xl">
         <p className="fn-eyebrow">Week of {weekRangeLabel(review.week_start_date)}</p>
         <h1 className="mt-1 text-2xl font-semibold">Your weekly review</h1>

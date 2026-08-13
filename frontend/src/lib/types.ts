@@ -17,6 +17,7 @@ export interface User {
   deep_work_windows: DeepWorkWindow[] | null;
   quiet_hours: QuietHours | null;
   grade_scale: string;
+  ai_syllabus_extraction_consent_at: string | null;
 }
 
 export interface Semester {
@@ -253,6 +254,35 @@ export interface Task {
   remaining_estimate_minutes: number | null;
   status: TaskStatus;
   due_at: string | null;
+}
+
+export type AiConfidence = "low" | "medium" | "high";
+
+export interface AssessmentCandidate {
+  title: string;
+  type: string;
+  due_date: string | null;
+  source_fragment: string;
+  confidence: AiConfidence;
+}
+
+export interface TaskCandidate {
+  title: string;
+  estimated_minutes: number | null;
+  source_fragment: string;
+  confidence: AiConfidence;
+}
+
+export interface SyllabusDraft {
+  id: number;
+  course_id: number;
+  material_id: number | null;
+  status: "pending" | "confirmed" | "discarded";
+  candidates: {
+    assessments: AssessmentCandidate[];
+    tasks: TaskCandidate[];
+  };
+  model: string;
 }
 
 export interface WeeklyReview {

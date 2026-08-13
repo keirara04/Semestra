@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AcademicCalendarExceptionController;
+use App\Http\Controllers\AiSettingsController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\CalendarBlockController;
 use App\Http\Controllers\CalendarCapacityController;
@@ -23,6 +24,7 @@ use App\Http\Controllers\SemesterController;
 use App\Http\Controllers\StudyPlanController;
 use App\Http\Controllers\StudySessionController;
 use App\Http\Controllers\SubmissionController;
+use App\Http\Controllers\SyllabusDraftController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TodayController;
 use App\Http\Controllers\TopicController;
@@ -107,4 +109,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Automation Phase B — Weekly review.
     Route::get('/weekly-reviews/latest', [WeeklyReviewController::class, 'latest']);
+
+    // AI Phase 1/2 — provider infra + syllabus extraction (Stage 1, see mdfile/AI.md).
+    Route::patch('/ai/consent', [AiSettingsController::class, 'updateConsent']);
+    Route::get('/ai/usage', [AiSettingsController::class, 'usage']);
+    Route::post('/courses/{course}/syllabus-drafts', [SyllabusDraftController::class, 'store']);
+    Route::post('/syllabus-drafts/{draft}/confirm', [SyllabusDraftController::class, 'confirm']);
+    Route::post('/syllabus-drafts/{draft}/discard', [SyllabusDraftController::class, 'discard']);
 });

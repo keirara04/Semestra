@@ -52,7 +52,7 @@ export default function DashboardPage() {
   const overflowCount = today.tasks.length - visibleTasks.length;
 
   return (
-    <main className="fn-sheet min-h-dvh w-full px-8 py-10 md:px-12">
+    <main className="bg-[var(--fn-paper)] min-h-dvh w-full px-8 py-10 md:px-12">
       {pendingReview && (
         <Link
           href="/review"

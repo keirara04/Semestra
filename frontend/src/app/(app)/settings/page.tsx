@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { ApiError } from "@/lib/api";
+import { ApiError, apiFetch } from "@/lib/api";
 import type { DeepWorkWindow, User } from "@/lib/types";
 
 // Settings — see "Settings" in mdfile/DESIGN.md. Only fields that exist
@@ -13,21 +13,30 @@ import type { DeepWorkWindow, User } from "@/lib/types";
 // are stored but not yet enforced — there's no notification system to
 // honor them yet (Automation release).
 export default function SettingsPage() {
-  const { user, updateProfile, deleteAccount } = useAuth();
+  const { user, updateProfile, deleteAccount, setAiConsent } = useAuth();
 
   if (!user) return null;
 
-  return <SettingsForm user={user} updateProfile={updateProfile} deleteAccount={deleteAccount} />;
+  return (
+    <SettingsForm
+      user={user}
+      updateProfile={updateProfile}
+      deleteAccount={deleteAccount}
+      setAiConsent={setAiConsent}
+    />
+  );
 }
 
 function SettingsForm({
   user,
   updateProfile,
   deleteAccount,
+  setAiConsent,
 }: {
   user: User;
   updateProfile: (input: Partial<User>) => Promise<void>;
   deleteAccount: (password: string) => Promise<void>;
+  setAiConsent: (enabled: boolean) => Promise<void>;
 }) {
   const router = useRouter();
 
@@ -48,6 +57,24 @@ function SettingsForm({
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  const [aiBudget, setAiBudget] = useState<{ remaining: number; limit: number } | null>(null);
+  const [aiSaving, setAiSaving] = useState(false);
+
+  useEffect(() => {
+    if (user.ai_syllabus_extraction_consent_at) {
+      apiFetch<{ remaining: number; limit: number }>("/api/ai/usage").then(setAiBudget);
+    }
+  }, [user.ai_syllabus_extraction_consent_at]);
+
+  async function toggleAiConsent(enabled: boolean) {
+    setAiSaving(true);
+    try {
+      await setAiConsent(enabled);
+    } finally {
+      setAiSaving(false);
+    }
+  }
 
   async function handleSave(event: FormEvent) {
     event.preventDefault();
@@ -98,7 +125,7 @@ function SettingsForm({
   }
 
   return (
-    <main className="fn-sheet min-h-dvh w-full px-8 py-10 md:px-12">
+    <main className="bg-[var(--fn-paper)] min-h-dvh w-full px-8 py-10 md:px-12">
       <p className="fn-eyebrow">Settings</p>
       <h1 className="mt-1 text-2xl font-semibold">Preferences</h1>
 
@@ -211,7 +238,7 @@ function SettingsForm({
             </label>
           </div>
           <p className="text-xs text-[var(--fn-muted)]">
-            Not enforced yet — there&apos;s no notification system to honor this.
+            Reminder emails are delayed until quiet hours end.
           </p>
         </section>
 
@@ -230,6 +257,29 @@ function SettingsForm({
           )}
         </div>
       </form>
+
+      <section className="mt-10 flex flex-col gap-3 border-t border-[var(--fn-rule)] pt-6">
+        <p className="fn-eyebrow">AI</p>
+        <p className="text-xs text-[var(--fn-muted)]">
+          Off by default. When enabled, a syllabus you paste or upload is sent to an AI provider
+          to draft candidate assessments and tasks — nothing is saved until you review and
+          confirm each one.
+        </p>
+        <label className="flex w-fit items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={!!user.ai_syllabus_extraction_consent_at}
+            disabled={aiSaving}
+            onChange={(event) => toggleAiConsent(event.target.checked)}
+          />
+          Allow syllabus extraction
+        </label>
+        {user.ai_syllabus_extraction_consent_at && aiBudget && (
+          <p className="fn-mono text-xs text-[var(--fn-muted)]">
+            {aiBudget.remaining} of {aiBudget.limit} extractions left today.
+          </p>
+        )}
+      </section>
 
       <section className="mt-10 flex flex-col gap-3 border-t border-[var(--fn-rule)] pt-6">
         <p className="fn-eyebrow">Data</p>

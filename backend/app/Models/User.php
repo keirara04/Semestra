@@ -31,6 +31,7 @@ class User extends Authenticatable
             'deep_work_windows' => 'array',
             'quiet_hours' => 'array',
             'max_study_hours_per_day' => 'integer',
+            'ai_syllabus_extraction_consent_at' => 'datetime',
         ];
     }
 
