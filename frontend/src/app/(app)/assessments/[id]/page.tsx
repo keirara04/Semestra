@@ -13,9 +13,10 @@ function formatMinutes(minutes: number | null | undefined): string {
   return [hours ? `${hours}h` : null, mins ? `${mins}m` : null].filter(Boolean).join(" ");
 }
 
-// Assessment detail — see "Assessment and project planner" in the plan.
-// Recommended/latest-safe-start dates aren't shown here: those come from
-// the planner's feasibility pass (Planning Engine, not this release).
+// Assessment detail — see "Assessment and project planner" in
+// mdfile/semester-command-center.md. Recommended/latest-safe-start dates
+// aren't shown here: those come from the planner's feasibility pass
+// (Planning Engine, not this release).
 export default function AssessmentDetailPage({
   params,
 }: {
@@ -44,18 +45,19 @@ export default function AssessmentDetailPage({
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-10">
-      <h1 className="text-xl font-semibold">{assessment.title}</h1>
-      <p className="mt-1 text-sm text-gray-600">
-        {assessment.type} · due {new Date(assessment.due_at).toLocaleString()}
+    <main className="fn-sheet mx-auto min-h-dvh max-w-2xl px-6 py-10 md:my-6 md:rounded-2xl md:shadow-sm">
+      <p className="fn-eyebrow">{assessment.type}</p>
+      <h1 className="mt-1 text-2xl font-semibold">{assessment.title}</h1>
+      <p className="fn-mono mt-1 text-sm text-[var(--fn-muted)]">
+        Due {new Date(assessment.due_at).toLocaleString()}
       </p>
 
       <div className="mt-4 flex items-center gap-3 text-sm">
-        <span className="text-gray-600">Status</span>
+        <span className="fn-label">Status</span>
         <select
           value={assessment.status}
           onChange={(event) => updateStatus(event.target.value as AssessmentStatus)}
-          className="rounded border px-2 py-1.5"
+          className="fn-input w-auto py-1.5"
         >
           {STATUSES.map((status) => (
             <option key={status} value={status}>
@@ -65,24 +67,26 @@ export default function AssessmentDetailPage({
         </select>
       </div>
 
-      <div className="mt-4 flex gap-6 text-sm">
+      <div className="mt-6 flex gap-8 border-t border-[var(--fn-rule)] pt-4">
         <div>
-          <div className="text-gray-600">Estimated effort</div>
-          <div className="font-medium">{formatMinutes(assessment.estimated_minutes)}</div>
+          <p className="fn-label">Estimated effort</p>
+          <p className="fn-mono text-xl font-semibold">{formatMinutes(assessment.estimated_minutes)}</p>
         </div>
         <div>
-          <div className="text-gray-600">Remaining effort</div>
-          <div className="font-medium">{formatMinutes(assessment.remaining_minutes)}</div>
+          <p className="fn-label">Remaining effort</p>
+          <p className="fn-mono text-xl font-semibold">{formatMinutes(assessment.remaining_minutes)}</p>
         </div>
       </div>
 
       {assessment.group_members && assessment.group_members.length > 0 && (
-        <p className="mt-4 text-sm text-gray-600">
-          Group: {assessment.group_members.join(", ")}
+        <p className="fn-mono mt-4 inline-block rounded border border-[var(--fn-rule)] px-2 py-1 text-[11px] text-[var(--fn-muted)]">
+          with {assessment.group_members.join(", ")}
         </p>
       )}
 
-      {assessment.notes && <p className="mt-4 text-sm text-gray-600">{assessment.notes}</p>}
+      {assessment.notes && (
+        <p className="mt-4 text-sm text-[var(--fn-muted)]">{assessment.notes}</p>
+      )}
 
       <MilestonesSection
         assessmentId={assessment.id}
@@ -91,7 +95,7 @@ export default function AssessmentDetailPage({
       />
 
       {error && (
-        <p role="alert" className="mt-4 text-sm text-red-600">
+        <p role="alert" className="mt-4 text-sm text-[var(--fn-oxide)]">
           {error}
         </p>
       )}
@@ -140,25 +144,34 @@ function MilestonesSection({
 
   return (
     <div className="mt-8">
-      <h2 className="text-sm font-medium">Milestones</h2>
-      <ul className="mt-3 flex flex-col gap-2">
+      <p className="fn-eyebrow">Milestones</p>
+      <ul className="mt-3 flex flex-col divide-y divide-[var(--fn-rule)]">
         {milestones.map((milestone) => (
-          <li key={milestone.id} className="flex items-center gap-2 text-sm">
+          <li key={milestone.id} className="flex items-center gap-3 py-2 text-sm">
             <input
               type="checkbox"
               checked={milestone.done}
               onChange={() => toggleDone(milestone)}
+              className="h-4 w-4 accent-[var(--fn-cobalt)]"
             />
-            <span className={milestone.done ? "text-gray-400 line-through" : ""}>
+            <span
+              className={
+                milestone.done
+                  ? "flex-1 text-[var(--fn-muted)] line-through"
+                  : "flex-1 text-[var(--fn-ink)]"
+              }
+            >
               {milestone.title}
             </span>
             {milestone.estimate_minutes && (
-              <span className="text-gray-500">{formatMinutes(milestone.estimate_minutes)}</span>
+              <span className="fn-mono text-[var(--fn-muted)]">
+                {formatMinutes(milestone.estimate_minutes)}
+              </span>
             )}
           </li>
         ))}
         {milestones.length === 0 && (
-          <li className="text-sm text-gray-600">No milestones yet.</li>
+          <li className="py-2 text-sm text-[var(--fn-muted)]">No milestones yet.</li>
         )}
       </ul>
 
@@ -167,10 +180,10 @@ function MilestonesSection({
           value={title}
           onChange={(event) => setTitle(event.target.value)}
           required
-          className="flex-1 rounded border px-3 py-1.5 text-sm"
+          className="fn-input flex-1"
           placeholder="Draft methodology"
         />
-        <button type="submit" disabled={submitting} className="rounded border px-3 py-1.5 text-sm">
+        <button type="submit" disabled={submitting} className="fn-btn-primary !w-fit px-4">
           Add
         </button>
       </form>

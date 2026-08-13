@@ -39,66 +39,63 @@ export default function SemesterPage() {
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-10">
-      <h1 className="text-xl font-semibold">Semester</h1>
+    <main className="fn-sheet mx-auto min-h-dvh max-w-2xl px-6 py-10 md:my-6 md:rounded-2xl md:shadow-sm">
+      <p className="fn-eyebrow">Semester</p>
+      <h1 className="mt-1 text-2xl font-semibold">Terms</h1>
 
-      <ul className="mt-6 flex flex-col gap-2">
+      <ul className="mt-6 flex flex-col divide-y divide-[var(--fn-rule)]">
         {semesters?.map((semester) => (
-          <li key={semester.id} className="rounded border px-3 py-2 text-sm">
-            <span className="font-medium">{semester.name}</span>{" "}
-            <span className="text-gray-600">
+          <li key={semester.id} className="flex items-baseline justify-between py-2.5 text-sm">
+            <span className="font-medium">{semester.name}</span>
+            <span className="fn-mono text-[var(--fn-muted)]">
               {semester.start_date} – {semester.end_date}
             </span>
           </li>
         ))}
         {semesters?.length === 0 && (
-          <li className="text-sm text-gray-600">No semesters yet — add one below.</li>
+          <li className="py-2.5 text-sm text-[var(--fn-muted)]">No semesters yet — add one below.</li>
         )}
       </ul>
 
-      <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-3">
-        <label className="flex flex-col gap-1 text-sm">
-          Name
+      <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-4">
+        <label className="flex flex-col gap-1.5">
+          <span className="fn-label">Name</span>
           <input
             value={name}
             onChange={(event) => setName(event.target.value)}
             required
-            className="rounded border px-3 py-2"
+            className="fn-input"
             placeholder="Fall 2026"
           />
         </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Start date
+        <label className="flex flex-col gap-1.5">
+          <span className="fn-label">Start date</span>
           <input
             type="date"
             value={startDate}
             onChange={(event) => setStartDate(event.target.value)}
             required
-            className="rounded border px-3 py-2"
+            className="fn-input"
           />
         </label>
-        <label className="flex flex-col gap-1 text-sm">
-          End date
+        <label className="flex flex-col gap-1.5">
+          <span className="fn-label">End date</span>
           <input
             type="date"
             value={endDate}
             onChange={(event) => setEndDate(event.target.value)}
             required
-            className="rounded border px-3 py-2"
+            className="fn-input"
           />
         </label>
 
         {error && (
-          <p role="alert" className="text-sm text-red-600">
+          <p role="alert" className="text-sm text-[var(--fn-oxide)]">
             {error}
           </p>
         )}
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-fit rounded border px-3 py-2 text-sm"
-        >
+        <button type="submit" disabled={submitting} className="fn-btn-primary !w-fit px-4">
           {submitting ? "Saving…" : "Add semester"}
         </button>
       </form>

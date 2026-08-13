@@ -27,7 +27,9 @@ function formatElapsed(seconds: number): string {
   return `${mins}:${secs}`;
 }
 
-// Focus session screen — see "Focus sessions and work logs" in the plan.
+// Focus session — see "Focus session" in mdfile/DESIGN.md. The circular
+// timer is not the only way to read progress: elapsed/remaining are also
+// rendered as plain text for screen readers and low-motion users.
 export default function FocusPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [session, setSession] = useState<StudySession | null>(null);
@@ -113,19 +115,20 @@ function StartSession({
   }
 
   return (
-    <main className="mx-auto max-w-md px-4 py-10">
-      <h1 className="text-xl font-semibold">Focus</h1>
+    <main className="fn-sheet mx-auto min-h-dvh max-w-md px-6 py-10 md:my-6 md:rounded-2xl md:shadow-sm">
+      <p className="fn-eyebrow">Focus</p>
+      <h1 className="mt-1 text-2xl font-semibold">Start a session</h1>
 
       {tasks.length === 0 ? (
-        <p className="mt-6 text-sm text-gray-600">No open tasks to focus on.</p>
+        <p className="mt-6 text-sm text-[var(--fn-muted)]">No open tasks to focus on.</p>
       ) : (
-        <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3">
-          <label className="flex flex-col gap-1 text-sm">
-            Task
+        <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
+          <label className="flex flex-col gap-1.5">
+            <span className="fn-label">Task</span>
             <select
               value={selectedTaskId}
               onChange={(event) => setTaskId(event.target.value)}
-              className="rounded border px-3 py-2"
+              className="fn-input"
             >
               {tasks.map((task) => (
                 <option key={task.id} value={task.id}>
@@ -134,26 +137,55 @@ function StartSession({
               ))}
             </select>
           </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Planned minutes
+          <label className="flex flex-col gap-1.5">
+            <span className="fn-label">Planned minutes</span>
             <input
               type="number"
               min={5}
               value={minutes}
               onChange={(event) => setMinutes(Number(event.target.value))}
-              className="rounded border px-3 py-2"
+              className="fn-input"
             />
           </label>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-fit rounded border px-3 py-2 text-sm"
-          >
+          <button type="submit" disabled={submitting} className="fn-btn-primary !w-fit px-4">
             {submitting ? "Starting…" : "Start focus session"}
           </button>
         </form>
       )}
     </main>
+  );
+}
+
+function CircularProgress({ progress }: { progress: number }) {
+  const size = 220;
+  const stroke = 6;
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const clamped = Math.min(1, Math.max(0, progress));
+
+  return (
+    <svg width={size} height={size} className="-rotate-90" aria-hidden>
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        stroke="var(--fn-rule)"
+        strokeWidth={stroke}
+      />
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        fill="none"
+        stroke="var(--fn-cobalt)"
+        strokeWidth={stroke}
+        strokeLinecap="round"
+        strokeDasharray={circumference}
+        strokeDashoffset={circumference * (1 - clamped)}
+        style={{ transition: "stroke-dashoffset 0.3s linear" }}
+      />
+    </svg>
   );
 }
 
@@ -181,6 +213,9 @@ function RunningSession({
     return () => clearInterval(interval);
   }, [session.started_at, session.status]);
 
+  const plannedSeconds = session.planned_minutes * 60;
+  const remainingSeconds = Math.max(0, plannedSeconds - elapsed);
+
   async function pause() {
     const updated = await apiFetch<StudySession>(`/api/study-sessions/${session.id}/pause`, {
       method: "POST",
@@ -204,23 +239,38 @@ function RunningSession({
   }
 
   return (
-    <main className="mx-auto flex max-w-md flex-col items-center gap-6 px-4 py-16 text-center">
-      <p className="text-sm text-gray-600">
-        Planned {session.planned_minutes} minutes · {session.status}
-      </p>
-      <p className="text-5xl font-semibold tabular-nums">{formatElapsed(elapsed)}</p>
+    <main className="flex min-h-dvh flex-col items-center justify-center gap-6 px-4 py-16 text-center">
+      <p className="fn-eyebrow">{session.status === "running" ? "Focusing" : "Paused"}</p>
+
+      <div className="relative flex items-center justify-center">
+        <CircularProgress progress={elapsed / plannedSeconds} />
+        <div className="absolute flex flex-col items-center">
+          <span className="fn-mono text-4xl font-semibold">{formatElapsed(elapsed)}</span>
+          <span className="fn-mono text-xs text-[var(--fn-muted)]">
+            {formatElapsed(remainingSeconds)} remaining of {session.planned_minutes}m
+          </span>
+        </div>
+      </div>
 
       <div className="flex gap-2">
         {session.status === "running" ? (
-          <button type="button" onClick={pause} className="rounded border px-4 py-2 text-sm">
+          <button
+            type="button"
+            onClick={pause}
+            className="rounded-md border border-[var(--fn-rule)] px-4 py-2 text-sm hover:bg-[var(--fn-paper)]"
+          >
             Pause
           </button>
         ) : (
-          <button type="button" onClick={resume} className="rounded border px-4 py-2 text-sm">
+          <button
+            type="button"
+            onClick={resume}
+            className="rounded-md border border-[var(--fn-rule)] px-4 py-2 text-sm hover:bg-[var(--fn-paper)]"
+          >
             Resume
           </button>
         )}
-        <button type="button" onClick={end} className="rounded border px-4 py-2 text-sm">
+        <button type="button" onClick={end} className="fn-btn-primary !w-fit px-4">
           End session
         </button>
       </div>
@@ -228,7 +278,7 @@ function RunningSession({
       <button
         type="button"
         onClick={onStuck}
-        className="text-sm text-gray-600 underline underline-offset-2"
+        className="text-sm text-[var(--fn-muted)] underline underline-offset-2"
       >
         {stuck ? "Blocker noted — logged at end" : "I am stuck"}
       </button>
@@ -273,18 +323,19 @@ function ReflectionForm({
   }
 
   return (
-    <main className="mx-auto max-w-md px-4 py-10">
-      <h1 className="text-xl font-semibold">
-        Session ended — {session.actual_minutes ?? 0} minutes logged
+    <main className="fn-sheet mx-auto min-h-dvh max-w-md px-6 py-10 md:my-6 md:rounded-2xl md:shadow-sm">
+      <p className="fn-eyebrow">Session ended</p>
+      <h1 className="mt-1 text-2xl font-semibold">
+        {session.actual_minutes ?? 0} minutes logged
       </h1>
 
-      <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-3">
-        <label className="flex flex-col gap-1 text-sm">
-          Outcome
+      <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
+        <label className="flex flex-col gap-1.5">
+          <span className="fn-label">Outcome</span>
           <select
             value={outcome}
             onChange={(event) => setOutcome(event.target.value as StudySessionOutcome)}
-            className="rounded border px-3 py-2"
+            className="fn-input"
           >
             {OUTCOMES.map((option) => (
               <option key={option} value={option}>
@@ -295,55 +346,51 @@ function ReflectionForm({
         </label>
 
         {outcome === "blocked" && (
-          <label className="flex flex-col gap-1 text-sm">
-            Blocker
+          <label className="flex flex-col gap-1.5">
+            <span className="fn-label">Blocker</span>
             <textarea
               value={blocker}
               onChange={(event) => setBlocker(event.target.value)}
               required
-              className="rounded border px-3 py-2"
+              className="fn-input"
             />
           </label>
         )}
 
-        <label className="flex flex-col gap-1 text-sm">
-          Remaining effort (minutes)
+        <label className="flex flex-col gap-1.5">
+          <span className="fn-label">Remaining effort (minutes)</span>
           <input
             type="number"
             min={0}
             value={remaining}
             onChange={(event) => setRemaining(event.target.value)}
-            className="rounded border px-3 py-2"
+            className="fn-input"
             placeholder="Leave blank to keep as-is"
           />
         </label>
 
-        <label className="flex flex-col gap-1 text-sm">
-          Completion %
+        <label className="flex flex-col gap-1.5">
+          <span className="fn-label">Completion %</span>
           <input
             type="number"
             min={0}
             max={100}
             value={completion}
             onChange={(event) => setCompletion(event.target.value)}
-            className="rounded border px-3 py-2"
+            className="fn-input"
           />
         </label>
 
-        <label className="flex flex-col gap-1 text-sm">
-          Notes
+        <label className="flex flex-col gap-1.5">
+          <span className="fn-label">Notes</span>
           <textarea
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
-            className="rounded border px-3 py-2"
+            className="fn-input"
           />
         </label>
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-fit rounded border px-3 py-2 text-sm"
-        >
+        <button type="submit" disabled={submitting} className="fn-btn-primary !w-fit px-4">
           {submitting ? "Saving…" : "Save reflection"}
         </button>
       </form>

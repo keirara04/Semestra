@@ -17,6 +17,21 @@ const TYPES: AssessmentType[] = [
   "other",
 ];
 
+const STATUS_LABEL: Record<Assessment["status"], string> = {
+  not_started: "Not started",
+  in_progress: "In progress",
+  blocked: "Blocked",
+  done: "Done",
+};
+
+function daysUntil(dueAt: string): string {
+  const days = Math.ceil((new Date(dueAt).getTime() - Date.now()) / 86_400_000);
+  if (days < 0) return "overdue";
+  if (days === 0) return "due today";
+  if (days === 1) return "due tomorrow";
+  return `due in ${days}d`;
+}
+
 export default function AssessmentsPage() {
   const [assessments, setAssessments] = useState<Assessment[] | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
@@ -59,51 +74,65 @@ export default function AssessmentsPage() {
     }
   }
 
-  const courseTitle = (id: number) => courses.find((course) => course.id === id)?.title ?? "";
-
   return (
-    <main className="mx-auto max-w-2xl px-4 py-10">
-      <h1 className="text-xl font-semibold">Assessments</h1>
+    <main className="fn-sheet mx-auto min-h-dvh max-w-2xl px-6 py-10 md:my-6 md:rounded-2xl md:shadow-sm">
+      <p className="fn-eyebrow">Assessments</p>
+      <h1 className="mt-1 text-2xl font-semibold">Every assessment, across courses</h1>
 
       <ul className="mt-6 flex flex-col gap-2">
         {assessments
           ?.slice()
           .sort((a, b) => a.due_at.localeCompare(b.due_at))
-          .map((assessment) => (
-            <li key={assessment.id}>
-              <Link
-                href={`/assessments/${assessment.id}`}
-                className="flex flex-col rounded border px-3 py-2 text-sm hover:bg-gray-50"
-              >
-                <span className="font-medium">{assessment.title}</span>
-                <span className="text-gray-600">
-                  {courseTitle(assessment.course_id)} · due{" "}
-                  {new Date(assessment.due_at).toLocaleDateString()} · {assessment.status}
-                </span>
-              </Link>
-            </li>
-          ))}
+          .map((assessment) => {
+            const course = courses.find((item) => item.id === assessment.course_id);
+            return (
+              <li key={assessment.id}>
+                <Link
+                  href={`/assessments/${assessment.id}`}
+                  className="flex items-center gap-3 rounded-md border border-[var(--fn-rule)] px-3 py-2.5 text-sm transition-colors hover:bg-[var(--fn-canvas)]"
+                >
+                  {course && (
+                    <span
+                      className="h-8 w-1 shrink-0 rounded-full"
+                      style={{ backgroundColor: course.colour }}
+                      aria-hidden
+                    />
+                  )}
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-medium">{assessment.title}</span>
+                    <span className="fn-mono text-[var(--fn-muted)]">{course?.title ?? "—"}</span>
+                  </span>
+                  <span className="fn-mono shrink-0 text-[var(--fn-muted)]">
+                    {daysUntil(assessment.due_at)}
+                  </span>
+                  <span className="fn-mono shrink-0 text-[11px] text-[var(--fn-muted)]">
+                    {STATUS_LABEL[assessment.status]}
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
         {assessments?.length === 0 && (
-          <li className="text-sm text-gray-600">No assessments yet — add one below.</li>
+          <li className="text-sm text-[var(--fn-muted)]">No assessments yet — add one below.</li>
         )}
       </ul>
 
       {courses.length === 0 ? (
-        <p className="mt-8 text-sm text-gray-600">
+        <p className="mt-8 text-sm text-[var(--fn-muted)]">
           Add a{" "}
-          <Link href="/courses" className="underline">
+          <Link href="/courses" className="text-[var(--fn-cobalt)] underline underline-offset-2">
             course
           </Link>{" "}
           first.
         </p>
       ) : (
-        <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-3">
-          <label className="flex flex-col gap-1 text-sm">
-            Course
+        <form onSubmit={handleSubmit} className="mt-8 flex flex-col gap-4">
+          <label className="flex flex-col gap-1.5">
+            <span className="fn-label">Course</span>
             <select
               value={courseId}
               onChange={(event) => setCourseId(event.target.value)}
-              className="rounded border px-3 py-2"
+              className="fn-input"
             >
               {courses.map((course) => (
                 <option key={course.id} value={course.id}>
@@ -112,12 +141,12 @@ export default function AssessmentsPage() {
               ))}
             </select>
           </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Type
+          <label className="flex flex-col gap-1.5">
+            <span className="fn-label">Type</span>
             <select
               value={type}
               onChange={(event) => setType(event.target.value as AssessmentType)}
-              className="rounded border px-3 py-2"
+              className="fn-input"
             >
               {TYPES.map((option) => (
                 <option key={option} value={option}>
@@ -126,38 +155,34 @@ export default function AssessmentsPage() {
               ))}
             </select>
           </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Title
+          <label className="flex flex-col gap-1.5">
+            <span className="fn-label">Title</span>
             <input
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               required
-              className="rounded border px-3 py-2"
+              className="fn-input"
               placeholder="Korean Sign Language Report"
             />
           </label>
-          <label className="flex flex-col gap-1 text-sm">
-            Due
+          <label className="flex flex-col gap-1.5">
+            <span className="fn-label">Due</span>
             <input
               type="datetime-local"
               value={dueAt}
               onChange={(event) => setDueAt(event.target.value)}
               required
-              className="rounded border px-3 py-2"
+              className="fn-input"
             />
           </label>
 
           {error && (
-            <p role="alert" className="text-sm text-red-600">
+            <p role="alert" className="text-sm text-[var(--fn-oxide)]">
               {error}
             </p>
           )}
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-fit rounded border px-3 py-2 text-sm"
-          >
+          <button type="submit" disabled={submitting} className="fn-btn-primary !w-fit px-4">
             {submitting ? "Saving…" : "Add assessment"}
           </button>
         </form>

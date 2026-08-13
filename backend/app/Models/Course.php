@@ -30,4 +30,19 @@ class Course extends Model
     {
         return $this->hasMany(ClassSession::class);
     }
+
+    public function gradeItems(): HasMany
+    {
+        return $this->hasMany(GradeItem::class);
+    }
+
+    public function gradeCategories(): HasMany
+    {
+        return $this->hasMany(GradeCategory::class);
+    }
+
+    public function assessments(): HasMany
+    {
+        return $this->hasMany(Assessment::class);
+    }
 }

@@ -19,12 +19,20 @@ function toDateParam(date: Date): string {
 }
 
 function formatHours(minutes: number): string {
-  return `${(minutes / 60).toFixed(1)}h`;
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return mins ? `${hours}h${mins}m` : `${hours}h`;
 }
 
-// Calendar week grid rendering the capacity readout — no CalendarBlock
-// placement yet (that's Planning Engine); see "Timetable and availability"
-// in the plan.
+function isToday(dateString: string): boolean {
+  return dateString === toDateParam(new Date());
+}
+
+// Calendar week grid — see "Calendar view" in mdfile/DESIGN.md. Term-long
+// semester map is coarse; this is the day/week zoom level. No CalendarBlock
+// placement for lecture/commitment yet (that stays capacity-engine-derived
+// until Planning Engine); the per-day readout is the engine's output made
+// visible, per spec.
 export default function CalendarPage() {
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
   const [days, setDays] = useState<DayCapacity[] | null>(null);
@@ -47,42 +55,63 @@ export default function CalendarPage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Calendar</h1>
-        <div className="flex gap-2 text-sm">
-          <button type="button" onClick={() => shiftWeek(-1)} className="rounded border px-2 py-1">
+    <main className="fn-sheet mx-auto min-h-dvh max-w-4xl px-6 py-10 md:my-6 md:rounded-2xl md:shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <p className="fn-eyebrow">Calendar</p>
+          <h1 className="mt-1 text-2xl font-semibold">
+            Week of {weekStart.toLocaleDateString(undefined, { month: "long", day: "numeric" })}
+          </h1>
+        </div>
+        <div className="flex gap-1">
+          <button
+            type="button"
+            onClick={() => shiftWeek(-1)}
+            className="rounded-md border border-[var(--fn-rule)] px-3 py-1.5 text-sm hover:bg-[var(--fn-canvas)]"
+          >
             ← Prev
           </button>
-          <button type="button" onClick={() => shiftWeek(1)} className="rounded border px-2 py-1">
+          <button
+            type="button"
+            onClick={() => shiftWeek(1)}
+            className="rounded-md border border-[var(--fn-rule)] px-3 py-1.5 text-sm hover:bg-[var(--fn-canvas)]"
+          >
             Next →
           </button>
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-7 gap-2">
+      <div className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-7">
         {days?.map((day) => (
-          <div key={day.date} className="flex flex-col gap-1 rounded border p-2 text-xs">
-            <div className="font-medium">
+          <div
+            key={day.date}
+            className={`flex flex-col gap-1.5 rounded-md border p-3 ${
+              isToday(day.date) ? "border-[var(--fn-cobalt)]" : "border-[var(--fn-rule)]"
+            }`}
+          >
+            <span className="fn-eyebrow">
               {DAYS[day.day_of_week]} {day.date.slice(5)}
-            </div>
+            </span>
             {day.is_break ? (
-              <div className="text-gray-500">Break</div>
+              <span className="fn-mono text-xs text-[var(--fn-muted)]">Break</span>
             ) : (
-              <>
-                <div className="text-gray-600">Lectures {formatHours(day.lecture_minutes)}</div>
-                <div className="text-gray-600">
-                  Commitments {formatHours(day.commitment_minutes)}
-                </div>
-                <div className="text-gray-600">Available {formatHours(day.available_minutes)}</div>
-                <div className="font-medium">
-                  Study capacity {formatHours(day.recommended_study_minutes)}
-                </div>
-              </>
+              <div className="fn-mono flex flex-col gap-1 text-xs text-[var(--fn-muted)]">
+                <span>Lectures {formatHours(day.lecture_minutes)}</span>
+                <span>Commitments {formatHours(day.commitment_minutes)}</span>
+                <span>Available {formatHours(day.available_minutes)}</span>
+                <span className="font-medium text-[var(--fn-ink)]">
+                  Capacity {formatHours(day.recommended_study_minutes)}
+                </span>
+              </div>
             )}
           </div>
         ))}
       </div>
+
+      <p className="mt-4 text-xs text-[var(--fn-muted)]">
+        No planned-study workload verdict yet — that reads off the planner&apos;s allocation
+        output (Planning Engine, not this release).
+      </p>
     </main>
   );
 }

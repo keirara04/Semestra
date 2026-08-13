@@ -8,6 +8,7 @@ use App\Http\Controllers\ClassSessionController;
 use App\Http\Controllers\ClassSessionExceptionController;
 use App\Http\Controllers\CommitmentController;
 use App\Http\Controllers\CourseController;
+use App\Http\Controllers\CourseGradesController;
 use App\Http\Controllers\GradeCategoryController;
 use App\Http\Controllers\GradeItemController;
 use App\Http\Controllers\MilestoneController;
@@ -34,6 +35,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('semesters', SemesterController::class);
     Route::apiResource('academic-calendar-exceptions', AcademicCalendarExceptionController::class);
     Route::apiResource('courses', CourseController::class);
+    // Planning Engine Phase A — Grade tracker. Thin controller over
+    // App\Engine\Grade (pure PHP, fixture-tested separately).
+    Route::get('/courses/{course}/grades', CourseGradesController::class);
     Route::apiResource('class-sessions', ClassSessionController::class);
     Route::apiResource('class-session-exceptions', ClassSessionExceptionController::class);
     Route::apiResource('commitments', CommitmentController::class);

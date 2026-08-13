@@ -154,6 +154,37 @@ export interface Today {
   capacity: DayCapacity;
 }
 
+export interface GradeItem {
+  id: number;
+  course_id: number;
+  grade_category_id: number | null;
+  name: string;
+  weighting: number;
+  max_score: number;
+  achieved_score: number | null;
+  pass_hurdle_percent: number | null;
+}
+
+export interface PassHurdle {
+  item_name: string;
+  required_percent: number;
+  achieved_percent: number | null;
+  passed: boolean;
+}
+
+export interface GradeReport {
+  current_standing: number | null;
+  completed_weight: number;
+  total_weight: number;
+  weights_normalized: boolean;
+  ungraded_weight_percent: number;
+  best_case: number | null;
+  conservative: number | null;
+  expected: number | null;
+  needed_average: number | null;
+  pass_hurdles: PassHurdle[];
+}
+
 export interface DayCapacity {
   date: string; // "Y-m-d"
   day_of_week: number;
