@@ -14,6 +14,7 @@ use App\Http\Controllers\GradeCategoryController;
 use App\Http\Controllers\GradeItemController;
 use App\Http\Controllers\MaterialController;
 use App\Http\Controllers\MilestoneController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PlanningFeasibilityController;
 use App\Http\Controllers\PlanningRankingController;
 use App\Http\Controllers\PlanningRunController;
@@ -25,6 +26,7 @@ use App\Http\Controllers\SubmissionController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TodayController;
 use App\Http\Controllers\TopicController;
+use App\Http\Controllers\WeeklyReviewController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -98,4 +100,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Academic Intelligence Phase B — Topics + confidence.
     Route::apiResource('topics', TopicController::class);
+
+    // Automation Phase A — Notifications.
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead']);
+
+    // Automation Phase B — Weekly review.
+    Route::get('/weekly-reviews/latest', [WeeklyReviewController::class, 'latest']);
 });

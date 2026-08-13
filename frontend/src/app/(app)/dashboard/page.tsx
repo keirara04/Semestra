@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { apiFetch } from "@/lib/api";
-import type { Today } from "@/lib/types";
+import type { Today, WeeklyReview } from "@/lib/types";
 import { WEEK_STATE_LABEL, WeekStateMarker, weekState } from "@/components/WeekState";
 import { daysUntil, formatMinutes } from "@/lib/format";
+
+const REVIEW_DISMISSED_KEY = "semestra:review-dismissed-id";
 
 function greeting(): string {
   const hour = new Date().getHours();
@@ -28,9 +31,16 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const [today, setToday] = useState<Today | null>(null);
   const [expandedTaskId, setExpandedTaskId] = useState<number | null>(null);
+  const [pendingReview, setPendingReview] = useState<WeeklyReview | null>(null);
 
   useEffect(() => {
     apiFetch<Today>("/api/today").then(setToday);
+    apiFetch<WeeklyReview | null>("/api/weekly-reviews/latest").then((review) => {
+      const dismissedId = window.localStorage.getItem(REVIEW_DISMISSED_KEY);
+      if (review && String(review.id) !== dismissedId) {
+        setPendingReview(review);
+      }
+    });
   }, []);
 
   if (!today) return null;
@@ -43,6 +53,16 @@ export default function DashboardPage() {
 
   return (
     <main className="fn-sheet min-h-dvh w-full px-8 py-10 md:px-12">
+      {pendingReview && (
+        <Link
+          href="/review"
+          className="fn-mono mb-6 flex items-center justify-between rounded-md border border-[var(--fn-rule)] bg-[var(--fn-canvas)] px-4 py-2.5 text-sm text-[var(--fn-ink)]"
+        >
+          Your weekly review is ready
+          <span className="text-[var(--fn-muted)]">View →</span>
+        </Link>
+      )}
+
       {/* Greeting strip */}
       <div className="min-w-0">
         <p className="fn-eyebrow">{dayEyebrow(date)}</p>

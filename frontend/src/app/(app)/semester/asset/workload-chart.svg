@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 280" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Weekly workload chart</title>
+  <desc id="desc">A 12-week stacked workload chart. Week 8 is at risk because planned work exceeds the target range.</desc>
+  <defs>
+    <pattern id="workload-risk-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <path d="M0 0V8" stroke="#AE4D40" stroke-width="2"/>
+    </pattern>
+  </defs>
+  <g stroke="#68707B" stroke-width="1" opacity=".65">
+    <path d="M58 238H1128M58 190H1128M58 142H1128M58 94H1128M58 46H1128"/>
+    <path d="M58 22V238"/>
+  </g>
+  <rect x="58" y="78" width="1070" height="48" fill="none" stroke="#68707B" stroke-width="1.5" stroke-dasharray="6 6" opacity=".9"/>
+  <g fill="#222933" font-family="IBM Plex Mono, ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" text-anchor="end">
+    <text x="48" y="242">0</text><text x="48" y="194">6</text><text x="48" y="146">12</text><text x="48" y="98">18</text><text x="48" y="50">24</text>
+  </g>
+  <g>
+    <!-- W1 --> <path d="M96 238V214H128V238Z" fill="#5A626C"/><path d="M96 214V198H128V214Z" fill="#64816C"/><path d="M96 198V182H128V198Z" fill="#B68A2C"/><path d="M96 182V166H128V182Z" fill="#AE4D40"/><path d="M96 166V158H128V166Z" fill="#2857A0"/>
+    <!-- W2 --> <path d="M180 238V206H212V238Z" fill="#5A626C"/><path d="M180 206V190H212V206Z" fill="#64816C"/><path d="M180 190V174H212V190Z" fill="#B68A2C"/><path d="M180 174V166H212V174Z" fill="#AE4D40"/><path d="M180 166V158H212V166Z" fill="#2857A0"/>
+    <!-- W3 --> <path d="M264 238V198H296V238Z" fill="#5A626C"/><path d="M264 198V174H296V198Z" fill="#64816C"/><path d="M264 174V158H296V174Z" fill="#B68A2C"/><path d="M264 158V142H296V158Z" fill="#AE4D40"/><path d="M264 142V134H296V142Z" fill="#2857A0"/>
+    <!-- W4 --> <path d="M348 238V190H380V238Z" fill="#5A626C"/><path d="M348 190V158H380V190Z" fill="#64816C"/><path d="M348 158V134H380V158Z" fill="#B68A2C"/><path d="M348 134V118H380V134Z" fill="#AE4D40"/><path d="M348 118V102H380V118Z" fill="#2857A0"/>
+    <!-- W5 --> <path d="M432 238V182H464V238Z" fill="#5A626C"/><path d="M432 182V150H464V182Z" fill="#64816C"/><path d="M432 150V126H464V150Z" fill="#B68A2C"/><path d="M432 126V102H464V126Z" fill="#AE4D40"/><path d="M432 102V94H464V102Z" fill="#2857A0"/>
+    <!-- W6 --> <path d="M516 238V190H548V238Z" fill="#5A626C"/><path d="M516 190V158H548V190Z" fill="#64816C"/><path d="M516 158V134H548V158Z" fill="#B68A2C"/><path d="M516 134V110H548V134Z" fill="#AE4D40"/><path d="M516 110V102H548V110Z" fill="#2857A0"/>
+    <!-- W7 --> <path d="M600 238V182H632V238Z" fill="#5A626C"/><path d="M600 182V150H632V182Z" fill="#64816C"/><path d="M600 150V126H632V150Z" fill="#B68A2C"/><path d="M600 126V102H632V126Z" fill="#AE4D40"/><path d="M600 102V86H632V102Z" fill="#2857A0"/>
+    <!-- W8 risk --> <path d="M684 238V174H716V238Z" fill="#5A626C"/><path d="M684 174V134H716V174Z" fill="#64816C"/><path d="M684 134V102H716V134Z" fill="#B68A2C"/><path d="M684 102V70H716V102Z" fill="#AE4D40"/><path d="M684 70V46H716V70Z" fill="#2857A0"/><path d="M684 46V30H716V46Z" fill="url(#workload-risk-hatch)" stroke="#AE4D40" stroke-width="1.5"/>
+    <!-- W9 --> <path d="M768 238V182H800V238Z" fill="#5A626C"/><path d="M768 182V150H800V182Z" fill="#64816C"/><path d="M768 150V126H800V150Z" fill="#B68A2C"/><path d="M768 126V102H800V126Z" fill="#AE4D40"/><path d="M768 102V94H800V102Z" fill="#2857A0"/>
+    <!-- W10 --> <path d="M852 238V174H884V238Z" fill="#5A626C"/><path d="M852 174V142H884V174Z" fill="#64816C"/><path d="M852 142V118H884V142Z" fill="#B68A2C"/><path d="M852 118V94H884V118Z" fill="#AE4D40"/><path d="M852 94V78H884V94Z" fill="#2857A0"/>
+    <!-- W11 --> <path d="M936 238V198H968V238Z" fill="#5A626C"/><path d="M936 198V174H968V198Z" fill="#64816C"/><path d="M936 174V158H968V174Z" fill="#B68A2C"/><path d="M936 158V142H968V158Z" fill="#AE4D40"/><path d="M936 142V134H968V142Z" fill="#2857A0"/>
+    <!-- W12 --> <path d="M1020 238V214H1052V238Z" fill="#5A626C"/><path d="M1020 214V198H1052V214Z" fill="#64816C"/><path d="M1020 198V182H1052V198Z" fill="#B68A2C"/><path d="M1020 182V174H1052V182Z" fill="#AE4D40"/><path d="M1020 174V166H1052V174Z" fill="#2857A0"/>
+  </g>
+  <g fill="#222933" font-family="IBM Plex Mono, ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" text-anchor="middle">
+    <text x="112" y="260">W1</text><text x="196" y="260">W2</text><text x="280" y="260">W3</text><text x="364" y="260">W4</text>
+    <text x="448" y="260">W5</text><text x="532" y="260">W6</text><text x="616" y="260">W7</text><text x="700" y="260">W8</text>
+    <text x="784" y="260">W9</text><text x="868" y="260">W10</text><text x="952" y="260">W11</text><text x="1036" y="260">W12</text>
+  </g>
+  <g fill="#AE4D40" font-family="IBM Plex Mono, ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">
+    <text x="728" y="27">HIGH-LOAD WEEK</text>
+  </g>
+  <g fill="#68707B" font-family="IBM Plex Mono, ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">
+    <text x="1138" y="98">TARGET RANGE</text><text x="1138" y="116">14-18H</text>
+  </g>
+</svg>

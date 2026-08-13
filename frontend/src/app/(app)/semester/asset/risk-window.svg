@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 40" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">At-risk work window</title>
+  <desc id="desc">A diagonally hatched at-risk planning window. Set its colour with the CSS color property.</desc>
+  <defs>
+    <pattern id="risk-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <path d="M0 0V8" stroke="currentColor" stroke-width="2"/>
+    </pattern>
+  </defs>
+  <g color="#AE4D40">
+    <rect x="2" y="5" width="124" height="30" rx="2" fill="url(#risk-hatch)" stroke="currentColor" stroke-width="2"/>
+  </g>
+</svg>

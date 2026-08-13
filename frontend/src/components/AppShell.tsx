@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
+import { NotificationBell } from "@/components/NotificationBell";
+import { useNotifications } from "@/lib/notifications";
 
 interface NavItem {
   href: string;
@@ -77,6 +79,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
+  const { unreadCount } = useNotifications();
   const [moreOpen, setMoreOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -133,19 +136,22 @@ export function AppShell({ children }: { children: ReactNode }) {
             )}
           >
             {!collapsed && <span className="fn-eyebrow text-[#c9cdd3]">Semestra</span>}
-            <button
-              type="button"
-              onClick={toggleCollapsed}
-              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-              className={cn("rounded p-1 text-[#aeb3ba] hover:text-white", FOCUS_RING)}
-            >
-              {collapsed ? (
-                <ChevronsRight className="h-4 w-4" />
-              ) : (
-                <ChevronsLeft className="h-4 w-4" />
-              )}
-            </button>
+            <div className="flex items-center gap-1">
+              <NotificationBell collapsed={collapsed} />
+              <button
+                type="button"
+                onClick={toggleCollapsed}
+                aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                className={cn("rounded p-1 text-[#aeb3ba] hover:text-white", FOCUS_RING)}
+              >
+                {collapsed ? (
+                  <ChevronsRight className="h-4 w-4" />
+                ) : (
+                  <ChevronsLeft className="h-4 w-4" />
+                )}
+              </button>
+            </div>
           </div>
           <div className="flex flex-col gap-5">
             {RAIL_GROUPS.map((group, index) => (
@@ -204,11 +210,14 @@ export function AppShell({ children }: { children: ReactNode }) {
             type="button"
             onClick={() => setMoreOpen(true)}
             className={cn(
-              "flex min-w-11 flex-col items-center gap-0.5 px-2 py-1 text-[var(--fn-muted)]",
+              "relative flex min-w-11 flex-col items-center gap-0.5 px-2 py-1 text-[var(--fn-muted)]",
               FOCUS_RING,
             )}
           >
             <Menu className="h-5 w-5" />
+            {unreadCount > 0 && (
+              <span className="absolute right-1.5 top-0.5 h-2 w-2 rounded-full bg-[var(--fn-ochre)]" />
+            )}
             <span className="text-[11px]">More</span>
           </button>
         </nav>

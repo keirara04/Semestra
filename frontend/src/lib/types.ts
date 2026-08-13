@@ -254,3 +254,13 @@ export interface Task {
   status: TaskStatus;
   due_at: string | null;
 }
+
+export interface WeeklyReview {
+  id: number;
+  week_start_date: string;
+  planned_minutes: number;
+  completed_minutes: number;
+  cause_breakdown: Record<string, number> | null;
+  next_week_risk: "comfortable" | "busy" | "at_risk" | "critical";
+  created_at: string;
+}

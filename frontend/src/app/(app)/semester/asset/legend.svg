@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 40" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Semester map legend</title>
+  <desc id="desc">Legend for course lanes, assessments, at-risk windows, and projected work.</desc>
+  <defs>
+    <pattern id="legend-hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <path d="M0 0V7" stroke="#AE4D40" stroke-width="2"/>
+    </pattern>
+  </defs>
+  <g font-family="IBM Plex Mono, ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#222933">
+    <path d="M4 20H48" stroke="#68707B" stroke-width="2"/><text x="62" y="24">COURSE LANE</text>
+    <circle cx="206" cy="20" r="7" fill="#68707B"/><text x="221" y="24">ASSESSMENT</text>
+    <rect x="358" y="12" width="31" height="16" fill="url(#legend-hatch)" stroke="#AE4D40" stroke-width="1.5"/><text x="403" y="24">AT RISK</text>
+    <path d="M510 20H554" stroke="#68707B" stroke-width="2" stroke-dasharray="3 6"/><text x="565" y="24">PROJECTED</text>
+  </g>
+</svg>
