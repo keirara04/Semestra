@@ -1,18 +1,3 @@
-export function BookIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 28" fill="none" className={className} aria-hidden="true">
-      <path
-        d="M4 2h13a3 3 0 0 1 3 3v19a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2V4a2 2 0 0 1 2-2Z"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
-      <path d="M2 22h16" stroke="currentColor" strokeWidth="1.6" />
-      <path d="M6 22v4l2-1.5L10 26v-4" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
 export function GoogleIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden="true">

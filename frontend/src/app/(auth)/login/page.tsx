@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
-import { AppleIcon, BookIcon, EyeIcon, GoogleIcon } from "@/components/auth/icons";
+import { AppleIcon, EyeIcon, GoogleIcon } from "@/components/auth/icons";
+import SplitFlapText from "@/components/SplitFlapText";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -32,55 +33,63 @@ export default function LoginPage() {
 
   return (
     <div>
-      <div className="mb-10 text-center lg:hidden">
-        <div className="flex items-center justify-center gap-2.5">
-          <BookIcon className="h-7 w-7 text-[var(--fn-ink)]" />
-          <span className="text-3xl font-bold tracking-tight">Semestra</span>
-        </div>
-        <p className="mt-2 text-sm text-[var(--fn-muted)]">Your semester, in one view.</p>
-        <div className="fn-divider-accent mx-auto mt-4" />
+      <div className="mb-10 flex flex-col items-center text-center lg:hidden">
+        <SplitFlapText
+          words={["        ", "SEMESTRA"]}
+          flipDuration={0.12}
+          stagger={0.05}
+          cycleDelay={300}
+          charset="alpha"
+          flipsPerChar={6}
+          tileColor="#0d0f12"
+          textColor="#F2EFE6"
+          tileRadius={6}
+          gap={3}
+          fontSize={28}
+          loop={false}
+          padTo={8}
+        />
+        <p className="fn-board-eyebrow mt-3">Your semester, on schedule</p>
+        <div className="fn-board-divider mx-auto mt-4" />
       </div>
 
-      <p className="fn-eyebrow">Welcome back</p>
-      <div className="fn-divider-accent mt-2" />
+      <p className="fn-board-eyebrow">Welcome back</p>
+      <div className="fn-board-divider mt-2" />
 
       <div className="mt-8 flex flex-col gap-3">
-        <button type="button" className="fn-oauth-btn">
+        <button type="button" className="fn-board-oauth-btn">
           <GoogleIcon className="h-5 w-5" />
           Continue with Google
         </button>
-        <button type="button" className="fn-oauth-btn">
+        <button type="button" className="fn-board-oauth-btn">
           <AppleIcon className="h-5 w-5" />
           Continue with Apple
         </button>
       </div>
 
-      <div className="fn-mono my-7 flex items-center gap-4 text-xs tracking-wider text-[var(--fn-muted)] uppercase">
-        <span className="h-px flex-1 bg-[var(--fn-rule)]" />
+      <div className="fn-board-caption my-7 flex items-center gap-4 tracking-wider uppercase">
+        <span className="h-px flex-1 bg-[var(--board-hairline)]" />
         Or use email
-        <span className="h-px flex-1 bg-[var(--fn-rule)]" />
+        <span className="h-px flex-1 bg-[var(--board-hairline)]" />
       </div>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-5">
         <label className="flex flex-col gap-2">
-          <span className="fn-label">Email address</span>
+          <span className="fn-board-label">Email address</span>
           <input
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             required
             autoComplete="email"
-            className="fn-input"
+            className="fn-board-input"
           />
         </label>
 
         <label className="flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            <span className="fn-label">Password</span>
-            <Link
-              href="/forgot-password"
-              className="fn-mono text-[0.7rem] tracking-wide text-[var(--fn-cobalt)] underline underline-offset-2 uppercase"
-            >
+            <span className="fn-board-label">Password</span>
+            <Link href="/forgot-password" className="fn-board-link fn-board-label">
               Forgot password?
             </Link>
           </div>
@@ -91,12 +100,12 @@ export default function LoginPage() {
               onChange={(event) => setPassword(event.target.value)}
               required
               autoComplete="current-password"
-              className="fn-input pr-11"
+              className="fn-board-input pr-11"
             />
             <button
               type="button"
               onClick={() => setShowPassword((value) => !value)}
-              className="absolute top-1/2 right-3 -translate-y-1/2 text-[var(--fn-muted)]"
+              className="fn-board-icon-btn absolute top-1/2 right-3 -translate-y-1/2"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               <EyeIcon open={showPassword} className="h-5 w-5" />
@@ -105,19 +114,19 @@ export default function LoginPage() {
         </label>
 
         {error && (
-          <p role="alert" className="text-sm text-[var(--fn-oxide)]">
+          <p role="alert" className="text-sm text-[var(--board-signal)]">
             {error}
           </p>
         )}
 
-        <button type="submit" disabled={submitting} className="fn-btn-primary">
+        <button type="submit" disabled={submitting} className="fn-board-btn-primary">
           {submitting ? "Signing in…" : "Sign in"}
         </button>
       </form>
 
-      <p className="mt-6 text-sm text-[var(--fn-muted)]">
+      <p className="mt-6 text-sm text-[var(--board-steel)]">
         New to Semestra?{" "}
-        <Link href="/register" className="text-[var(--fn-cobalt)] underline underline-offset-2">
+        <Link href="/register" className="fn-board-link">
           Create an account
         </Link>
       </p>

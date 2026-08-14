@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
-import { Caveat, DM_Sans, IBM_Plex_Mono } from "next/font/google";
-import { AvailableTimeDiagram, AssessmentsDiagram, CoursesDiagram } from "@/components/auth/StepDiagram";
+import { DM_Sans, IBM_Plex_Mono } from "next/font/google";
 import SplitFlapText from "@/components/SplitFlapText";
 
 const dmSans = DM_Sans({
@@ -14,44 +13,31 @@ const ibmPlexMono = IBM_Plex_Mono({
   variable: "--font-ibm-plex-mono",
 });
 
-const caveat = Caveat({
-  subsets: ["latin"],
-  variable: "--font-caveat",
-});
-
-const steps = [
-  {
-    number: "1",
-    title: "Courses",
-    description: "Start with your courses. Build a plan that fits real life.",
-    diagram: CoursesDiagram,
-  },
-  {
-    number: "2",
-    title: "Assessments",
-    description: "See what's due and when. Never miss what matters.",
-    diagram: AssessmentsDiagram,
-  },
-  {
-    number: "3",
-    title: "Available time",
-    description: "Protect your time. Plan around your life.",
-    diagram: AvailableTimeDiagram,
-  },
+// Semestra's four real surfaces, read as legs on a departures board.
+// No fabricated per-user counts ("3 DUE") — this is a marketing panel
+// shown before sign-in, so status words stay generic, not pretend-live.
+const legs = [
+  { gate: "01", name: "Courses", status: "ON TIME" },
+  { gate: "02", name: "Assessments", status: "DUE SOON" },
+  { gate: "03", name: "Available time", status: "TRACKED" },
+  { gate: "04", name: "Weekly review", status: "READY" },
 ];
+
+const ROW_BASE_DELAY = 500;
+const ROW_STAGGER = 90;
 
 // Route group (auth)/ has no URL segment of its own, so it uses plain ReactNode
 // children, same reasoning as (app)/layout.tsx.
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className={`${dmSans.variable} ${ibmPlexMono.variable} ${caveat.variable} fn`}>
+    <div className={`${dmSans.variable} ${ibmPlexMono.variable} fn-board`}>
       <div className="grid min-h-dvh w-full grid-cols-1 lg:grid-cols-2">
-        {/* Left panel: brand + the product's own semester-map vocabulary as a preview */}
-        <div className="fn-sheet fn-margin relative hidden flex-col px-12 py-14 lg:flex xl:pl-24 xl:pr-16">
-          {/* Hero wordmark, pinned to the top, not part of the centered block below */}
-          <div className="flex items-center gap-4">
-            {/* Settles once on mount (blank -> SEMESTRA), doesn't loop:
-                a single deliberate moment, not a marquee. */}
+        {/* Left panel: the board itself. Wordmark resolves, then the
+            gate list clacks in below it — one signature, not a widget
+            bolted onto an unrelated background. */}
+        <div className="fn-board-fascia relative hidden flex-col lg:flex">
+          <div className="fn-board-rivets" />
+          <div className="flex flex-1 flex-col justify-center px-12 py-12 xl:px-20">
             <SplitFlapText
               words={["        ", "SEMESTRA"]}
               flipDuration={0.12}
@@ -59,53 +45,41 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
               cycleDelay={300}
               charset="alpha"
               flipsPerChar={6}
-              tileColor="#20262E"
-              textColor="#F8F7F3"
+              tileColor="#0d0f12"
+              textColor="#F2EFE6"
               tileRadius={8}
               gap={5}
-              fontSize={52}
+              fontSize={48}
               loop={false}
               padTo={8}
             />
-          </div>
-          <div className="fn-divider-accent mt-5" />
+            <p className="fn-board-eyebrow mt-4">Your semester, on schedule</p>
 
-          <div className="flex flex-1 flex-col justify-center">
-            <p className="text-xl text-[var(--fn-ink)]">Your semester, in one view.</p>
-
-            <ol className="mt-12 flex flex-col">
-              {steps.map((step, index) => {
-                const Diagram = step.diagram;
-                const isLast = index === steps.length - 1;
-                return (
-                  <li key={step.number} className="flex gap-5">
-                    <div className="flex flex-col items-center">
-                      <span className="fn-step-number">{step.number}</span>
-                      {!isLast && <span className="fn-step-connector" />}
-                    </div>
-                    <div className="grid flex-1 grid-cols-[minmax(0,1fr)_minmax(0,260px)] items-center gap-6 pb-10">
-                      <div>
-                        <p className="fn-mono text-sm font-semibold tracking-wide uppercase">
-                          {step.title}
-                        </p>
-                        <p className="mt-1.5 text-base text-[var(--fn-muted)]">{step.description}</p>
-                      </div>
-                      <Diagram baseDelay={index * 220} />
-                    </div>
-                  </li>
-                );
-              })}
-            </ol>
+            <div className="mt-14">
+              <div className="fn-board-divider mb-6" />
+              <div>
+                {legs.map((leg, index) => (
+                  <div
+                    key={leg.gate}
+                    className="fn-board-row"
+                    style={{ "--row-delay": `${ROW_BASE_DELAY + index * ROW_STAGGER}ms` } as React.CSSProperties}
+                  >
+                    <span className="fn-board-gate">{leg.gate}</span>
+                    <span className="fn-board-leg">{leg.name}</span>
+                    <span className="fn-board-status">{leg.status}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="fn-board-caption mt-8">
+                Board early. Nothing&rsquo;s worse than a missed deadline.
+              </p>
+            </div>
           </div>
-
-          <div>
-            <div className="fn-divider-accent" />
-            <p className="fn-hand mt-3 text-2xl text-[var(--fn-cobalt)]">Your plan stays yours.</p>
-          </div>
+          <div className="fn-board-rivets" />
         </div>
 
         {/* Right panel: the actual form, per-page */}
-        <div className="fn-sheet flex flex-col justify-center px-6 py-14 sm:px-12 lg:px-16 xl:px-20">
+        <div className="fn-board-panel flex flex-col justify-center px-6 py-14 sm:px-12 lg:px-16 xl:px-20">
           <div className="mx-auto w-full max-w-sm">{children}</div>
         </div>
       </div>

@@ -19,6 +19,29 @@ export const WEEK_STATE_LABEL: Record<WeekState, string> = {
   critical: "Critical",
 };
 
+// Compact version of WeekStateMarker for tight spaces (week-axis columns):
+// same non-colour encoding, no label text, exposed via `title` instead.
+export function WeekStateDot({ state }: { state: WeekState }) {
+  if (state === "comfortable") {
+    return null;
+  }
+
+  const styles: Record<Exclude<WeekState, "comfortable">, string> = {
+    busy: "rounded-full bg-[var(--fn-ochre)]",
+    at_risk: "rounded-full border border-dashed border-[var(--fn-oxide)]",
+    critical: "rounded-full border border-[var(--fn-oxide)] bg-[var(--fn-oxide)]",
+  };
+
+  return (
+    <span
+      role="img"
+      aria-label={WEEK_STATE_LABEL[state]}
+      title={WEEK_STATE_LABEL[state]}
+      className={`absolute top-1 right-1 h-1.5 w-1.5 ${styles[state]}`}
+    />
+  );
+}
+
 // Non-colour encoding pairs with colour so risk is never colour-only.
 export function WeekStateMarker({ state }: { state: WeekState }) {
   if (state === "comfortable") {

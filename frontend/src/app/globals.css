@@ -55,6 +55,10 @@ body:has(.fn) {
   background: #efede7;
 }
 
+body:has(.fn-board) {
+  background: #14171b;
+}
+
 /* ============================================================
    Field Notes — Semestra's design system (see mdfile/DESIGN.md)
    Scoped to .fn so it doesn't leak into pages not yet restyled.
@@ -114,17 +118,6 @@ body:has(.fn) {
   border: 1px solid var(--fn-cork-frame);
 }
 
-.fn-margin::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: clamp(2rem, 8vw, 6rem);
-  width: 1px;
-  background: var(--fn-oxide);
-  opacity: 0.55;
-}
-
 .fn-eyebrow {
   font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
   font-size: 0.72rem;
@@ -132,12 +125,6 @@ body:has(.fn) {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--fn-oxide);
-}
-
-.fn-divider-accent {
-  height: 2px;
-  width: 3rem;
-  background: var(--fn-oxide);
 }
 
 .fn-label {
@@ -161,31 +148,6 @@ body:has(.fn) {
   outline: 2px solid var(--fn-cobalt);
   outline-offset: 1px;
   border-color: var(--fn-cobalt);
-}
-
-.fn-oauth-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-  width: 100%;
-  border: 1px solid var(--fn-rule);
-  border-radius: 6px;
-  background: #ffffff;
-  padding: 0.75rem 1rem;
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: var(--fn-ink);
-  transition: border-color 0.15s ease, background 0.15s ease;
-}
-
-.fn-oauth-btn:hover {
-  border-color: var(--fn-muted);
-}
-
-.fn-oauth-btn:focus-visible {
-  outline: 2px solid var(--fn-cobalt);
-  outline-offset: 2px;
 }
 
 .fn-btn-primary {
@@ -212,54 +174,6 @@ body:has(.fn) {
   outline-offset: 2px;
 }
 
-.fn-step-connector {
-  width: 1px;
-  flex: 1;
-  background: var(--fn-oxide);
-  opacity: 0.5;
-}
-
-.fn-step-number {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 9999px;
-  border: 1.5px solid var(--fn-oxide);
-  color: var(--fn-oxide);
-  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
-  font-weight: 600;
-  font-size: 0.9rem;
-  background: var(--fn-paper);
-  flex-shrink: 0;
-}
-
-/* Step diagrams draw themselves in on mount — stroke traces the shape,
-   then the fill settles. One small moment, staggered per shape and per
-   step via --fn-delay (set inline in StepDiagram.tsx), not a loop. */
-.fn-diagram .fn-draw > * {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  fill-opacity: 0;
-  animation:
-    fn-draw-stroke 650ms ease-out forwards,
-    fn-draw-fill 350ms ease-out forwards;
-  animation-delay: var(--fn-delay, 0ms), calc(var(--fn-delay, 0ms) + 450ms);
-}
-
-@keyframes fn-draw-stroke {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes fn-draw-fill {
-  to {
-    fill-opacity: 1;
-  }
-}
-
 /* Dashboard date stamp — lands like a librarian stamped today's date on
    the page, once on mount. Not reused as a generic hover effect. */
 .fn-stamp {
@@ -278,20 +192,245 @@ body:has(.fn) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fn-oauth-btn,
   .fn-btn-primary {
     transition: none;
-  }
-
-  .fn-diagram .fn-draw > * {
-    animation: none;
-    stroke-dashoffset: 0;
-    fill-opacity: 1;
   }
 
   .fn-stamp {
     animation: none;
     transform: rotate(-4deg);
+  }
+}
+
+/* ============================================================
+   Departures — the auth pages' own theme, scoped to .fn-board so
+   it never touches the Field Notes system the rest of the app uses.
+   Semestra's four surfaces read as legs on a split-flap terminal
+   board; the SplitFlapText wordmark is the same component, now the
+   whole page's genre instead of a widget on top of ledger paper.
+   ============================================================ */
+
+.fn-board {
+  --board-fascia: #14171b;
+  --board-panel: #1d2126;
+  --board-chalk: #f2efe6;
+  --board-maroon: #ca7059;
+  --board-steel: #838c97;
+  --board-signal: #e06a5e;
+  --board-hairline: rgba(242, 239, 230, 0.1);
+
+  background: var(--board-fascia);
+  color: var(--board-chalk);
+  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  min-height: 100dvh;
+  width: 100%;
+}
+
+.fn-board-fascia {
+  position: relative;
+  background: var(--board-fascia);
+  box-shadow: inset 0 0 0 1px var(--board-hairline);
+}
+
+.fn-board-panel {
+  background: var(--board-panel);
+}
+
+/* Rivet strips along the fascia's top and bottom edge — the one
+   material cue borrowed from the real thing (a Solari board's bolted
+   fascia), not decoration repeated anywhere else on the page. */
+.fn-board-rivets {
+  height: 5px;
+  background-image: radial-gradient(circle, var(--board-steel) 1.4px, transparent 1.5px);
+  background-size: 20px 5px;
+  background-repeat: repeat-x;
+  opacity: 0.4;
+}
+
+.fn-board-eyebrow {
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--board-steel);
+}
+
+.fn-board-divider {
+  height: 2px;
+  width: 3rem;
+  background: var(--board-maroon);
+}
+
+.fn-board-caption {
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--board-steel);
+}
+
+.fn-board-label {
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--board-steel);
+}
+
+.fn-board-input {
+  border: 1px solid var(--board-hairline);
+  border-radius: 4px;
+  background: rgba(242, 239, 230, 0.04);
+  padding: 0.7rem 0.9rem;
+  font-size: 0.95rem;
+  color: var(--board-chalk);
+  width: 100%;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.fn-board-input::placeholder {
+  color: var(--board-steel);
+}
+
+.fn-board-input:focus-visible {
+  outline: 2px solid var(--board-maroon);
+  outline-offset: 1px;
+  border-color: var(--board-maroon);
+  background: rgba(242, 239, 230, 0.07);
+}
+
+.fn-board-oauth-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  width: 100%;
+  border: 1px solid var(--board-hairline);
+  border-radius: 4px;
+  background: rgba(242, 239, 230, 0.03);
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--board-chalk);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.fn-board-oauth-btn:hover {
+  border-color: var(--board-steel);
+  background: rgba(242, 239, 230, 0.06);
+}
+
+.fn-board-oauth-btn:focus-visible {
+  outline: 2px solid var(--board-maroon);
+  outline-offset: 2px;
+}
+
+.fn-board-btn-primary {
+  width: 100%;
+  border-radius: 4px;
+  background: var(--board-maroon);
+  padding: 0.8rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--board-fascia);
+  transition: opacity 0.15s ease;
+}
+
+.fn-board-btn-primary:hover {
+  opacity: 0.9;
+}
+
+.fn-board-btn-primary:disabled {
+  opacity: 0.45;
+}
+
+.fn-board-btn-primary:focus-visible {
+  outline: 2px solid var(--board-chalk);
+  outline-offset: 2px;
+}
+
+.fn-board-link {
+  color: var(--board-maroon);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  border-radius: 2px;
+}
+
+.fn-board-link:focus-visible {
+  outline: 2px solid var(--board-maroon);
+  outline-offset: 2px;
+}
+
+.fn-board-icon-btn {
+  color: var(--board-steel);
+  border-radius: 4px;
+}
+
+.fn-board-icon-btn:focus-visible {
+  outline: 2px solid var(--board-maroon);
+  outline-offset: 2px;
+}
+
+/* The departures list — Semestra's real surfaces as gates on the
+   board. Numbering is load-bearing here (real boards number gates),
+   not a decorative 01/02/03. */
+.fn-board-row {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--board-hairline);
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.03em;
+  animation: fn-board-row-in 380ms ease-out both;
+  animation-delay: var(--row-delay, 0ms);
+}
+
+.fn-board-row:last-child {
+  border-bottom: none;
+}
+
+.fn-board-gate {
+  color: var(--board-steel);
+}
+
+.fn-board-leg {
+  color: var(--board-chalk);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.fn-board-status {
+  color: var(--board-maroon);
+  text-transform: uppercase;
+  justify-self: end;
+}
+
+@keyframes fn-board-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fn-board-row {
+    animation: none;
+  }
+
+  .fn-board-oauth-btn,
+  .fn-board-btn-primary,
+  .fn-board-input {
+    transition: none;
   }
 }
 

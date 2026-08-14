@@ -1,23 +1,12 @@
-export interface DeepWorkWindow {
-  start: string; // "H:i"
-  end: string;
-}
-
-export interface QuietHours {
-  start: string; // "H:i"
-  end: string;
-}
-
 export interface User {
   id: number;
   name: string;
   email: string;
   timezone: string;
   max_study_hours_per_day: number;
-  deep_work_windows: DeepWorkWindow[] | null;
-  quiet_hours: QuietHours | null;
+  deep_work_windows: unknown | null;
+  quiet_hours: unknown | null;
   grade_scale: string;
-  ai_syllabus_extraction_consent_at: string | null;
 }
 
 export interface Semester {
@@ -36,94 +25,6 @@ export interface Course {
   instructor: string | null;
   credits: number | null;
   grade_target: string | null;
-}
-
-export interface ExamReadiness {
-  readiness_percent: number | null;
-  target_minutes_remaining: number;
-  suggested_pace_minutes_per_day: number | null;
-  days_remaining: number;
-  topics: { id: number; title: string; confidence: Topic["confidence"] }[];
-}
-
-export interface Topic {
-  id: number;
-  course_id: number;
-  title: string;
-  confidence: "not_started" | "learning" | "comfortable" | "confident";
-  last_reviewed_at: string | null;
-  next_review_at: string | null;
-  assessments?: { id: number; title: string }[];
-  materials?: { id: number; title: string }[];
-}
-
-export type MaterialType = "slide" | "pdf" | "reading" | "recording" | "link";
-
-export interface Material {
-  id: number;
-  course_id: number;
-  type: MaterialType;
-  title: string;
-  disk: string | null;
-  path: string | null;
-  url: string | null;
-  file_url: string | null;
-  week: number | null;
-  mime_type: string | null;
-  size_bytes: number | null;
-  assessments?: { id: number; title: string }[];
-}
-
-// Notestra — in-browser PDF annotation workspace, see
-// mdfile/NOTESTRA_FUNCTIONAL_SPEC.md. All coordinates are normalized (0-1,
-// relative to page width/height) so zoom/viewport changes never require
-// re-deriving stored data — see spec Section 6.
-export type AnnotationType = "drawing" | "highlight" | "text";
-
-export interface AnnotationData {
-  // highlight / text
-  x?: number;
-  y?: number;
-  width?: number;
-  height?: number;
-  color?: string;
-  opacity?: number;
-  // text only, normalized as a fraction of page height
-  font_size?: number;
-  text?: string;
-  // drawing only
-  points?: [number, number][];
-  stroke_width?: number;
-}
-
-export interface Annotation {
-  id: string; // client_uuid
-  material_id: number;
-  page_number: number;
-  type: AnnotationType;
-  data: AnnotationData;
-  updated_at?: string;
-}
-
-export type NoteType = "general" | "exam" | "concept" | "question" | "formula";
-
-export interface MaterialNote {
-  id: number;
-  material_id: number;
-  page_number: number | null;
-  title: string;
-  content: string;
-  note_type: NoteType;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface UserMaterialState {
-  user_id: number;
-  material_id: number;
-  last_opened_at: string | null;
-  last_page: number | null;
-  zoom: string | null;
 }
 
 export type ClassSessionType = "lecture" | "tutorial" | "lab" | "exam";
@@ -239,8 +140,6 @@ export interface TodayTask {
   remaining_estimate_minutes: number | null;
   course_title: string;
   course_colour: string;
-  score: number;
-  reasons: string[];
 }
 
 export interface Today {
@@ -306,43 +205,4 @@ export interface Task {
   remaining_estimate_minutes: number | null;
   status: TaskStatus;
   due_at: string | null;
-}
-
-export type AiConfidence = "low" | "medium" | "high";
-
-export interface AssessmentCandidate {
-  title: string;
-  type: string;
-  due_date: string | null;
-  source_fragment: string;
-  confidence: AiConfidence;
-}
-
-export interface TaskCandidate {
-  title: string;
-  estimated_minutes: number | null;
-  source_fragment: string;
-  confidence: AiConfidence;
-}
-
-export interface SyllabusDraft {
-  id: number;
-  course_id: number;
-  material_id: number | null;
-  status: "pending" | "confirmed" | "discarded";
-  candidates: {
-    assessments: AssessmentCandidate[];
-    tasks: TaskCandidate[];
-  };
-  model: string;
-}
-
-export interface WeeklyReview {
-  id: number;
-  week_start_date: string;
-  planned_minutes: number;
-  completed_minutes: number;
-  cause_breakdown: Record<string, number> | null;
-  next_week_risk: "comfortable" | "busy" | "at_risk" | "critical";
-  created_at: string;
 }

@@ -134,10 +134,18 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div
             className={cn(
               "flex items-center gap-2 pb-6",
-              collapsed ? "justify-center px-0" : "justify-between px-3",
+              collapsed ? "flex-col justify-center px-0" : "justify-between px-3",
             )}
           >
-            {!collapsed && <span className="fn-eyebrow text-[#c9cdd3]">Semestra</span>}
+            <div className="flex min-w-0 items-center gap-2">
+              <span
+                className="fn-mono flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 border-[var(--fn-cobalt)] text-xs font-bold text-[var(--fn-cobalt)]"
+                aria-hidden
+              >
+                S
+              </span>
+              {!collapsed && <span className="fn-eyebrow truncate text-[#c9cdd3]">Semestra</span>}
+            </div>
             <div className="flex items-center gap-1">
               <button
                 type="button"
@@ -248,10 +256,10 @@ export function AppShell({ children }: { children: ReactNode }) {
                   href={item.href}
                   onClick={() => setMoreOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm",
+                    "flex items-center gap-3 rounded-r-md rounded-l-sm border-l-2 py-2.5 pr-3 pl-2.5 text-sm",
                     isActive(pathname, item.href)
-                      ? "bg-[var(--fn-canvas)] font-medium text-[var(--fn-ink)]"
-                      : "text-[var(--fn-muted)]",
+                      ? "border-[var(--fn-cobalt)] bg-[var(--fn-canvas)] font-medium text-[var(--fn-ink)]"
+                      : "border-transparent text-[var(--fn-muted)]",
                     FOCUS_RING,
                   )}
                 >
@@ -300,15 +308,15 @@ function RailLink({
       href={item.href}
       title={collapsed ? item.label : undefined}
       className={cn(
-        "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
-        collapsed && "justify-center px-0",
+        "flex items-center gap-3 rounded-r-md rounded-l-sm border-l-2 py-2 pr-3 pl-2.5 text-sm transition-colors",
+        collapsed && "justify-center border-l-0 px-0",
         active
-          ? "bg-white/10 font-medium text-white"
-          : "text-[#aeb3ba] hover:bg-white/5 hover:text-white",
+          ? "border-[var(--fn-cobalt)] bg-[var(--fn-cobalt)]/15 font-medium text-white"
+          : "border-transparent text-[#aeb3ba] hover:bg-white/5 hover:text-white",
         FOCUS_RING,
       )}
     >
-      <item.icon className="h-4 w-4 shrink-0" />
+      <item.icon className="h-4 w-4 shrink-0" style={active ? { color: "var(--fn-cobalt)" } : undefined} />
       {!collapsed && item.label}
     </Link>
   );
