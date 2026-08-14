@@ -16,6 +16,14 @@ export interface Semester {
   end_date: string;
 }
 
+export interface AcademicCalendarException {
+  id: number;
+  semester_id: number;
+  label: string;
+  start_date: string; // "Y-m-d"
+  end_date: string; // "Y-m-d", inclusive
+}
+
 export interface Course {
   id: number;
   semester_id: number;
@@ -88,6 +96,8 @@ export interface CalendarBlock {
   type: "lecture" | "commitment" | "study";
   status: "suggested" | "accepted" | "moved" | "skipped" | "done";
   title: string | null;
+  location: string | null;
+  description: string | null;
   start_at: string;
   end_at: string;
 }

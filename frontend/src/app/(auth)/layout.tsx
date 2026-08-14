@@ -39,10 +39,11 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           <div className="fn-board-rivets" />
           <div className="flex flex-1 flex-col justify-center px-12 py-12 xl:px-20">
             <SplitFlapText
-              words={["        ", "SEMESTRA"]}
+              words={["        ", "SEMESTRA", "PLAN", "FOCUS", "TRACK"]}
               flipDuration={0.12}
               stagger={0.05}
-              cycleDelay={300}
+              cycleDelay={10000}  
+              initialDelay={300}
               charset="alpha"
               flipsPerChar={6}
               tileColor="#0d0f12"
@@ -50,7 +51,8 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
               tileRadius={8}
               gap={5}
               fontSize={48}
-              loop={false}
+              loop={true}
+              loopFrom={1}
               padTo={8}
             />
             <p className="fn-board-eyebrow mt-4">Your semester, on schedule</p>

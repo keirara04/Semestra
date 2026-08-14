@@ -26,6 +26,8 @@ class CalendarBlockRequest extends FormRequest
             // it. accepted/skipped/done/moved are all real student actions.
             'status' => ['sometimes', 'string', 'in:accepted,skipped,done,moved'],
             'title' => ['nullable', 'string', 'max:255'],
+            'location' => ['nullable', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:2000'],
             'start_at' => [$required, 'date'],
             'end_at' => [$required, 'date', 'after:start_at'],
         ];

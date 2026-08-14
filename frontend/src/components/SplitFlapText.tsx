@@ -41,6 +41,15 @@ export interface SplitFlapTextProps extends HTMLAttributes<HTMLDivElement> {
   fontSize?: number | string;
   loop?: boolean;
   padTo?: number;
+  /** Index to wrap back to when looping past the last word. Defaults to 0
+   *  (loop the whole list). Set to 1 to skip word 0 on wrap — useful when
+   *  word 0 is a blank spacer meant only for the initial reveal, not a
+   *  value that should keep recurring in rotation. */
+  loopFrom?: number;
+  /** Delay before the first flip (blank -> word 1), independent of
+   *  cycleDelay. Defaults to cycleDelay — set this low so the initial
+   *  reveal is immediate even when cycleDelay is a long loop dwell. */
+  initialDelay?: number;
 }
 
 const DEFAULT_WORDS = ['LAUNCH READY', 'SYNC ONLINE', 'SIGNAL LIVE'];
@@ -134,6 +143,8 @@ const SplitFlapText = ({
   fontSize = 52,
   loop = true,
   padTo = 12,
+  loopFrom = 0,
+  initialDelay,
   className = '',
   style = {},
   ...props
@@ -308,19 +319,33 @@ const SplitFlapText = ({
 
         if (nextIndex >= normalizedPhrases.length && !loop) return;
 
-        phraseIndex = nextIndex % normalizedPhrases.length;
+        const safeLoopFrom = Math.min(Math.max(0, Math.floor(Number(loopFrom) || 0)), normalizedPhrases.length - 1);
+        phraseIndex = nextIndex >= normalizedPhrases.length ? safeLoopFrom : nextIndex;
         const animationDuration = animateTo(normalizedPhrases[phraseIndex]);
         scheduleNext(safeCycleDelay + animationDuration);
       }, delay);
     };
 
-    scheduleNext(safeCycleDelay);
+    const safeInitialDelay = initialDelay == null ? safeCycleDelay : Math.max(0, Number(initialDelay) || 0);
+    scheduleNext(safeInitialDelay);
 
     return () => {
       cancelled = true;
       clearAnimation();
     };
-  }, [normalizedPhrases, width, loop, cycleDelay, flipDuration, stagger, flipsPerChar, charset, prefersReducedMotion]);
+  }, [
+    normalizedPhrases,
+    width,
+    loop,
+    loopFrom,
+    cycleDelay,
+    initialDelay,
+    flipDuration,
+    stagger,
+    flipsPerChar,
+    charset,
+    prefersReducedMotion
+  ]);
 
   const settledText = tiles
     .map(tile => tile.current)

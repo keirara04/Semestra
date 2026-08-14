@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import Link from "next/link";
 import { apiFetch, ApiError } from "@/lib/api";
 import type {
+  AcademicCalendarException,
   Assessment,
   CalendarBlock,
   Course,
@@ -274,6 +275,7 @@ interface DayLoad {
   plannedMinutes: number;
   capacityMinutes: number;
   plannedByCourse: Map<number | null, number>;
+  isBreak: boolean;
 }
 
 interface Week {
@@ -294,6 +296,7 @@ function buildWeeks(
   courseIdByTaskId: Map<number, number>,
 ): Week[] {
   const capacityByDate = new Map(days.map((d) => [d.date, d.recommended_study_minutes]));
+  const isBreakByDate = new Map(days.map((d) => [d.date, d.is_break]));
   const plannedByDate = new Map<string, number>();
   const plannedByDateCourse = new Map<string, Map<number | null, number>>();
 
@@ -336,6 +339,7 @@ function buildWeeks(
         plannedMinutes: dayPlanned,
         capacityMinutes: dayCapacity,
         plannedByCourse: dayByCourse,
+        isBreak: isBreakByDate.get(dateString) ?? false,
       });
       cursor.setDate(cursor.getDate() + 1);
     }
@@ -494,7 +498,15 @@ const TOOLTIP_WIDTH = 224; // px, matches the w-56 tooltip below
 // container is a fixed-height overflow-x-auto box, which would clip an
 // absolutely-positioned popover before it ever became visible (the same
 // class of bug the notification bell hit, see AppShell.tsx).
-function HoverBar({ tooltip, children }: { tooltip: ReactNode; children: ReactNode }) {
+function HoverBar({
+  tooltip,
+  children,
+  style,
+}: {
+  tooltip: ReactNode;
+  children: ReactNode;
+  style?: React.CSSProperties;
+}) {
   const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
 
   // Anchored to the pointer, not the hoverable box's own rect: this box
@@ -510,6 +522,7 @@ function HoverBar({ tooltip, children }: { tooltip: ReactNode; children: ReactNo
   return (
     <div
       className="flex h-full w-full flex-1 flex-col items-center gap-1"
+      style={style}
       onMouseEnter={trackPointer}
       onMouseMove={trackPointer}
       onMouseLeave={() => setPosition(null)}
@@ -540,6 +553,7 @@ function SemesterMap({ semester }: { semester: Semester }) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [days, setDays] = useState<DayCapacity[]>([]);
   const [blocks, setBlocks] = useState<CalendarBlock[]>([]);
+  const [exceptions, setExceptions] = useState<AcademicCalendarException[]>([]);
   const [selectedMonthKey, setSelectedMonthKey] = useState<string | null>(null);
   const [isolatedCourseId, setIsolatedCourseId] = useState<number | null>(null);
 
@@ -553,13 +567,15 @@ function SemesterMap({ semester }: { semester: Semester }) {
         `/api/calendar/capacity?from=${semester.start_date}&to=${semester.end_date}`,
       ),
       apiFetch<CalendarBlock[]>("/api/calendar-blocks"),
-    ]).then(([allCourses, allAssessments, allGradeItems, allTasks, capacityDays, allBlocks]) => {
+      apiFetch<AcademicCalendarException[]>("/api/academic-calendar-exceptions"),
+    ]).then(([allCourses, allAssessments, allGradeItems, allTasks, capacityDays, allBlocks, allExceptions]) => {
       setCourses(allCourses.filter((c) => c.semester_id === semester.id));
       setAssessments(allAssessments);
       setGradeItems(allGradeItems);
       setTasks(allTasks);
       setDays(capacityDays);
       setBlocks(allBlocks);
+      setExceptions(allExceptions.filter((e) => e.semester_id === semester.id));
     });
   }, [semester.id, semester.start_date, semester.end_date]);
 
@@ -613,6 +629,49 @@ function SemesterMap({ semester }: { semester: Semester }) {
     const s = weekState(w.plannedMinutes, w.capacityMinutes);
     return s === "at_risk" || s === "critical";
   });
+
+  // AcademicCalendarException.end_date is inclusive (a break "through
+  // Friday" includes Friday), unlike every other date range on this page
+  // ([rangeStart, rangeEnd) half-open) — convert once here with +1 day so
+  // downstream math (percentBetween) stays in the same convention as the
+  // today-hairline and assessment markers it's drawn alongside.
+  const breakBands = exceptions
+    .map((exception) => {
+      const startIso = `${exception.start_date.slice(0, 10)}T00:00:00`;
+      const endExclusiveDate = new Date(`${exception.end_date.slice(0, 10)}T00:00:00`);
+      endExclusiveDate.setDate(endExclusiveDate.getDate() + 1);
+      const endIso = endExclusiveDate.toISOString();
+      const clippedStart = startIso > rangeStart ? startIso : rangeStart;
+      const clippedEnd = endIso < rangeEnd ? endIso : rangeEnd;
+      if (clippedStart >= clippedEnd) return null;
+      const left = percentBetween(clippedStart, rangeStart, rangeEnd);
+      const right = percentBetween(clippedEnd, rangeStart, rangeEnd);
+      return { label: exception.label, leftPercent: left, widthPercent: Math.max(right - left, 0.5) };
+    })
+    .filter((b): b is { label: string; leftPercent: number; widthPercent: number } => b !== null);
+
+  // Term-at-a-glance strip: every other number on this page is scoped to
+  // the active month tab, so this is the one place that answers "is the
+  // WHOLE semester on pace," using the full `weeks`/`courses`/`assessments`
+  // arrays rather than the month-scoped `displayedWeeks`.
+  const totalCredits = courses.reduce((sum, c) => sum + (c.credits ?? 0), 0);
+  const hasCreditData = courses.some((c) => c.credits !== null);
+  // assessments/gradeItems/tasks are fetched unfiltered by semester (unlike
+  // courses, which is filtered at fetch time above) — apply the semester
+  // filter here via courseIds, or this silently counts every semester's
+  // assessments.
+  const courseIds = new Set(courses.map((c) => c.id));
+  const assessmentsRemaining = assessments.filter((a) => courseIds.has(a.course_id) && a.status !== "done").length;
+  const weeksWithCapacity = weeks.filter((w) => w.capacityMinutes > 0);
+  const termAverageRatio = weeksWithCapacity.length
+    ? weeksWithCapacity.reduce((sum, w) => sum + w.plannedMinutes / w.capacityMinutes, 0) / weeksWithCapacity.length
+    : null;
+  const termAverageMinutes = weeksWithCapacity.length
+    ? { planned: weeksWithCapacity.reduce((s, w) => s + w.plannedMinutes, 0) / weeksWithCapacity.length, capacity: weeksWithCapacity.reduce((s, w) => s + w.capacityMinutes, 0) / weeksWithCapacity.length }
+    : null;
+  const termAverageState: WeekState | null = termAverageMinutes
+    ? weekState(termAverageMinutes.planned, termAverageMinutes.capacity)
+    : null;
 
   return (
     <div className="mt-6">
@@ -674,8 +733,32 @@ function SemesterMap({ semester }: { semester: Semester }) {
 
       <div className="mt-3">
       {/* Week axis: one shared column grid drives the header, the lanes below, and the workload strip, so nothing needs its own separate week labels. */}
-      <div className="fn-mono min-w-full overflow-x-auto text-[13px]">
-        <div className="grid border-b border-[var(--fn-rule)]" style={{ gridTemplateColumns: columnTemplate }}>
+      <div className="fn-mono relative min-w-full overflow-x-auto text-[13px]">
+        {breakBands.map((band) => (
+          <div
+            key={band.label + band.leftPercent}
+            role="img"
+            aria-label={`Break: ${band.label}`}
+            title={band.label}
+            className="pointer-events-none absolute inset-y-0 z-0"
+            style={{ left: `${band.leftPercent}%`, width: `${band.widthPercent}%` }}
+          >
+            <div
+              className="absolute inset-0"
+              style={{
+                backgroundImage:
+                  "repeating-linear-gradient(135deg, var(--fn-muted) 0, var(--fn-muted) 1px, transparent 1px, transparent 7px)",
+                opacity: 0.18,
+              }}
+            />
+            {band.widthPercent > 8 && (
+              <span className="fn-mono absolute inset-x-0 top-0.5 block truncate px-1 text-center text-[9px] tracking-wide text-[var(--fn-muted)]">
+                {band.label}
+              </span>
+            )}
+          </div>
+        ))}
+        <div className="relative z-10 grid border-b border-[var(--fn-rule)]" style={{ gridTemplateColumns: columnTemplate }}>
           {displayedWeeks.map((week) => {
             const state = weekState(week.plannedMinutes, week.capacityMinutes);
             const isToday = week === todayWeek;
@@ -714,10 +797,24 @@ function SemesterMap({ semester }: { semester: Semester }) {
 
       {/* Course lanes, the "today" hairline runs through them and the strip below at the same position. */}
       <div className="relative mt-6 flex flex-col gap-8">
+        {breakBands.map((band) => (
+          <div
+            key={band.label + band.leftPercent}
+            aria-hidden="true"
+            className="pointer-events-none absolute top-0 bottom-0 z-0"
+            style={{
+              left: `calc(11rem + ${band.leftPercent}% * (100% - 11rem) / 100)`,
+              width: `calc(${band.widthPercent}% * (100% - 11rem) / 100)`,
+              backgroundImage:
+                "repeating-linear-gradient(135deg, var(--fn-muted) 0, var(--fn-muted) 1px, transparent 1px, transparent 7px)",
+              opacity: 0.18,
+            }}
+          />
+        ))}
         {todayInRange && (
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute top-0 bottom-0 w-px bg-[var(--fn-oxide)] opacity-55"
+            className="pointer-events-none absolute top-0 bottom-0 z-0 w-px bg-[var(--fn-oxide)] opacity-55"
             style={{ left: `calc(11rem + ${todayPercent}% * (100% - 11rem) / 100)` }}
           />
         )}
@@ -844,6 +941,17 @@ function SemesterMap({ semester }: { semester: Semester }) {
         <span className="flex items-center gap-2">
           <span className="fn-mono text-[9px] font-semibold tracking-wider text-[var(--fn-oxide)]">EXAM</span> EXAM WEEK
         </span>
+        <span className="flex items-center gap-2">
+          <span
+            className="h-3.5 w-8"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(135deg, var(--fn-muted) 0, var(--fn-muted) 1px, transparent 1px, transparent 7px)",
+              opacity: 0.5,
+            }}
+          />{" "}
+          BREAK
+        </span>
       </div>
 
       {/* Workload by day: same week-column grid as the axis above, each week split into its actual days so a spike points at the exact day, not just the week. Each day carries its own dashed capacity ceiling; a bar poking past it and turning oxide is a day that doesn't fit. */}
@@ -864,13 +972,24 @@ function SemesterMap({ semester }: { semester: Semester }) {
                     key={day.date.toISOString()}
                     tooltip={
                       <WorkloadTooltipContent
-                        title={weekdayDateLabel(day.date.toISOString())}
+                        title={`${weekdayDateLabel(day.date.toISOString())}${day.isBreak ? " · break" : ""}`}
                         state={state}
                         plannedMinutes={day.plannedMinutes}
                         capacityMinutes={day.capacityMinutes}
                         plannedByCourse={day.plannedByCourse}
                         courses={courses}
                       />
+                    }
+                    style={
+                      day.isBreak
+                        ? {
+                            // Faint hatch mixed into the stroke colour itself, not
+                            // container opacity — this box also holds the actual
+                            // bar content, which needs to stay fully opaque.
+                            backgroundImage:
+                              "repeating-linear-gradient(135deg, color-mix(in srgb, var(--fn-muted) 25%, transparent) 0, color-mix(in srgb, var(--fn-muted) 25%, transparent) 1px, transparent 1px, transparent 7px)",
+                          }
+                        : undefined
                     }
                   >
                     <div
@@ -902,6 +1021,30 @@ function SemesterMap({ semester }: { semester: Semester }) {
           );
         })}
         {displayedWeeks.length === 0 && <p className="text-sm text-[var(--fn-muted)]">No weeks in range.</p>}
+      </div>
+
+      {/* Term at a glance: the one place on this page that answers "is the whole semester on pace," not just the visible month. */}
+      <p className="fn-eyebrow mt-10">Term at a glance</p>
+      <div className="fn-mono mt-3 flex flex-wrap items-baseline gap-x-8 gap-y-2 border-t border-[var(--fn-rule)] pt-4 text-sm">
+        <span>
+          <span className="text-[var(--fn-muted)]">Credits </span>
+          <span className="font-semibold text-[var(--fn-ink)]">{hasCreditData ? totalCredits : "— not set"}</span>
+        </span>
+        <Link href="/assessments" className="hover:underline underline-offset-2">
+          <span className="text-[var(--fn-muted)]">Assessments remaining </span>
+          <span className="font-semibold text-[var(--fn-cobalt)]">{assessmentsRemaining} →</span>
+        </Link>
+        <span className="flex items-center gap-1.5">
+          <span className="text-[var(--fn-muted)]">Term average </span>
+          <span className="font-semibold text-[var(--fn-ink)]">
+            {termAverageRatio !== null ? `${Math.round(termAverageRatio * 100)}% of capacity` : "—"}
+          </span>
+          {termAverageState && (
+            <span className="relative inline-block h-3 w-3">
+              <WeekStateDot state={termAverageState} />
+            </span>
+          )}
+        </span>
       </div>
       </div>
     </div>

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['study_plan_id', 'task_id', 'type', 'status', 'title', 'start_at', 'end_at'])]
+#[Fillable(['study_plan_id', 'task_id', 'type', 'status', 'title', 'location', 'description', 'start_at', 'end_at'])]
 class CalendarBlock extends Model
 {
     use BelongsToUser, HasFactory;

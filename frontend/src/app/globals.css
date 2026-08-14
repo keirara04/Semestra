@@ -191,6 +191,38 @@ body:has(.fn-board) {
   }
 }
 
+/* Add-block popup: backdrop fades, card fades + settles in from a slight
+   scale/offset — same 160-200ms opacity/position language as the rest of
+   the system's motion, see "Motion" in mdfile/DESIGN.md, not a bespoke
+   modal-library animation. */
+.fn-popup-backdrop {
+  animation: fn-popup-backdrop-in 160ms ease-out both;
+}
+
+.fn-popup-card {
+  animation: fn-popup-card-in 180ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+
+@keyframes fn-popup-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fn-popup-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .fn-btn-primary {
     transition: none;
@@ -199,6 +231,11 @@ body:has(.fn-board) {
   .fn-stamp {
     animation: none;
     transform: rotate(-4deg);
+  }
+
+  .fn-popup-backdrop,
+  .fn-popup-card {
+    animation: none;
   }
 }
 
@@ -385,8 +422,26 @@ body:has(.fn-board) {
   font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
   font-size: 0.8rem;
   letter-spacing: 0.03em;
-  animation: fn-board-row-in 380ms ease-out both;
-  animation-delay: var(--row-delay, 0ms);
+  animation:
+    fn-board-row-in 380ms ease-out both,
+    fn-board-row-refresh 9s ease-in-out infinite;
+  animation-delay: var(--row-delay, 0ms), calc(var(--row-delay, 0ms) + 2s);
+}
+
+/* Real split-flap boards re-cycle a value even when it hasn't changed —
+   each row clacks on its own offbeat duration so the board never looks
+   synchronized, but the text itself never changes. */
+.fn-board-row:nth-child(1) {
+  animation-duration: 380ms, 7s;
+}
+.fn-board-row:nth-child(2) {
+  animation-duration: 380ms, 9s;
+}
+.fn-board-row:nth-child(3) {
+  animation-duration: 380ms, 11s;
+}
+.fn-board-row:nth-child(4) {
+  animation-duration: 380ms, 13s;
 }
 
 .fn-board-row:last-child {
@@ -416,6 +471,26 @@ body:has(.fn-board) {
     filter: blur(2px);
   }
   to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes fn-board-row-refresh {
+  0%,
+  92%,
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+  4% {
+    opacity: 0.55;
+    transform: translateY(-3px);
+    filter: blur(1.5px);
+  }
+  8% {
     opacity: 1;
     transform: translateY(0);
     filter: blur(0);

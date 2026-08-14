@@ -35,10 +35,11 @@ export default function LoginPage() {
     <div>
       <div className="mb-10 flex flex-col items-center text-center lg:hidden">
         <SplitFlapText
-          words={["        ", "SEMESTRA"]}
+          words={["        ", "SEMESTRA", "BOARDING", "ON TRACK", "ENROLLED"]}
           flipDuration={0.12}
           stagger={0.05}
-          cycleDelay={300}
+          cycleDelay={10000}
+          initialDelay={300}
           charset="alpha"
           flipsPerChar={6}
           tileColor="#0d0f12"
@@ -46,7 +47,8 @@ export default function LoginPage() {
           tileRadius={6}
           gap={3}
           fontSize={28}
-          loop={false}
+          loop={true}
+          loopFrom={1}
           padTo={8}
         />
         <p className="fn-board-eyebrow mt-3">Your semester, on schedule</p>
