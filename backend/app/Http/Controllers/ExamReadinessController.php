@@ -8,7 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Carbon;
 
 /**
- * Thin controller — the readiness formula lives in App\Engine\Exam (pure
+ * Thin controller, the readiness formula lives in App\Engine\Exam (pure
  * PHP, fixture-tested separately). See "Exam mode" in
  * mdfile/semester-command-center.md.
  */

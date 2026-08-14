@@ -97,7 +97,7 @@ class StudySessionController extends Controller
     }
 
     /**
-     * End-of-session reflection — the student, not the timer, decides
+     * End-of-session reflection: the student, not the timer, decides
      * whether remaining effort changes (see "Edge cases" in the plan:
      * a block ending doesn't imply the work is done).
      */
@@ -132,7 +132,7 @@ class StudySessionController extends Controller
             $task->update($taskUpdates);
 
             // Completing a revision task (topic_id set) advances the
-            // spaced cadence from the *actual* completion date — this is
+            // spaced cadence from the *actual* completion date; this is
             // what makes a late review "merge into the next scheduled
             // review" rather than needing separate merge logic. See
             // RevisionScheduler's docblock.

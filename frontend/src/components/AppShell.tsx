@@ -28,7 +28,7 @@ interface NavItem {
   icon: typeof Sun;
 }
 
-// Primary navigation — see "Primary navigation" in mdfile/DESIGN.md. Originally
+// Primary navigation, see "Primary navigation" in mdfile/DESIGN.md. Originally
 // eight fixed destinations; Notestra (mdfile/NOTESTRA_FUNCTIONAL_SPEC.md) is a
 // deliberate ninth addition, added on request rather than through that doc.
 const NOTESTRA_ITEM: NavItem = { href: "/notestra", label: "Notestra", icon: FileText };
@@ -68,7 +68,7 @@ const MORE_ITEMS: NavItem[] = [
 ];
 
 // Shared so the dark rail and the light mobile sheet render an identical
-// ring — see "Keep keyboard focus clearly visible on the dark rail and
+// ring, see "Keep keyboard focus clearly visible on the dark rail and
 // the paper sheet" in mdfile/DESIGN.md.
 const FOCUS_RING = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--fn-cobalt)] focus-visible:outline-offset-2";
 
@@ -118,10 +118,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="fn flex w-full min-h-dvh">
-      {/* Desktop rail — see "Desktop composition" in DESIGN.md. Fixed to
+      {/* Desktop rail, see "Desktop composition" in DESIGN.md. Fixed to
           the viewport height with its own scroll for the nav groups, so a
           short viewport with many items never pushes Settings/logout
-          below the fold — they stay pinned and reachable without paging
+          below the fold: they stay pinned and reachable without paging
           the whole app. */}
       <nav
         aria-label="Primary"
@@ -199,7 +199,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="flex min-w-0 flex-1 flex-col">
         <main className="flex-1 pb-20 md:pb-0">{children}</main>
 
-        {/* Mobile bottom nav — see "Mobile behaviour" in DESIGN.md. */}
+        {/* Mobile bottom nav, see "Mobile behaviour" in DESIGN.md. */}
         <nav
           aria-label="Primary"
           className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-around border-t border-[var(--fn-rule)] bg-[var(--fn-paper)] py-1.5 md:hidden"

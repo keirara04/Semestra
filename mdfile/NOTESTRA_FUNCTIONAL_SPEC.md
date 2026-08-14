@@ -1,4 +1,4 @@
-# Notestra — Functional Specification
+# Notestra: Functional Specification
 
 ## Overview
 
@@ -29,7 +29,7 @@ standalone `documents` upload flow. Checked against the actual repo and correcte
 
 **Corrected:**
 - Frontend is **Next.js 16 (App Router) + React 19 + TypeScript**, not Nuxt/Vue.
-  No PDF library is installed yet (no `pdfjs-dist`, `react-pdf`, `pdf-lib`, `fabric`, `konva`) —
+  No PDF library is installed yet (no `pdfjs-dist`, `react-pdf`, `pdf-lib`, `fabric`, `konva`);
   these are new dependencies to add.
 - There is **no `documents` table**. Course files already live in a `materials` table
   (`backend/database/migrations/2026_08_13_000017_create_materials_table.php`), with an
@@ -43,7 +43,7 @@ standalone `documents` upload flow. Checked against the actual repo and correcte
 - **Gap found**: `MaterialController@index` currently returns all of the user's materials
   unfiltered (`Material::orderBy('title')->get()`), and the course page filters by
   `course_id` client-side (`frontend/src/app/(app)/courses/[id]/page.tsx`). A course-scoped
-  endpoint or query param (`GET /api/courses/{course}/materials`) should be added — needed
+  endpoint or query param (`GET /api/courses/{course}/materials`) should be added, needed
   regardless of Notestra, but Notestra's material picker depends on it existing server-side
   rather than over-fetching every material.
 - **Gap found**: `materials` storage disk defaults to local `public` disk in dev
@@ -51,7 +51,7 @@ standalone `documents` upload flow. Checked against the actual repo and correcte
   production once `DO_SPACES_*` credentials are set. Signed-URL generation (Section 4)
   needs to work against whichever disk is active, not assume Spaces is always live.
 - `smalot/pdfparser` is already a backend dependency, but only for syllabus text
-  extraction (`SyllabusExtractionService.php`) — unrelated to viewing/annotation, cannot
+  extraction (`SyllabusExtractionService.php`), unrelated to viewing/annotation, cannot
   be reused for rendering.
 - No existing PDF viewer, annotation UI, or `Notestra`-named code exists anywhere in the
   repo. This is a net-new feature.
@@ -91,7 +91,7 @@ existing course **Materials** library, and Notestra simply opens a material of
 ## Required behaviour
 
 - List a course's materials filtered to PDF type as candidates to open in Notestra.
-- Reuse the existing `Material` record — do not duplicate metadata into a new table.
+- Reuse the existing `Material` record; do not duplicate metadata into a new table.
 - Verify the material belongs to the requesting user's course before opening.
 - Add annotation/note tables that reference `material_id` (see Section 9).
 
@@ -123,7 +123,7 @@ ownership check and a short-lived signed URL rather than the currently public
 
 ## Required backend addition
 
-- `GET /api/courses/{course}/materials?type=pdf` — course-scoped material listing
+- `GET /api/courses/{course}/materials?type=pdf`: course-scoped material listing
   (does not exist yet; see Section 0 audit notes).
 
 ---
@@ -131,7 +131,7 @@ ownership check and a short-lived signed URL rather than the currently public
 # 3. Object Storage
 
 Use object storage for material PDFs rather than storing PDF binary data directly in
-the database. This is already in place for Materials generally — Notestra does not need
+the database. This is already in place for Materials generally; Notestra does not need
 its own storage integration.
 
 ## Actual storage structure (DigitalOcean Spaces, S3-compatible)
@@ -187,7 +187,7 @@ disk = local   → signed route, e.g. URL::temporarySignedRoute(
 ```
 
 `GET /api/materials/{material}/view-url` always returns one URL shape regardless of
-environment — the frontend API surface stays identical across dev and prod.
+environment; the frontend API surface stays identical across dev and prod.
 
 ## Access flow
 
@@ -281,14 +281,14 @@ render time. The canvas resolution used for rendering must never leak into store
 
 **SVG overlay for annotations, positioned above the PDF.js canvas.** Not a raw canvas,
 not generic HTML absolutely-positioned divs. SVG makes per-object selection, hit-testing,
-deletion, and normalized-coordinate ↔ export mapping straightforward — each annotation is
+deletion, and normalized-coordinate ↔ export mapping straightforward: each annotation is
 an addressable DOM node (`<path>`, `<rect>`, `<text>`) that can carry its own `id`
 attribute (the annotation UUID), instead of pixels baked into a single bitmap.
 
 ### Highlighter
 
 **MVP scope decision: freehand/rectangular highlighting only** (a translucent
-draw-a-rectangle-or-stroke tool, same data shape as Section 6's highlight example) —
+draw-a-rectangle-or-stroke tool, same data shape as Section 6's highlight example),
 not real text-selection highlighting. Text-selection highlighting requires mapping
 PDF.js's text layer to selection ranges and is a materially different implementation;
 it's a Phase 2 candidate (Section 25), not MVP.
@@ -328,7 +328,7 @@ Users can place typed text directly on top of the PDF.
 Potential properties:
 
 - Text content
-- Font size — must follow the same normalization rule as position, or text scales
+- Font size: must follow the same normalization rule as position, or text scales
   inconsistently across zoom/viewport. Store as a fraction of page height (e.g.
   `font_size: 0.018` = 1.8% of page height), not raw `px`. Convert to on-screen pixels at
   render time (`font_size * pageRenderHeight`) and to PDF points at export time
@@ -396,7 +396,7 @@ updated_at
 ```
 
 `note_type` should be a constrained enum (DB check constraint or Laravel enum cast), not
-an arbitrary string — keeps future filtering/UI (e.g. "show all exam-flagged notes")
+an arbitrary string: keeps future filtering/UI (e.g. "show all exam-flagged notes")
 reliable.
 
 `page_number` may be optional.
@@ -461,42 +461,42 @@ created_at
 updated_at
 ```
 
-`user_id` here is technically redundant — ownership is already fully determined by
+`user_id` here is technically redundant: ownership is already fully determined by
 `material_id → materials.user_id`. Keeping the column is fine (it makes authorization
 queries a straight `WHERE user_id = ?` instead of a join, which matters once this table
 is hot), but only on the condition that it can never disagree with the material's real
 owner: **set it server-side from the authenticated request + the material's owner, and
 never accept `user_id` from client input.** If that guarantee feels fragile to maintain,
-drop the column and always join through `material_id` instead — don't keep a value that
+drop the column and always join through `material_id` instead; don't keep a value that
 can silently drift from the source of truth.
 
 Client-generated UUIDs let the frontend assign a stable ID to a new annotation the
 moment it's drawn, before the backend has ever seen it. That's what makes the batched
-autosave in Section 11 work — a stroke can be optimistically rendered, tracked as dirty,
+autosave in Section 11 work: a stroke can be optimistically rendered, tracked as dirty,
 and reconciled by ID whether it's an insert or an update, with no round-trip needed just
 to learn the ID.
 
 `deleted_at` (soft delete) rather than a hard `DELETE`, so an autosave batch that erases
-an annotation can be synced the same way as any other dirty-object write — no separate
+an annotation can be synced the same way as any other dirty-object write; no separate
 "immediate delete" code path racing the debounce. A periodic job can hard-purge old
 soft-deleted rows later if needed.
 
 To be explicit: in the batch payload (Section 19), `"delete": ["uuid"]` means "set
 `deleted_at = now()`," never a hard row delete. Every `GET .../annotations` (and the
 `upsert`/`delete` batch handler itself) must scope out `whereNull('deleted_at')` by
-default — a soft-deleted annotation should behave as absent everywhere except an explicit
+default: a soft-deleted annotation should behave as absent everywhere except an explicit
 admin/audit query.
 
 **Conflict handling / versioning**: two tabs open on the same material is possible even
 single-user (e.g. two browser tabs, or a stale reload). Each annotation's `updated_at`
 acts as an implicit version. On upsert, the backend should reject (or last-write-win with
-a returned conflict flag, TBD at implementation time — but the rule must be decided, not
+a returned conflict flag, TBD at implementation time, but the rule must be decided, not
 silently ignored) an incoming write whose client-known `updated_at` is older than the
 server's current `updated_at` for that ID, rather than blindly overwriting. Minimum bar
 for MVP: server always returns its canonical `updated_at` after every write (Section 19
 response shape) so a stale tab can detect drift next time it saves.
 
-The `data` field can contain JSON. All coordinates are normalized (0–1) per Section 6 —
+The `data` field can contain JSON. All coordinates are normalized (0–1) per Section 6;
 every persisted example in this spec uses that convention, not raw pixels.
 
 Example (highlight):
@@ -590,12 +590,12 @@ Saved ✓
 
 A single debounced request carrying every dirty object (potentially several strokes,
 a highlight, and a delete, all made within the debounce window) fits the 1–2 second
-autosave far better than firing one `POST`/`PATCH`/`DELETE` per action — see the
+autosave far better than firing one `POST`/`PATCH`/`DELETE` per action; see the
 batched endpoint in Section 19.
 
 Use debouncing so every pen movement does not create an API request.
 
-Autosave can work alongside the manual Save button — both go through the same batched
+Autosave can work alongside the manual Save button; both go through the same batched
 endpoint.
 
 ## Explicit save state machine
@@ -607,12 +607,12 @@ saved → dirty → saving → saved
 
 - **saved**: no local changes outstanding, matches last server-confirmed state.
 - **dirty**: local edit made (or delete queued); not yet sent. New edits while dirty just
-  extend the same dirty set — no new debounce timer per edit.
+  extend the same dirty set; no new debounce timer per edit.
 - **saving**: batch in flight. New edits made *during* saving still mark the annotation
-  dirty again (don't block input on a pending request) — they'll ride the next batch.
+  dirty again (don't block input on a pending request); they'll ride the next batch.
 - **saved**: on success, clear only the IDs that were actually acknowledged (Section 19
-  response `synced` list) — not the whole dirty set, in case new edits arrived mid-flight.
-- **error**: on failure, the dirty set is **kept in memory, not cleared** — a failed
+  response `synced` list), not the whole dirty set, in case new edits arrived mid-flight.
+- **error**: on failure, the dirty set is **kept in memory, not cleared**; a failed
   autosave must never silently drop the user's edits. Retry the same batch (backoff,
   e.g. a few seconds, capped retries or indefinite-with-backoff), and surface "Save
   failed" in the UI per Section 10. Only a successful response clears the corresponding
@@ -661,13 +661,13 @@ annotations onto the PDF for export.
 
 Annotation data is stored normalized (0–1, Section 6). The export layer must map each
 annotation to its **original PDF page's native dimensions** (`pdf-lib`'s
-`page.getWidth()`/`getHeight()`, in PDF points — not the viewport pixel size Notestra
+`page.getWidth()`/`getHeight()`, in PDF points, not the viewport pixel size Notestra
 happened to render at) before drawing: `x_pt = x_normalized * page.getWidth()`, and
 likewise for `y`/`width`/`height`/`font_size`. The viewport size used while a student was
-annotating is irrelevant to export — only the PDF's own page geometry matters. Getting
+annotating is irrelevant to export; only the PDF's own page geometry matters. Getting
 this wrong is the most likely source of exported annotations landing in the wrong place.
 
-**Not part of MVP** (see Section 24) — the priority is a solid open → draw → save →
+**Not part of MVP** (see Section 24): the priority is a solid open → draw → save →
 reopen loop first; export can follow once that's stable.
 
 ## Export options
@@ -679,12 +679,12 @@ Download Annotated PDF   -- default, no server-side persistence
 Save to Materials         -- explicit opt-in, creates a derived Material
 ```
 
-Default behaviour should be **download-only** — generate the flattened PDF, stream it to
+Default behaviour should be **download-only**: generate the flattened PDF, stream it to
 the browser, and discard the server-side copy. Do not persist every export to Spaces by
 default: a student re-exporting repeatedly while iterating on annotations would otherwise
 quietly accumulate duplicate PDFs in storage with no cleanup path.
 
-"Save to Materials" should be a separate, explicit action — only then is the export
+"Save to Materials" should be a separate, explicit action; only then is the export
 stored back as a new `Material` (a derived file linked to the original via
 `source_material_id`, not overwriting it).
 
@@ -713,7 +713,7 @@ This prevents destructive edits and gives users a clean source document.
 
 # 15. Document Reopening
 
-Restoring reading position (last page, zoom) is small to build and high-value —
+Restoring reading position (last page, zoom) is small to build and high-value:
 reopening a 90-page lecture PDF and landing back where the student left off matters at
 least as much as the annotation extras.
 
@@ -731,7 +731,7 @@ updated_at
 ```
 
 Composite primary key (`user_id`, `material_id`). Deliberately separate from
-`material_annotations`/`material_notes` — this is per-viewer session state, not
+`material_annotations`/`material_notes`; this is per-viewer session state, not
 document content, and updates far more frequently (every page turn/zoom change) than
 annotations do. Touched via the same `GET .../view-url` call (Section 4) that opens the
 viewer, plus on page/zoom change (debounced, same pattern as autosave).
@@ -754,14 +754,14 @@ Render annotation overlay
 Restore notes
 ```
 
-The workspace should appear exactly as it did when the user last saved — page position
+The workspace should appear exactly as it did when the user last saved, page position
 and zoom included, not just annotation content.
 
 ---
 
 # 16. Course Integration
 
-Materials are already connected to Semestra's academic data — no new relationship needs
+Materials are already connected to Semestra's academic data; no new relationship needs
 to be built, only surfaced inside Notestra.
 
 Example:
@@ -799,7 +799,7 @@ additions:
 - Search within a material's annotations/notes.
 - Filter materials by "has annotations" when picking what to open.
 - Sort by:
-  - Recently opened in Notestra — backed by `user_material_states.last_opened_at`
+  - Recently opened in Notestra, backed by `user_material_states.last_opened_at`
     (Section 15), not a column on `materials` itself. Materials are per-user already in
     this schema, but keeping open/reading state in its own table rather than bolted onto
     `materials` means it scales cleanly if materials are ever shared across users later,
@@ -808,7 +808,7 @@ additions:
   - Name
   - Course
 
-Existing Materials features (rename, delete, week assignment) are reused as-is —
+Existing Materials features (rename, delete, week assignment) are reused as-is;
 Notestra does not need to reimplement them.
 
 Possible future additions:
@@ -835,18 +835,18 @@ material_notes.material_id
 ```
 
 With `ON DELETE CASCADE` in the migrations, `MaterialController@destroy` does not need
-to manually orchestrate deletion of child annotation/note records — the database does it
+to manually orchestrate deletion of child annotation/note records; the database does it
 atomically. Remaining manual steps:
 
 1. Verify user owns the material (existing behaviour).
-2. Remove or soft-delete the `materials` record — cascades to annotations/notes.
+2. Remove or soft-delete the `materials` record; cascades to annotations/notes.
 3. Delete the file object from storage (existing behaviour).
-4. Optionally remove associated annotated exports (derived `Material` rows) — these are
+4. Optionally remove associated annotated exports (derived `Material` rows); these are
    separate `materials` rows, so this is the same delete path, not a special case.
 
 A soft-delete grace period may be added later; if `materials` moves to soft-delete,
-the cascade should be re-checked (Postgres `ON DELETE CASCADE` fires on hard delete only
-— a soft-deleted material would need its annotations/notes soft-deleted explicitly, or
+the cascade should be re-checked (Postgres `ON DELETE CASCADE` fires on hard delete only;
+a soft-deleted material would need its annotations/notes soft-deleted explicitly, or
 scoped out by the parent's `deleted_at` at query time).
 
 ---

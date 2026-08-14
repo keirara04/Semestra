@@ -10,7 +10,7 @@ use App\Models\GradeCategory;
 use Illuminate\Http\JsonResponse;
 
 /**
- * Thin controller — all the actual math lives in App\Engine\Grade
+ * Thin controller, all the actual math lives in App\Engine\Grade
  * (framework-agnostic, no Eloquent), per "Planning engine boundary" in
  * mdfile/semester-command-center.md.
  */
@@ -40,7 +40,7 @@ class CourseGradesController extends Controller
             ),
         )->all();
 
-        // Course.grade_target is a free-text field ("A", "85", "85%") — only
+        // Course.grade_target is a free-text field ("A", "85", "85%"); only
         // a parseable numeric percentage feeds "expected"/"needed average";
         // anything else means those two stay null (see "Incomplete grade
         // information" empty state: distinguish unknown from zero).

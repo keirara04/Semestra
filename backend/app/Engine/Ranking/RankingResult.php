@@ -5,7 +5,7 @@ namespace App\Engine\Ranking;
 final class RankingResult
 {
     /**
-     * @param  string[]  $reasons  Plain-language lines — see "Smart study
+     * @param  string[]  $reasons  Plain-language lines, see "Smart study
      *                             planner"'s "Suggested because:" example in the plan.
      */
     public function __construct(

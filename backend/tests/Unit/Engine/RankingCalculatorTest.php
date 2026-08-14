@@ -8,7 +8,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 /**
- * Golden fixture tests for the ranking formula — see "Ranking" in
+ * Golden fixture tests for the ranking formula. See "Ranking" in
  * mdfile/semester-command-center.md.
  */
 class RankingCalculatorTest extends TestCase

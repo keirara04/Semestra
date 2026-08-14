@@ -3,7 +3,7 @@
 namespace App\Engine\Revision;
 
 /**
- * v1 defaults for the spaced revision cadence — one file, not hardcoded
+ * v1 defaults for the spaced revision cadence, one file, not hardcoded
  * per view. See "Materials, notes, and revision" in
  * mdfile/semester-command-center.md.
  */
@@ -14,7 +14,7 @@ final class RevisionConstants
 
     public const REVIEW_MINUTES = 15;
 
-    /** Default daily review cap — configurable later via Settings. */
+    /** Default daily review cap, configurable later via Settings. */
     public const DAILY_CAP_MINUTES = 45;
 
     /** @var string[] Lowest to highest. */

@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Cancellation-guarded fetch-on-mount — setState only fires if this
+    // Cancellation-guarded fetch-on-mount: setState only fires if this
     // effect hasn't been cleaned up (e.g. AuthProvider unmounted mid-request).
     let ignore = false;
 

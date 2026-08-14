@@ -23,7 +23,7 @@ class MaterialRequest extends FormRequest
             'type' => [$required, 'string', 'in:slide,pdf,reading,recording,link'],
             'title' => [$required, 'string', 'max:255'],
             'week' => ['nullable', 'integer', 'min:1', 'max:52'],
-            // A material is either an uploaded file or an external link —
+            // A material is either an uploaded file or an external link;
             // at least one is required on create; neither is editable
             // after creation (delete + re-create to replace, see
             // MaterialController).

@@ -3,18 +3,18 @@
 namespace App\Engine\Grade;
 
 /**
- * Pure PHP, no Eloquent — see "Planning engine boundary" in
+ * Pure PHP, no Eloquent, see "Planning engine boundary" in
  * mdfile/semester-command-center.md. Implements "Grade and outcome
  * tracker"'s explicit v1 formulas.
  *
  * v1 simplifications, documented rather than hidden:
  * - "Conservative" uses this course's own unweighted average score per
  *   graded item (not a cross-course/cross-semester history, which
- *   doesn't exist yet, and not other students' scores — this is a
+ *   doesn't exist yet, and not other students' scores; this is a
  *   single-user app, there is no "course average" pool to fall back to).
  * - Drop-lowest / best-N-of-M is evaluated dynamically against however
  *   many items in the category are graded so far, not held back until
- *   all M exist — a category with 3 of 10 labs graded and "best 8 of 10"
+ *   all M exist. A category with 3 of 10 labs graded and "best 8 of 10"
  *   set won't drop anything yet (3 < 8), and starts dropping once more
  *   than the kept count are graded.
  */
@@ -111,7 +111,7 @@ final class GradeCalculator
             $graded = array_values(array_filter($categoryItems, fn (GradeItemInput $item) => $item->isGraded()));
 
             // dropCount stays 0 (nothing dropped yet) until enough items
-            // are graded for the rule to mean anything — see the class
+            // are graded for the rule to mean anything, see the class
             // docblock's "dynamically" note.
             $dropCount = $category->bestN !== null
                 ? max(0, count($graded) - $category->bestN)

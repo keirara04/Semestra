@@ -9,7 +9,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * "On demand (student requests a re-plan) and once nightly" — see "When
+ * "On demand (student requests a re-plan) and once nightly", see "When
  * it runs" in mdfile/semester-command-center.md. Iterates every user with
  * at least one open task; BuildsCapacityInputs' queries rely on Eloquent's
  * BelongsToUser global scope via Auth::user(), so each iteration sets the
@@ -23,7 +23,7 @@ class RunNightlyPlanning extends Command
 
     public function handle(PlanningRunner $runner): int
     {
-        // Task::withoutGlobalScopes() — BelongsToUser's scope depends on
+        // Task::withoutGlobalScopes(): BelongsToUser's scope depends on
         // Auth::user(), which isn't set yet at this point in a console
         // context; querying explicitly across all users here is correct,
         // not an accidental unscoped read.

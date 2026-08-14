@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * A planner run's output — see "Core data model" in
+     * A planner run's output. See "Core data model" in
      * mdfile/semester-command-center.md: "Every planner run is versioned
      * ... explanation_snapshot fields that make 'why did it suggest this
      * yesterday' answerable after the underlying data changes."

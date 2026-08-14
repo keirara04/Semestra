@@ -21,7 +21,7 @@ class ReflectStudySessionRequest extends FormRequest
             'notes' => ['nullable', 'string'],
             'blocker' => ['nullable', 'string', 'required_if:outcome,blocked'],
             // Remaining effort only changes when the student confirms
-            // progress here — never inferred from actual_minutes logged
+            // progress here, never inferred from actual_minutes logged
             // (see "Edge cases" in the plan).
             'remaining_estimate_minutes' => ['nullable', 'integer', 'min:0'],
             'completion_percent' => ['nullable', 'integer', 'min:0', 'max:100'],

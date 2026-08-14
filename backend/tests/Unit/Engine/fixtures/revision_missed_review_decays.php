@@ -1,6 +1,6 @@
 <?php
 
-// 10 days overdue on a 1-day-interval stage — more than one review's
+// 10 days overdue on a 1-day-interval stage: more than one review's
 // worth of time has passed with zero engagement, so confidence decays
 // one step (comfortable -> learning).
 return [

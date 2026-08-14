@@ -10,7 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * Thin controller — all the actual math lives in App\Engine\Capacity
+ * Thin controller, all the actual math lives in App\Engine\Capacity
  * (framework-agnostic, no Eloquent), per "Planning engine boundary" in
  * the plan. This class only translates Eloquent rows into the engine's
  * plain input objects and back into JSON.

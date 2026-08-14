@@ -13,7 +13,7 @@ interface PDFViewerProps {
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
 }
 
-// Single-page-at-a-time renderer, driven by PDF.js — see
+// Single-page-at-a-time renderer, driven by PDF.js, see
 // mdfile/NOTESTRA_FUNCTIONAL_SPEC.md, Section 5. The worker is resolved as a
 // module URL (not a CDN string) since Next 16/Turbopack has no built-in
 // pdf.js asset wiring to lean on.

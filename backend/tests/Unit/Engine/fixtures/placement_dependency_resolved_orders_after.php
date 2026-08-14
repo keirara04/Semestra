@@ -2,7 +2,7 @@
 
 // Task 1 (the blocker) ranks first and gets placed on day 1. Task 2
 // depends on it and isn't done yet, so its blocks are confined to dates
-// strictly after task 1's last placed date — day 2, not day 1, even
+// strictly after task 1's last placed date: day 2, not day 1, even
 // though day 1 still has room.
 return [
     'day_start_time' => '09:00',

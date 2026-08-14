@@ -1,6 +1,6 @@
 <?php
 
-// Day 1 only has 20 minutes free — below the 30-minute viable block
+// Day 1 only has 20 minutes free, below the 30-minute viable block
 // floor, so it's skipped entirely rather than producing a too-small block.
 return [
     'day_start_time' => '09:00',

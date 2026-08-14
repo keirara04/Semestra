@@ -5,7 +5,7 @@ namespace App\Engine\Exam;
 final class ReadinessReport
 {
     /**
-     * @param  float|null  $readinessPercent  Null when there are no linked topics — "unknown," not 0%.
+     * @param  float|null  $readinessPercent  Null when there are no linked topics; "unknown," not 0%.
      * @param  float|null  $suggestedPaceMinutesPerDay  Null when there's no time left (exam today/passed) or nothing left to study.
      */
     public function __construct(

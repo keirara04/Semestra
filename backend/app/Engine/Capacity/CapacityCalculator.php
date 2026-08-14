@@ -7,7 +7,7 @@ use DateTimeImmutable;
 use DateTimeZone;
 
 /**
- * Pure PHP, no Eloquent — see "Planning engine boundary" in the plan.
+ * Pure PHP, no Eloquent, see "Planning engine boundary" in the plan.
  * Expands weekly-pattern-plus-exceptions class sessions, commitments, and
  * term breaks into a DayCapacity per day. Every date/day-of-week
  * computation happens against the student's own timezone so a UTC-stored
@@ -53,7 +53,7 @@ final class CapacityCalculator
             $lectureMinutes = $this->lectureMinutesFor($date, $dayOfWeek, $classSessions);
             $commitmentMinutes = $this->commitmentMinutesFor($date, $dayOfWeek, $commitments);
 
-            // Clamp at 0 — overlapping/over-committed days must never
+            // Clamp at 0, since overlapping/over-committed days must never
             // report negative available time (see "fully-booked day").
             $availableMinutes = max(0, 1440 - $lectureMinutes - $commitmentMinutes);
             $recommendedStudyMinutes = min($availableMinutes, $maxStudyMinutes);
@@ -135,7 +135,7 @@ final class CapacityCalculator
      * Known v1 simplification: an overnight block (end <= start, e.g. a
      * 23:00-07:00 sleep commitment) has its full duration attributed to
      * its start day rather than split across the midnight boundary. Exact
-     * per-calendar-day attribution of overnight blocks is deferred —
+     * per-calendar-day attribution of overnight blocks is deferred,
      * flagged here rather than silently returning a negative duration.
      */
     private function minutesBetween(string $start, string $end): int

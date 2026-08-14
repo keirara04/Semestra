@@ -24,7 +24,7 @@ function weekRangeLabel(weekStartDate: string): string {
   return `${fmt(start)} – ${fmt(end)}`;
 }
 
-// "Weekly review" — see mdfile/semester-command-center.md. A deliberate
+// "Weekly review", see mdfile/semester-command-center.md. A deliberate
 // full-screen moment, not a dashboard widget: two big numbers, why the
 // gap happened, and whether next week is already shaping up overloaded.
 export default function ReviewPage() {
@@ -116,7 +116,7 @@ export default function ReviewPage() {
             <>
               <WeekStateMarker state={review.next_week_risk} />
               <span className="text-sm text-[var(--fn-muted)]">
-                {WEEK_STATE_LABEL[review.next_week_risk]} — already shaping up heavier than usual.
+                {WEEK_STATE_LABEL[review.next_week_risk]}: already shaping up heavier than usual.
               </span>
             </>
           )}

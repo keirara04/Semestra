@@ -6,11 +6,11 @@ import { useAuth } from "@/lib/auth-context";
 import { ApiError, apiFetch } from "@/lib/api";
 import type { DeepWorkWindow, User } from "@/lib/types";
 
-// Settings — see "Settings" in mdfile/DESIGN.md. Only fields that exist
+// Settings, see "Settings" in mdfile/DESIGN.md. Only fields that exist
 // and are actually read by something are editable here: deep-work windows
 // feed Placement's block-anchor time, max study hours/day and timezone
 // feed the capacity engine, grade scale feeds GPA display. Quiet hours
-// are stored but not yet enforced — there's no notification system to
+// are stored but not yet enforced: there's no notification system to
 // honor them yet (Automation release).
 export default function SettingsPage() {
   const { user, updateProfile, deleteAccount, setAiConsent } = useAuth();
@@ -157,7 +157,7 @@ function SettingsForm({
           <div className="flex flex-col gap-2">
             <span className="fn-label">Deep-work windows</span>
             <p className="text-xs text-[var(--fn-muted)]">
-              Soft preference — Replan anchors the first suggested block of each day here.
+              Soft preference: Replan anchors the first suggested block of each day here.
             </p>
             {deepWorkWindows.map((window, index) => (
               <div key={index} className="flex items-center gap-2">
@@ -262,7 +262,7 @@ function SettingsForm({
         <p className="fn-eyebrow">AI</p>
         <p className="text-xs text-[var(--fn-muted)]">
           Off by default. When enabled, a syllabus you paste or upload is sent to an AI provider
-          to draft candidate assessments and tasks — nothing is saved until you review and
+          to draft candidate assessments and tasks. Nothing is saved until you review and
           confirm each one.
         </p>
         <label className="flex w-fit items-center gap-2 text-sm">
@@ -295,7 +295,7 @@ function SettingsForm({
         ) : (
           <form onSubmit={handleDelete} className="flex flex-col gap-3">
             <p className="text-sm text-[var(--fn-oxide)]">
-              This permanently deletes your account and everything in it — courses, assessments,
+              This permanently deletes your account and everything in it: courses, assessments,
               grades, study history. This can&apos;t be undone.
             </p>
             <label className="flex flex-col gap-1.5">

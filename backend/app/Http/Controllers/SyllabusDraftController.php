@@ -18,7 +18,7 @@ use Illuminate\Http\JsonResponse;
 /**
  * "Every extracted deadline, weighting, or task is presented as an
  * editable draft with source location. Nothing is saved automatically."
- * — Stage 1 in mdfile/AI.md. store() only ever creates a SyllabusDraft;
+ * (Stage 1 in mdfile/AI.md.) store() only ever creates a SyllabusDraft;
  * real Assessment/Task rows are created by confirm(), and only for the
  * candidates the student explicitly kept.
  */

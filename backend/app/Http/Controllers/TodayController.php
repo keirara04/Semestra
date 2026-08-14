@@ -17,8 +17,8 @@ use Illuminate\Support\Carbon;
 
 /**
  * Today dashboard. The focus list is the real "Smart study planner"
- * ranking (see App\Services\RankingReader) as of Planning Engine Phase G
- * — no longer a plain due-date sort. `ranking_is_basic` stays in the
+ * ranking (see App\Services\RankingReader) as of Planning Engine Phase G,
+ * no longer a plain due-date sort. `ranking_is_basic` stays in the
  * response as `false` so old frontend builds relying on the flag degrade
  * safely rather than break.
  */

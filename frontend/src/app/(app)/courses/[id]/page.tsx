@@ -23,7 +23,7 @@ const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", 
 
 type CourseWithSessions = Course & { class_sessions: ClassSession[] };
 
-// Course workspace — see "Course workspace" and "Primary navigation" (Courses
+// Course workspace, see "Course workspace" and "Primary navigation" (Courses
 // row) in mdfile/DESIGN.md. Only Overview is functional this phase; the
 // rest are Foundation-release placeholders until later releases land.
 export default function CourseWorkspacePage({
@@ -92,7 +92,7 @@ export default function CourseWorkspacePage({
       {tab === "Revision" && <Revision courseId={course.id} />}
       {tab !== "Overview" && tab !== "Grades" && tab !== "Materials" && tab !== "Revision" && (
         <p className="mt-6 text-sm text-[var(--fn-muted)]">
-          {tab} isn&apos;t built yet — this ships in a later release.
+          {tab} isn&apos;t built yet. This ships in a later release.
         </p>
       )}
     </main>
@@ -224,10 +224,10 @@ function Overview({
 }
 
 function formatPercent(value: number | null): string {
-  return value === null ? "—" : `${value.toFixed(1)}%`;
+  return value === null ? "N/A" : `${value.toFixed(1)}%`;
 }
 
-// Grade tracker — see "Grade tracker" in mdfile/DESIGN.md. Current
+// Grade tracker, see "Grade tracker" in mdfile/DESIGN.md. Current
 // standing is always paired with its "(of completed weight only)"
 // qualifier; pending weight gets its own visible chip rather than a
 // silent gap, per the same section's false-precision failure mode.
@@ -304,7 +304,7 @@ function Grades({ courseId }: { courseId: number }) {
 
       {mostlyUngraded ? (
         <p className="mt-4 text-sm text-[var(--fn-muted)]">
-          Projected grade: unavailable — {report.ungraded_weight_percent.toFixed(0)}% of the grade
+          Projected grade unavailable: {report.ungraded_weight_percent.toFixed(0)}% of the grade
           has no expected score yet.
         </p>
       ) : (
@@ -335,7 +335,7 @@ function Grades({ courseId }: { courseId: number }) {
         <div className="mt-4 flex flex-col gap-1">
           {report.pass_hurdles.map((hurdle) => (
             <p key={hurdle.item_name} className="fn-mono text-xs text-[var(--fn-muted)]">
-              {hurdle.item_name}: needs {hurdle.required_percent}% —{" "}
+              {hurdle.item_name}: needs {hurdle.required_percent}%,{" "}
               {hurdle.achieved_percent === null
                 ? "pending"
                 : hurdle.passed
@@ -428,7 +428,7 @@ const MATERIAL_TYPE_LABEL: Record<MaterialType, string> = {
   link: "Link",
 };
 
-// Materials — see "Materials, notes, and revision" in
+// Materials, see "Materials, notes, and revision" in
 // mdfile/semester-command-center.md and "Materials list" in DESIGN.md: a
 // plain filterable list, not a card grid.
 function Materials({ courseId }: { courseId: number }) {
@@ -601,7 +601,7 @@ function Materials({ courseId }: { courseId: number }) {
 
 const CONFIDENCE_OPTIONS: Confidence[] = ["not_started", "learning", "comfortable", "confident"];
 
-// Revision — see "Materials, notes, and revision" in
+// Revision, see "Materials, notes, and revision" in
 // mdfile/semester-command-center.md: topics use the same confidence
 // vocabulary the spaced revision engine (Phase C) and Exam mode (Phase D)
 // both read from.

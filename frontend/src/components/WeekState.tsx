@@ -1,4 +1,4 @@
-// Week-state system — see "Week-state system" in mdfile/DESIGN.md. Shared
+// Week-state system, see "Week-state system" in mdfile/DESIGN.md. Shared
 // by Today's workload verdict and the Calendar view's per-day readout so
 // there's one encoding, not two.
 export type WeekState = "comfortable" | "busy" | "at_risk" | "critical";

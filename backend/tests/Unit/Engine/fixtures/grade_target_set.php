@@ -1,6 +1,6 @@
 <?php
 
-// Course target of 80% set — expected and needed-average become real
+// Course target of 80% set; expected and needed-average become real
 // numbers instead of null.
 return [
     'items' => [

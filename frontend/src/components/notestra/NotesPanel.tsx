@@ -12,7 +12,7 @@ interface NotesPanelProps {
 }
 
 // Notes stay on individual create/update/delete requests, unlike batched
-// annotations — they're user-initiated one-at-a-time actions, not
+// annotations: they're user-initiated one-at-a-time actions, not
 // high-frequency stroke data. See mdfile/NOTESTRA_FUNCTIONAL_SPEC.md,
 // Section 19.
 export function NotesPanel({ materialId, currentPage }: NotesPanelProps) {

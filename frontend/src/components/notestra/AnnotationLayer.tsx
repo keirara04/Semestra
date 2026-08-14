@@ -20,12 +20,20 @@ interface AnnotationLayerProps {
 const HIGHLIGHT_COLOR = "#FFE66D";
 const PEN_COLOR = "#222933";
 const PEN_STROKE_WIDTH = 0.004; // normalized, relative to page width
+// Text annotations render in Caveat (--font-caveat, see globals.css
+// .fn-hand) rather than the UI's DM Sans, since a margin note should look
+// handwritten, not like a form field. Cobalt keeps it visually distinct
+// from pen ink and highlight yellow. Sized larger than a sans equivalent
+// since handwriting faces read smaller at the same font-size.
+const TEXT_COLOR = "#2857a0";
+const TEXT_FONT_SIZE = 0.026;
+const TEXT_FONT_FAMILY = "var(--font-caveat), cursive";
 
 function newClientUuid(): string {
   return crypto.randomUUID();
 }
 
-// SVG overlay above the PDF.js canvas — the decided MVP rendering approach
+// SVG overlay above the PDF.js canvas: the decided MVP rendering approach
 // (not raw canvas, not HTML divs) per mdfile/NOTESTRA_FUNCTIONAL_SPEC.md,
 // Section 6: each annotation is an addressable node carrying its own
 // client_uuid, which is what makes hit-testing/deletion and normalized
@@ -131,8 +139,8 @@ export function AnnotationLayer({
         data: {
           x: toNormalized(editingText.x, pageWidth),
           y: toNormalized(editingText.y, pageHeight),
-          font_size: 0.018,
-          color: PEN_COLOR,
+          font_size: TEXT_FONT_SIZE,
+          color: TEXT_COLOR,
           text: editingText.value,
         },
       };
@@ -203,10 +211,11 @@ export function AnnotationLayer({
       )}
 
       {editingText && (
-        <foreignObject x={editingText.x} y={editingText.y} width={220} height={40}>
+        <foreignObject x={editingText.x} y={editingText.y} width={240} height={44}>
           <input
             autoFocus
             className="fn-input w-full"
+            style={{ fontFamily: TEXT_FONT_FAMILY, fontSize: 20, color: TEXT_COLOR }}
             value={editingText.value}
             onChange={(event) => setEditingText({ ...editingText, value: event.target.value })}
             onBlur={commitTextEdit}
@@ -274,9 +283,10 @@ function AnnotationShape({
       <text
         data-id={annotation.id}
         x={toPixels(data.x ?? 0, pageWidth)}
-        y={toPixels(data.y ?? 0, pageHeight) + (data.font_size ?? 0.018) * pageHeight}
-        fontSize={(data.font_size ?? 0.018) * pageHeight}
-        fill={data.color ?? PEN_COLOR}
+        y={toPixels(data.y ?? 0, pageHeight) + (data.font_size ?? TEXT_FONT_SIZE) * pageHeight}
+        fontSize={(data.font_size ?? TEXT_FONT_SIZE) * pageHeight}
+        fontFamily={TEXT_FONT_FAMILY}
+        fill={data.color ?? TEXT_COLOR}
         onClick={onClick}
         className="cursor-pointer"
       >

@@ -13,7 +13,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 /**
- * Golden fixture tests for the capacity engine — see "Planning engine
+ * Golden fixture tests for the capacity engine. See "Planning engine
  * boundary" in the plan and the Phase 3 risk note: "every downstream
  * number is wrong if this is wrong."
  */

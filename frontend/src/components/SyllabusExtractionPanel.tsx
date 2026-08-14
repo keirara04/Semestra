@@ -17,7 +17,7 @@ interface DraftTask extends TaskCandidate {
   assessmentIndex: number | null;
 }
 
-// AI Stage 1 — syllabus extraction, see "AI capabilities by stage" in
+// AI Stage 1: syllabus extraction, see "AI capabilities by stage" in
 // mdfile/AI.md. Every candidate starts as an editable, checked-off draft;
 // nothing is written to Assessments/Tasks until confirm() runs, and only
 // for candidates still selected at that point.
@@ -85,7 +85,7 @@ export function SyllabusExtractionPanel({ courseId, materials }: { courseId: num
     setConfirming(true);
     setError(null);
     try {
-      // Selected assessments are re-indexed 0..n — tasks reference that
+      // Selected assessments are re-indexed 0..n: tasks reference that
       // new index, not their position in the original candidate list.
       const selectedAssessments = assessments.filter((a) => a.selected);
       const selectedAssessmentOriginalIndexes = assessments
@@ -133,7 +133,7 @@ export function SyllabusExtractionPanel({ courseId, materials }: { courseId: num
       {!draft && confirmedCount === null && (
         <div className="mt-3 flex flex-col gap-3">
           <p className="text-xs text-[var(--fn-muted)]">
-            Works best on a document that actually lists graded work — a grading breakdown, an
+            Works best on a document that actually lists graded work: a grading breakdown, an
             assignment schedule, exam dates. An intro/overview slide with no grading table won&apos;t
             produce anything, by design: the model never invents assessments that aren&apos;t stated.
           </p>
@@ -206,7 +206,7 @@ export function SyllabusExtractionPanel({ courseId, materials }: { courseId: num
           {assessments.length === 0 && tasks.length === 0 && (
             <p className="text-sm text-[var(--fn-muted)]">
               I couldn&apos;t find any clear assessment dates or tasks in this document. Try a
-              document that includes a grading breakdown, assignment schedule, or exam dates —
+              document that includes a grading breakdown, assignment schedule, or exam dates,
               not an intro/overview page.
             </p>
           )}
@@ -249,7 +249,7 @@ export function SyllabusExtractionPanel({ courseId, materials }: { courseId: num
                     </div>
                     <p className="pl-6 text-xs italic text-[var(--fn-muted)]">&ldquo;{candidate.source_fragment}&rdquo;</p>
                     {!candidate.due_date && (
-                      <p className="pl-6 text-xs text-[var(--fn-oxide)]">No date found — add one before confirming.</p>
+                      <p className="pl-6 text-xs text-[var(--fn-oxide)]">No date found. Add one before confirming.</p>
                     )}
                   </li>
                 ))}

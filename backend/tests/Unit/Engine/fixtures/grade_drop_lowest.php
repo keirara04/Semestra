@@ -1,6 +1,6 @@
 <?php
 
-// Category with drop_lowest_count=2 and 3 graded labs — the 2 lowest
+// Category with drop_lowest_count=2 and 3 graded labs: the 2 lowest
 // (50%, 70%) are excluded entirely (not just zero-scored), leaving only
 // the 90% lab counted from that category.
 return [

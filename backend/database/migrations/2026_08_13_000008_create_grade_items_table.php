@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * GradeItem.weighting is the single canonical source of grade weight —
+     * GradeItem.weighting is the single canonical source of grade weight;
      * Assessment links to a GradeItem rather than storing its own duplicate
      * weight (see "Grade and outcome tracker" in the plan).
      */

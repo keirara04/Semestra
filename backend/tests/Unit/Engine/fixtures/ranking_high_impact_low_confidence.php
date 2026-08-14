@@ -1,6 +1,6 @@
 <?php
 
-// Heavy grade weight (90%) and a large, low-confidence estimate — high
+// Heavy grade weight (90%) and a large, low-confidence estimate: high
 // academic_impact and effort_risk even though there's plenty of slack
 // before the deadline (low urgency).
 return [

@@ -5,31 +5,31 @@ namespace App\Engine\Placement;
 use DateTimeImmutable;
 
 /**
- * Pure PHP, no Eloquent — see "Planning engine boundary" in
+ * Pure PHP, no Eloquent, see "Planning engine boundary" in
  * mdfile/semester-command-center.md. Implements "Placement": greedy fill
  * of ranked flexible work into whatever capacity the feasibility pass
  * (Phase B) did not already reserve.
  *
- * v1 scope boundary — clock-time fidelity: this places blocks using each
+ * v1 scope boundary, clock-time fidelity: this places blocks using each
  * day's *aggregate remaining minutes*, not a true free-interval calendar
  * (the capacity engine outputs day totals, not a minute-by-minute busy/
  * free map). A day's placed minutes will never exceed what's actually
  * free, but the exact clock time of a suggested block is a nominal stack
  * from a single daily anchor (deep-work window start, or 09:00), not a
  * guaranteed non-overlap against a specific lecture's wall-clock time.
- * Every placed block starts as `status: suggested` — nothing commits
+ * Every placed block starts as `status: suggested`; nothing commits
  * until the student accepts it, which is exactly the safety net this
  * simplification leans on. True interval-aware placement is future work,
  * not a silent gap.
  *
- * v1 scope boundary — dependencies: "a dependent task cannot be placed
+ * v1 scope boundary, dependencies: "a dependent task cannot be placed
  * into an earlier slot than its blocker" (see "Ranking" in the plan) is
  * enforced only when the blocker is either already done, or ranks higher
- * and gets placed earlier in this same run — the dependent's blocks are
+ * and gets placed earlier in this same run; the dependent's blocks are
  * then confined to dates after the blocker's last placed date. If the
  * blocker ranks *lower* (hasn't been processed yet when we reach the
  * dependent) or gets nothing placed, the dependent is skipped entirely
- * this run rather than reordering the ranked list — a future run will
+ * this run rather than reordering the ranked list; a future run will
  * place it once the blocker's own priority rises. Full topological
  * reordering is future work.
  */

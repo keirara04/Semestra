@@ -7,7 +7,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// Sanctum SPA cookie auth — "web" middleware group (session + CSRF), not
+// Sanctum SPA cookie auth uses the "web" middleware group (session + CSRF), not
 // routes/api.php. See AuthController for the flow this depends on.
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);

@@ -7,7 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * Thin controller — see App\Services\PlanningRunner for the actual
+ * Thin controller, see App\Services\PlanningRunner for the actual
  * pipeline orchestration, shared with the nightly scheduled command.
  */
 class PlanningRunController extends Controller

@@ -8,7 +8,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 /**
- * Golden fixture tests for the spaced revision engine — see "Materials,
+ * Golden fixture tests for the spaced revision engine. See "Materials,
  * notes, and revision" in mdfile/semester-command-center.md.
  */
 class RevisionSchedulerTest extends TestCase

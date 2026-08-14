@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * One row per user per day — the hard per-day budget cap from
+     * One row per user per day. The hard per-day budget cap from
      * "AI operations (v1 constraints)" in mdfile/semester-command-center.md
      * is enforced by checking this row before every provider call, not
      * after. Unique on (user_id, date) so incrementing is a single

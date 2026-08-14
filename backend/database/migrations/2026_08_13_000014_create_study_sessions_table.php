@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * StudySession is the execution record for a CalendarBlock — see "Core
+     * StudySession is the execution record for a CalendarBlock. See "Core
      * data model" in the plan. `actual_minutes` is only set once the
      * session ends; `outcome`/notes/blocker come from the end-of-session
      * reflection (see "Focus sessions and work logs").

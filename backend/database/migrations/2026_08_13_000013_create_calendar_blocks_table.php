@@ -7,13 +7,13 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * CalendarBlock owns time — see "Core data model" in the plan. The
+     * CalendarBlock owns time. See "Core data model" in the plan. The
      * schema carries the full canonical status enum (suggested/accepted/
      * moved/skipped/done) up front so it doesn't need reshaping when the
      * Planning Engine release starts writing "suggested"/"moved" blocks;
      * this release (manual entry only) only ever writes accepted/skipped/
      * done. Likewise `type` covers lecture/commitment/study, but Foundation
-     * only creates `study` blocks — lecture/commitment instances are still
+     * only creates `study` blocks; lecture/commitment instances are still
      * read from ClassSession/Commitment via the capacity engine (Phase 3),
      * not materialized as rows here yet.
      */

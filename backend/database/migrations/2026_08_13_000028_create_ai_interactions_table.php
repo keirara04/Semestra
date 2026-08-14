@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Audit trail for every AI call — see "Privacy, security, and
+     * Audit trail for every AI call. See "Privacy, security, and
      * retention" in mdfile/AI.md. `input_redacted` never holds the raw
      * document text, only a short description, so this table stays safe
      * to inspect for debugging without itself becoming a data-retention

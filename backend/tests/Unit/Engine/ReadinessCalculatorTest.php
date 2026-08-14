@@ -7,7 +7,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 /**
- * Golden fixture tests for exam readiness — see "Exam mode" in
+ * Golden fixture tests for exam readiness. See "Exam mode" in
  * mdfile/semester-command-center.md.
  */
 class ReadinessCalculatorTest extends TestCase

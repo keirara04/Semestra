@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Assessment <-> Topic tagging — see "Core data model" in
-     * mdfile/semester-command-center.md ("(join) AssessmentTopic —
+     * Assessment <-> Topic tagging. See "Core data model" in
+     * mdfile/semester-command-center.md ("(join) AssessmentTopic <->
      * Assessment"). Plain pivot, no BelongsToUser scope needed (see
      * assessment_material for the same reasoning).
      */

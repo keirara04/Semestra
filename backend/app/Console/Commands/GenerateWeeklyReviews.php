@@ -8,7 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * Runs weekly (see routes/console.php) — summarises the week that just
+ * Runs weekly (see routes/console.php), summarises the week that just
  * ended for every user. Idempotent: WeeklyReviewGenerator returns the
  * existing row for a week that's already been generated.
  */
@@ -28,7 +28,7 @@ class GenerateWeeklyReviews extends Command
 
             $review = $generator->generate($user);
 
-            $this->info("User {$user->id}: week of {$review->week_start_date->format('Y-m-d')} — {$review->completed_minutes}/{$review->planned_minutes} min.");
+            $this->info("User {$user->id}: week of {$review->week_start_date->format('Y-m-d')}: {$review->completed_minutes}/{$review->planned_minutes} min.");
         }
 
         return self::SUCCESS;

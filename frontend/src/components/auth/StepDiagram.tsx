@@ -1,10 +1,10 @@
-// Miniature versions of the semester-map glyphs from public/semestra-pipeline.svg —
+// Miniature versions of the semester-map glyphs from public/semestra-pipeline.svg:
 // rectangle = workload bar, diamond = milestone, hatch = at-risk/blocked
 // time. Reusing the product's own visual vocabulary here, not decoration:
 // this is a preview of what Semestra actually looks like once populated.
 //
 // Each shape draws itself in on mount (stroke traces the outline, then the
-// fill settles) — a small, single moment of motion, not a loop. Respects
+// fill settles), a small, single moment of motion, not a loop. Respects
 // prefers-reduced-motion via the .fn-diagram rule in globals.css.
 
 const COBALT = "#2857A0";

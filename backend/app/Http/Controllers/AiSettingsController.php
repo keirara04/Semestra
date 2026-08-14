@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 /**
  * Per-feature consent, off by default, and the visible remaining budget
- * the student is entitled to see before spending it — see "Consent
+ * the student is entitled to see before spending it, see "Consent
  * levels" and "hard token budgets ... with remaining budget visible to
  * the student" in mdfile/AI.md and mdfile/semester-command-center.md.
  */

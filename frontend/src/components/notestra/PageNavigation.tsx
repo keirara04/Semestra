@@ -28,16 +28,16 @@ function NavButton({
       title={label}
       disabled={disabled}
       onClick={onClick}
-      className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--fn-ink)] hover:bg-[var(--fn-canvas)] disabled:opacity-30"
+      className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--fn-ink)] hover:bg-[var(--fn-canvas)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--fn-cobalt)] focus-visible:outline-offset-2 disabled:opacity-30"
     >
       {children}
     </button>
   );
 }
 
-// Floating bottom pill, matching the reference design's page-nav bar —
-// first/prev/page input/next/last, plus a panel toggle at the trailing
-// edge (mapped to the notes panel here, in place of a "split view" toggle).
+// Floating bottom pill: first/prev/page input/next/last, plus a panel
+// toggle at the trailing edge (mapped to the notes panel here, in place of
+// a "split view" toggle).
 export function PageNavigation({ page, totalPages, onChange, showNotes, onToggleNotes }: PageNavigationProps) {
   return (
     <div

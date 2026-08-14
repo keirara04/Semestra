@@ -6,7 +6,7 @@ final class CommitmentInput
 {
     /**
      * Either $dayOfWeek (weekly pattern) or $date (one-off) is set, never
-     * both — see "commitments" migration.
+     * both, see "commitments" migration.
      *
      * @param  string  $startTime  "H:i"
      * @param  string  $endTime  "H:i"

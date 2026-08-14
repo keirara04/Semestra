@@ -3,7 +3,7 @@
 namespace App\Engine\Planning;
 
 /**
- * Pure PHP, no Eloquent — see "Planning engine boundary" in
+ * Pure PHP, no Eloquent, see "Planning engine boundary" in
  * mdfile/semester-command-center.md. Implements "Smart study planner"
  * pipeline steps 2-4: demand/slack, feasibility + latest-safe-start,
  * and reservation of mandatory (hard-deadline) work.
@@ -13,12 +13,12 @@ namespace App\Engine\Planning;
  * each one reserves its remaining minutes from the earliest available
  * capacity first, decrementing a running day-capacity map before the next
  * task is checked. EDF is the provably optimal ordering for this kind of
- * single-resource deadline-feasibility problem — if EDF reports a task
+ * single-resource deadline-feasibility problem: if EDF reports a task
  * infeasible, no other processing order could have made it feasible
  * either, so there's no "smarter" ordering being left on the table.
  *
  * v1 scope boundary: dependency ordering between tasks ("a dependent task
- * cannot start before its blocker finishes") is NOT enforced here — this
+ * cannot start before its blocker finishes") is NOT enforced here; this
  * pass only checks capacity vs. deadlines. Dependency ordering is a
  * placement-time concern (Phase D), not a feasibility-time one, per the
  * spec's own separation of "Ranking" (dependencies constrain ordering)
@@ -54,7 +54,7 @@ final class FeasibilityCalculator
                     deficitMinutes: $task->remainingMinutes - $totalAvailable,
                 );
 
-                continue; // Nothing reserved — never invent a schedule for infeasible work.
+                continue; // Nothing reserved; never invent a schedule for infeasible work.
             }
 
             $recommendedStart = $this->earliestDateWithCapacity($remaining, $datesInWindow);
@@ -104,7 +104,7 @@ final class FeasibilityCalculator
 
     /**
      * Scans backward from the due date, accumulating currently-remaining
-     * capacity, until it covers the task's demand — the last date where
+     * capacity, until it covers the task's demand. The last date where
      * that threshold is first crossed is the latest date the task could
      * still start and finish on time.
      *

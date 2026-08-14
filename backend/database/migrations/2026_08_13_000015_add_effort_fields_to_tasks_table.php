@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Execution-tracking fields fed by focus sessions — see "Focus
+     * Execution-tracking fields fed by focus sessions. See "Focus
      * sessions and work logs" in the plan. estimated_minutes/
      * remaining_estimate_minutes already exist from Phase 2 (Assessment's
      * remaining-effort accessor depends on the latter existing early).

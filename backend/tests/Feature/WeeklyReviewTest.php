@@ -46,7 +46,7 @@ class WeeklyReviewTest extends TestCase
             'blocker' => 'Sick',
             'ended_at' => Carbon::parse('2026-05-06 11:00'),
         ]);
-        // Outside the window — must not be counted.
+        // Outside the window; must not be counted.
         StudySession::factory()->for($user)->create([
             'calendar_block_id' => $plannedBlock->id,
             'actual_minutes' => 999,

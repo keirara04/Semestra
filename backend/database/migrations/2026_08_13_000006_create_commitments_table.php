@@ -7,10 +7,10 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Fixed personal time — sleep, meals, gym, prayer, commuting (see
+     * Fixed personal time: sleep, meals, gym, prayer, commuting (see
      * "Timetable and availability" in the plan). Either a weekly pattern
      * (day_of_week set, date null) or a one-off (date set, day_of_week
-     * null) — the capacity engine (Phase 3) reads both.
+     * null); the capacity engine (Phase 3) reads both.
      */
     public function up(): void
     {

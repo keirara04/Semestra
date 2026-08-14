@@ -1,7 +1,7 @@
 <?php
 
 // Two tasks, output must be sorted score descending regardless of input
-// order — the higher-urgency task (id 1, from ranking_urgency_high) beats
+// order: the higher-urgency task (id 1, from ranking_urgency_high) beats
 // the flexible no-due-date task (id 2, from ranking_no_due_date).
 return [
     'now' => '2026-01-01',

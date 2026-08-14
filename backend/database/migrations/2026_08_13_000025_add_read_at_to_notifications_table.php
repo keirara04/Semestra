@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Separate from `status` (pending/sent/failed — delivery outcome):
+     * Separate from `status` (pending/sent/failed: delivery outcome):
      * read_at tracks whether the user has seen it in the in-app list.
      */
     public function up(): void

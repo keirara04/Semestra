@@ -9,7 +9,7 @@ return new class extends Migration
     /**
      * See "Notifications" in mdfile/semester-command-center.md. Every
      * notification carries an idempotency key so a cron re-run or job
-     * retry can never send a duplicate — enforced with a real unique
+     * retry can never send a duplicate; enforced with a real unique
      * constraint, not just application-level dedup.
      */
     public function up(): void

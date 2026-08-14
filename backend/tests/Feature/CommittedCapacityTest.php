@@ -13,7 +13,7 @@ use Tests\TestCase;
 
 /**
  * An accepted CalendarBlock (e.g. an already-started focus session) is
- * committed capacity even before it's completed — see "Placement" in
+ * committed capacity even before it's completed. See "Placement" in
  * mdfile/semester-command-center.md. Feasibility and Ranking must both
  * see a reduced day, not the raw capacity-engine number.
  */
@@ -30,7 +30,7 @@ class CommittedCapacityTest extends TestCase
         $semester = Semester::factory()->for($user)->create();
         $course = Course::factory()->for($user)->for($semester)->create();
 
-        // 6h/day capacity (max_study_hours_per_day) — an existing accepted
+        // 6h/day capacity (max_study_hours_per_day); an existing accepted
         // 5h block should leave only 1h (60 min) free that day.
         CalendarBlock::factory()->for($user)->create([
             'status' => 'accepted',

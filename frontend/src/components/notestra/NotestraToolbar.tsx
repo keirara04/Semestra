@@ -43,6 +43,7 @@ function ToolbarButton({
       onClick={onClick}
       className={cn(
         "flex h-9 w-9 items-center justify-center rounded-lg transition-colors",
+        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--fn-cobalt)] focus-visible:outline-offset-2",
         active ? "bg-[var(--fn-cobalt)] text-white" : "text-[var(--fn-ink)] hover:bg-[var(--fn-canvas)]",
         disabled && "opacity-30",
       )}
@@ -52,8 +53,8 @@ function ToolbarButton({
   );
 }
 
-// Floating icon toolbar, styled to match the reference design: a rounded
-// white card with grouped icon buttons, not a text-labelled bar.
+// Floating icon toolbar: a rounded Field Notes paper card with grouped
+// icon buttons, not a text-labelled bar.
 export function NotestraToolbar({ tool, onToolChange, onUndo, onRedo, canUndo, canRedo }: NotestraToolbarProps) {
   return (
     <div

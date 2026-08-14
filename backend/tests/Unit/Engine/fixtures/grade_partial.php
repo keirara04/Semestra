@@ -1,6 +1,6 @@
 <?php
 
-// Some items graded, some not, no target set — currentStanding computed
+// Some items graded, some not, no target set; currentStanding computed
 // over completed weight only; expected/neededAverage stay null since
 // there's no course target to project against.
 return [

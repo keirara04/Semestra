@@ -1,6 +1,6 @@
 <?php
 
-// "A missed review is not duplicated onto the next day" — a topic with
+// "A missed review is not duplicated onto the next day": a topic with
 // an already-open review task never gets a second one.
 return [
     'today' => '2026-01-10',

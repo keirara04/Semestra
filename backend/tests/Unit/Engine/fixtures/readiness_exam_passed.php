@@ -1,6 +1,6 @@
 <?php
 
-// Exam is today or has passed — no pace sentence makes sense.
+// Exam is today or has passed; no pace sentence makes sense.
 return [
     'topic_confidences' => ['not_started'],
     'days_remaining' => 0,

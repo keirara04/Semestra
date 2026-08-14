@@ -1,4 +1,4 @@
-// Cross-course analytics — see "Insights" in mdfile/DESIGN.md. Not built
+// Cross-course analytics, see "Insights" in mdfile/DESIGN.md. Not built
 // yet: estimation bias and unreviewed-material signals need real usage
 // history first (Academic Intelligence / Automation releases).
 export default function InsightsPage() {
@@ -6,7 +6,7 @@ export default function InsightsPage() {
     <main className="bg-[var(--fn-paper)] min-h-dvh w-full px-8 py-10 md:px-12">
       <p className="fn-eyebrow">Insights</p>
       <p className="mt-3 text-sm text-[var(--fn-muted)]">
-        Not built yet — this needs a semester of real usage history first.
+        Not built yet. This needs a semester of real usage history first.
       </p>
     </main>
   );

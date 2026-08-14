@@ -8,7 +8,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 /**
- * Golden fixture tests for placement — see "Placement" in
+ * Golden fixture tests for placement. See "Placement" in
  * mdfile/semester-command-center.md.
  */
 class PlacementCalculatorTest extends TestCase

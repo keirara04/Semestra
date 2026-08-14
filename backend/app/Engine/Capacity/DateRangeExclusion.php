@@ -3,7 +3,7 @@
 namespace App\Engine\Capacity;
 
 /**
- * A term break / holiday (academic_calendar_exceptions) — capacity
+ * A term break / holiday (academic_calendar_exceptions). Capacity
  * calculations exclude these days entirely, see "Time, dates, and
  * recurrence" in the plan.
  */

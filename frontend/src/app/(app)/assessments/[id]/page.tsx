@@ -8,7 +8,7 @@ import { ConfidenceBar } from "@/components/Confidence";
 
 const STATUSES: AssessmentStatus[] = ["not_started", "in_progress", "blocked", "done"];
 
-// Assessment detail — see "Assessment and project planner" in
+// Assessment detail, see "Assessment and project planner" in
 // mdfile/semester-command-center.md. Recommended/latest-safe-start dates
 // aren't shown here: those come from the planner's feasibility pass
 // (Planning Engine, not this release).
@@ -191,13 +191,13 @@ function MilestonesSection({
 }
 
 function formatReadiness(percent: number | null): string {
-  return percent === null ? "—" : `${Math.round(percent)}%`;
+  return percent === null ? "N/A" : `${Math.round(percent)}%`;
 }
 
-// Exam mode — see "Exam mode" in mdfile/semester-command-center.md.
+// Exam mode, see "Exam mode" in mdfile/semester-command-center.md.
 // Readiness is the one large number on screen, always with its
 // constituent topics available on expand (which ones are dragging it
-// down) — never an unexplained number.
+// down), never an unexplained number.
 function ExamMode({ assessmentId, courseId }: { assessmentId: number; courseId: number }) {
   const [readiness, setReadiness] = useState<ExamReadiness | null>(null);
   const [courseTopics, setCourseTopics] = useState<Topic[]>([]);
@@ -268,7 +268,7 @@ function ExamMode({ assessmentId, courseId }: { assessmentId: number; courseId: 
           ))}
         {readiness.topics.length === 0 && (
           <li className="py-2 text-sm text-[var(--fn-muted)]">
-            No topics linked yet — add some below.
+            No topics linked yet. Add some below.
           </li>
         )}
       </ul>

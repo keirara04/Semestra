@@ -20,7 +20,7 @@ export function ZoomControls({ zoom, onChange }: ZoomControlsProps) {
       <button
         type="button"
         aria-label="Zoom out"
-        className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--fn-ink)] hover:bg-[var(--fn-canvas)] disabled:opacity-30"
+        className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--fn-ink)] hover:bg-[var(--fn-canvas)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--fn-cobalt)] focus-visible:outline-offset-2 disabled:opacity-30"
         disabled={zoom <= MIN_ZOOM}
         onClick={() => onChange(Math.max(MIN_ZOOM, zoom - ZOOM_STEP))}
       >
@@ -30,7 +30,7 @@ export function ZoomControls({ zoom, onChange }: ZoomControlsProps) {
       <button
         type="button"
         aria-label="Zoom in"
-        className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--fn-ink)] hover:bg-[var(--fn-canvas)] disabled:opacity-30"
+        className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--fn-ink)] hover:bg-[var(--fn-canvas)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--fn-cobalt)] focus-visible:outline-offset-2 disabled:opacity-30"
         disabled={zoom >= MAX_ZOOM}
         onClick={() => onChange(Math.min(MAX_ZOOM, zoom + ZOOM_STEP))}
       >

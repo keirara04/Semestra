@@ -1,7 +1,7 @@
 <?php
 
 // Same overdue scenario as revision_missed_review_decays, but the decay
-// has already been applied once for this review — must not re-decay
+// has already been applied once for this review; must not re-decay
 // every day it stays overdue.
 return [
     'today' => '2026-01-10',

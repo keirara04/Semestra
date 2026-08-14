@@ -8,7 +8,7 @@ final class FeasibilityReport
      * @param  TaskFeasibility[]  $tasks
      * @param  array<string, int>  $remainingCapacityByDate  Day capacity
      *                                                       left after reserving every feasible mandatory task's
-     *                                                       minutes — this is what Placement (Phase D) fills next with
+     *                                                       minutes; this is what Placement (Phase D) fills next with
      *                                                       ranked flexible work. Infeasible tasks reserve nothing.
      */
     public function __construct(

@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// Field Notes design system fonts — see mdfile/DESIGN.md "Typography".
+// Field Notes design system fonts, see mdfile/DESIGN.md "Typography".
 // Exposed as the CSS vars .fn/.fn-mono/.fn-hand already reference.
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('title');
             $table->string('code')->nullable();
             // Hex colour, pre-validated at the frontend palette level (see
-            // Design direction) — stored as-is, not re-validated server-side
+            // Design direction). Stored as-is, not re-validated server-side
             // beyond format.
             $table->string('colour', 7);
             $table->string('instructor')->nullable();

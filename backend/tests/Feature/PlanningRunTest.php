@@ -65,7 +65,7 @@ class PlanningRunTest extends TestCase
         $actingAs->postJson('/api/planning/run')->assertOk();
         $secondRunSuggestedIds = CalendarBlock::where('status', 'suggested')->pluck('id');
 
-        // Different row IDs — the first run's suggestions were deleted and
+        // Different row IDs: the first run's suggestions were deleted and
         // replaced, not duplicated alongside the old ones.
         $this->assertNotEquals($firstRunSuggestedIds->sort()->values(), $secondRunSuggestedIds->sort()->values());
         $this->assertDatabaseHas('calendar_blocks', ['id' => $accepted->id, 'status' => 'accepted']);

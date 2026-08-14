@@ -8,9 +8,9 @@ import type { Course, Material, Semester } from "@/lib/types";
 import { MaterialThumbnail } from "@/components/notestra/MaterialThumbnail";
 import { MaterialQuickLook } from "@/components/notestra/MaterialQuickLook";
 
-// Notestra landing/picker — see mdfile/NOTESTRA_FUNCTIONAL_SPEC.md. Notestra
+// Notestra landing/picker, see mdfile/NOTESTRA_FUNCTIONAL_SPEC.md. Notestra
 // itself opens a single material (/notestra/[materialId]); this page exists
-// only so the sidebar entry has somewhere to land — PDFs are grouped by
+// only so the sidebar entry has somewhere to land: PDFs are grouped by
 // semester, then into a folder per course/subject. Every folder (semester
 // and course alike) starts closed; nothing expands until clicked.
 export default function NotestraLandingPage() {
@@ -58,7 +58,7 @@ export default function NotestraLandingPage() {
       <p className="fn-eyebrow">Notestra</p>
       <h1 className="mt-2 text-2xl font-medium">Your PDFs</h1>
       <p className="mt-1 text-sm text-[var(--fn-muted)]">
-        Organized by semester and subject — pick a PDF to open, annotate, and take notes on it.
+        Organized by semester and subject: pick a PDF to open, annotate, and take notes on it.
       </p>
 
       <div className="mt-6 flex flex-col gap-3">
@@ -72,9 +72,13 @@ export default function NotestraLandingPage() {
               <button
                 type="button"
                 onClick={() => toggle(openSemesters, setOpenSemesters, semester.id)}
-                className="flex w-full items-center gap-3 px-4 py-3 text-left"
+                className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left transition-colors hover:bg-[var(--fn-canvas)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--fn-cobalt)] focus-visible:outline-offset-2"
               >
-                {semesterOpen ? <FolderOpen size={20} /> : <Folder size={20} />}
+                {semesterOpen ? (
+                  <FolderOpen size={20} style={{ color: "var(--fn-ochre)" }} />
+                ) : (
+                  <Folder size={20} style={{ color: "var(--fn-ochre)" }} />
+                )}
                 <span className="font-medium">{semester.name}</span>
                 <span className="fn-mono ml-auto text-[11px] text-[var(--fn-muted)]">
                   {pdfCount} {pdfCount === 1 ? "PDF" : "PDFs"}
@@ -83,7 +87,7 @@ export default function NotestraLandingPage() {
 
               {semesterOpen && (
                 <div
-                  className="flex flex-col gap-3 border-t px-4 py-3 pl-8"
+                  className="animate-in fade-in slide-in-from-top-1 flex flex-col gap-3 border-t px-4 py-3 pl-8 duration-150"
                   style={{ borderColor: "var(--fn-rule)" }}
                 >
                   {semesterCourses.map((course) => {
@@ -95,7 +99,7 @@ export default function NotestraLandingPage() {
                         <button
                           type="button"
                           onClick={() => toggle(openCourses, setOpenCourses, course.id)}
-                          className="flex w-full items-center gap-3 px-4 py-3 text-left"
+                          className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left transition-colors hover:bg-[var(--fn-canvas)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--fn-cobalt)] focus-visible:outline-offset-2"
                         >
                           {courseOpen ? (
                             <FolderOpen size={20} style={{ color: course.colour }} />
@@ -112,7 +116,10 @@ export default function NotestraLandingPage() {
                         </button>
 
                         {courseOpen && (
-                          <ul className="flex flex-col divide-y border-t" style={{ borderColor: "var(--fn-rule)" }}>
+                          <ul
+                            className="animate-in fade-in slide-in-from-top-1 flex flex-col divide-y border-t duration-150"
+                            style={{ borderColor: "var(--fn-rule)" }}
+                          >
                             {courseMaterials.map((material) => (
                               <li
                                 key={material.id}
@@ -123,7 +130,7 @@ export default function NotestraLandingPage() {
                                   type="button"
                                   onClick={() => setPreviewMaterial(material)}
                                   aria-label={`Preview ${material.title}`}
-                                  className="shrink-0"
+                                  className="shrink-0 rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--fn-cobalt)] focus-visible:outline-offset-2"
                                 >
                                   <MaterialThumbnail materialId={material.id} width={72} />
                                 </button>
@@ -153,7 +160,7 @@ export default function NotestraLandingPage() {
 
         {materials !== null && semestersWithPdfs.length === 0 && (
           <p className="py-3 text-sm text-[var(--fn-muted)]">
-            No PDFs yet — add one under a course&apos;s Materials tab first.
+            No PDFs yet. Add one under a course&apos;s Materials tab first.
           </p>
         )}
       </div>

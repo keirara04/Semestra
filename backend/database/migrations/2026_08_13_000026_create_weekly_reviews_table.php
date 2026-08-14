@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * One row per user per ISO week (Monday start) — see "Weekly review"
+     * One row per user per ISO week (Monday start). See "Weekly review"
      * in mdfile/semester-command-center.md. Unique on (user_id,
      * week_start_date) so the weekly cron can never double-generate.
      */

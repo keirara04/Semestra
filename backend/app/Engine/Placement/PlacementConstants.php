@@ -3,7 +3,7 @@
 namespace App\Engine\Placement;
 
 /**
- * v1 defaults for placement rules — one file, not hardcoded per view. See
+ * v1 defaults for placement rules, one file, not hardcoded per view. See
  * "Placement" in mdfile/semester-command-center.md: "Minimum viable block
  * length per task" and "Maximum splits per task (configurable)".
  */

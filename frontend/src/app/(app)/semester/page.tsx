@@ -17,7 +17,7 @@ import { AssessmentMarker, CourseLaneLine, RiskWindow } from "@/components/Semes
 import { pickCurrentSemester } from "@/lib/semester";
 import { formatMinutes } from "@/lib/format";
 
-// Semester setup + map — see "Primary navigation" (Semester row: "the
+// Semester setup + map, see "Primary navigation" (Semester row: "the
 // term-long course-lane view") and "Semester map rules" in
 // mdfile/DESIGN.md. Visual language (lanes, markers, at-risk hatch,
 // workload stack) follows semester/asset/SEMESTER_MAP_SVG_KIT.md.
@@ -171,7 +171,7 @@ function TermsManager({
           ),
         )}
         {semesters.length === 0 && editingId !== "new" && (
-          <li className="py-2.5 text-sm text-[var(--fn-muted)]">No semesters yet — add one below.</li>
+          <li className="py-2.5 text-sm text-[var(--fn-muted)]">No semesters yet. Add one below.</li>
         )}
       </ul>
 
@@ -356,7 +356,7 @@ function weekContaining(date: string, weeks: Week[]): Week | undefined {
   return undefined;
 }
 
-/** Month-group spans for the axis header — consecutive weeks sharing a month, collapsed into one label. */
+/** Month-group spans for the axis header: consecutive weeks sharing a month, collapsed into one label. */
 function monthGroups(weeks: Week[]): { label: string; span: number }[] {
   const groups: { label: string; span: number }[] = [];
   for (const week of weeks) {
@@ -370,7 +370,7 @@ function monthGroups(weeks: Week[]): { label: string; span: number }[] {
   return groups;
 }
 
-const OTHER_COLOUR = "#68707B"; // var(--fn-muted) — lecture/commitment minutes not tied to a course
+const OTHER_COLOUR = "#68707B"; // var(--fn-muted), lecture/commitment minutes not tied to a course
 
 /** Per-course breakdown behind a week's workload bar, for the hover popover. */
 function weekBreakdown(week: Week, courses: Course[]): { name: string; minutes: number; colour: string }[] {
@@ -390,10 +390,10 @@ function WeekTooltipContent({ week, state, courses }: { week: Week; state: WeekS
   return (
     <>
       <p className="fn-mono text-[11px] font-semibold">
-        {week.label} — week of {dateLabel}
+        {week.label}, week of {dateLabel}
       </p>
       <p className="fn-mono mt-1 text-[11px] text-[#c9cdd3]">
-        {WEEK_STATE_LABEL[state]} — {formatMinutes(week.plannedMinutes)} planned /{" "}
+        {WEEK_STATE_LABEL[state]}: {formatMinutes(week.plannedMinutes)} planned /{" "}
         {formatMinutes(week.capacityMinutes)} capacity
       </p>
       {breakdown.length > 0 && (
@@ -411,9 +411,9 @@ function WeekTooltipContent({ week, state, courses }: { week: Week; state: WeekS
   );
 }
 
-const TOOLTIP_WIDTH = 224; // px — matches the w-56 tooltip below
+const TOOLTIP_WIDTH = 224; // px, matches the w-56 tooltip below
 
-// Portal + fixed-position, not CSS group-hover — the chart's own
+// Portal + fixed-position, not CSS group-hover: the chart's own
 // container is a fixed-height overflow-x-auto box, which would clip an
 // absolutely-positioned popover before it ever became visible (the same
 // class of bug the notification bell hit, see AppShell.tsx).
@@ -510,7 +510,7 @@ function SemesterMap({ semester }: { semester: Semester }) {
       <p className="fn-eyebrow">Semester map</p>
 
       <div className="mt-3">
-      {/* Week axis — see week-axis.svg for the reference layout */}
+      {/* Week axis, see week-axis.svg for the reference layout */}
       <div className="fn-mono min-w-full overflow-x-auto text-[13px]">
         <div
           className="grid border-b border-[var(--fn-rule)]"
@@ -564,7 +564,7 @@ function SemesterMap({ semester }: { semester: Semester }) {
                       key={assessment.id}
                       className="absolute top-1/2 flex -translate-y-1/2 flex-col items-center"
                       style={{ left: `${left}%`, transform: "translate(-50%, -50%)", color: course.colour }}
-                      title={`${assessment.title} — due ${new Date(assessment.due_at).toLocaleDateString()}`}
+                      title={`${assessment.title}, due ${new Date(assessment.due_at).toLocaleDateString()}`}
                     >
                       {atRisk ? (
                         <RiskWindow className="h-4 w-10" />
@@ -586,7 +586,7 @@ function SemesterMap({ semester }: { semester: Semester }) {
         )}
       </div>
 
-      {/* Legend — mirrors legend.svg, rebuilt inline so it can't drift from the lanes above */}
+      {/* Legend, mirrors legend.svg, rebuilt inline so it can't drift from the lanes above */}
       <div className="fn-mono mt-10 flex flex-wrap items-center gap-x-8 gap-y-2 border-t border-[var(--fn-rule)] pt-4 text-xs tracking-wide text-[var(--fn-ink)]">
         <span className="flex items-center gap-2">
           <span className="h-[2px] w-8 bg-[var(--fn-muted)]" /> COURSE LANE

@@ -13,7 +13,7 @@ use Tests\TestCase;
  * model (BelongsToUser trait + Policy) must be invisible across users at
  * both the query layer (global scope / route-model binding) and the
  * authorization layer (Policy). Every Phase 1+ resource should get an
- * equivalent case here — Semester and Course stand in as the pattern.
+ * equivalent case here; Semester and Course stand in as the pattern.
  */
 class OwnershipScopingTest extends TestCase
 {

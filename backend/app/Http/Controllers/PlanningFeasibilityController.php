@@ -14,7 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 
 /**
- * Thin controller — all the actual math lives in App\Engine\Planning and
+ * Thin controller, all the actual math lives in App\Engine\Planning and
  * App\Engine\Capacity (framework-agnostic, no Eloquent), per "Planning
  * engine boundary" in mdfile/semester-command-center.md. Implements
  * "Smart study planner" pipeline steps 1-4 end to end: capacity, demand,

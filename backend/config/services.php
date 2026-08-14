@@ -36,7 +36,7 @@ return [
     ],
 
     // See "AI operations (v1 constraints)" in mdfile/semester-command-center.md
-    // and mdfile/AI.md — key stays server-side only, never shipped to the
+    // and mdfile/AI.md. Key stays server-side only, never shipped to the
     // Next.js frontend. Two-tier model selection, not one model for
     // everything: "default" is cheap/fast for light tasks (explanations,
     // request parsing, rewriting), "important" is the stronger model for

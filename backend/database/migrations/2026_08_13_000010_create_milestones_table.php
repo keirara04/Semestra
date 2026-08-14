@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Milestone.estimate_minutes is authored, or — when left null — derived
+     * Milestone.estimate_minutes is authored, or, when left null, derived
      * as the sum of its Tasks' estimates (declared per milestone; see
      * "Core data model" in the plan).
      */

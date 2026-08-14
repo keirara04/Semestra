@@ -1,7 +1,7 @@
 <?php
 
 // Task A (150 min, due day 2) and Task B (200 min, due day 3) share 100
-// min/day capacity over 3 days (300 total) against 350 total demand —
+// min/day capacity over 3 days (300 total) against 350 total demand;
 // genuinely infeasible regardless of ordering. EDF processes A first
 // (earlier deadline) since it's provably optimal: if EDF can't fit B,
 // no other ordering could have either.

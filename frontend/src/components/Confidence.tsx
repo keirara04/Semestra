@@ -1,7 +1,7 @@
-// Topic confidence — see "Materials, notes, and revision" and "Exam mode"
+// Topic confidence, see "Materials, notes, and revision" and "Exam mode"
 // in mdfile/DESIGN.md: same bar-plus-label vocabulary reused everywhere
 // confidence appears (Revision tab now, Exam mode's coverage checklist
-// later) — one visual system, not reinvented per screen.
+// later): one visual system, not reinvented per screen.
 export type Confidence = "not_started" | "learning" | "comfortable" | "confident";
 
 export const CONFIDENCE_LABEL: Record<Confidence, string> = {

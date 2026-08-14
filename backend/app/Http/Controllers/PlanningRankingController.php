@@ -7,7 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
- * Thin controller — see App\Services\RankingReader for the shared,
+ * Thin controller, see App\Services\RankingReader for the shared,
  * read-only ranking pipeline (also used by TodayController).
  */
 class PlanningRankingController extends Controller

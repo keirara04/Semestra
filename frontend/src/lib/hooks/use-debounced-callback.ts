@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useRef } from "react";
 
-// No debounce utility existed anywhere in the codebase before Notestra —
-// used to coalesce dirty annotation writes into a single autosave request,
+// No debounce utility existed anywhere in the codebase before Notestra.
+// This one is used to coalesce dirty annotation writes into a single autosave request,
 // see mdfile/NOTESTRA_FUNCTIONAL_SPEC.md, Section 11.
 export function useDebouncedCallback<Args extends unknown[]>(
   callback: (...args: Args) => void,

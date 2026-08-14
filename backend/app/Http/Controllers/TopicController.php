@@ -50,12 +50,12 @@ class TopicController extends Controller
         $validated = $request->validated();
 
         // A confidence change made through review (not a raw edit) is what
-        // sets last_reviewed_at — but a direct PUT is still the simplest
+        // sets last_reviewed_at, but a direct PUT is still the simplest
         // v1 mechanism for "I reviewed this," so it updates last_reviewed_at
         // automatically whenever confidence is explicitly provided. If
         // there's no schedule running yet (brand new topic, or a prior
         // cycle already completed), this is also what seeds the spaced
-        // cadence — a mid-cycle confidence edit doesn't reset it.
+        // cadence; a mid-cycle confidence edit doesn't reset it.
         $attributes = collect($validated)->except(['assessment_ids', 'material_ids'])->all();
         if (array_key_exists('confidence', $attributes)) {
             $attributes['last_reviewed_at'] = $attributes['last_reviewed_at'] ?? now();

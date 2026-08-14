@@ -7,9 +7,9 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Course materials — see "Materials, notes, and revision" in
+     * Course materials. See "Materials, notes, and revision" in
      * mdfile/semester-command-center.md. Either an uploaded file (disk +
-     * path) or an external link (url), tagged by course/week — topic and
+     * path) or an external link (url), tagged by course/week; topic and
      * assessment tagging come via join tables (assessment_material now,
      * topic_material once Topic exists in Phase B).
      */

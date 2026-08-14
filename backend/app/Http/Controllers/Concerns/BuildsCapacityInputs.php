@@ -14,7 +14,7 @@ use DateTimeImmutable;
 
 /**
  * Shared translation from the authenticated user's Eloquent rows into the
- * capacity engine's plain input objects — used by both
+ * capacity engine's plain input objects, used by both
  * CalendarCapacityController and TodayController so the two never drift.
  */
 trait BuildsCapacityInputs
@@ -71,7 +71,7 @@ trait BuildsCapacityInputs
 
     /**
      * Accepted/done CalendarBlocks are committed capacity even before
-     * they're completed — see "Placement" in
+     * they're completed, see "Placement" in
      * mdfile/semester-command-center.md ("Pinned blocks are never moved
      * ... counts as committed capacity even if not yet completed").
      * Feasibility, Ranking, and Placement all need this subtracted from
@@ -83,7 +83,7 @@ trait BuildsCapacityInputs
     {
         $committed = [];
 
-        // "moved" is a manual move, treated the same as pinned — see
+        // "moved" is a manual move, treated the same as pinned, see
         // "Manual calendar moves persist as intentional changes" in the plan.
         CalendarBlock::whereIn('status', ['accepted', 'done', 'moved'])
             ->whereBetween('start_at', [$from, $to->modify('+1 day')])

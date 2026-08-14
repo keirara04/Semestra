@@ -5,20 +5,20 @@ namespace App\Engine\Revision;
 use DateTimeImmutable;
 
 /**
- * Pure PHP, no Eloquent — see "Planning engine boundary" in
+ * Pure PHP, no Eloquent, see "Planning engine boundary" in
  * mdfile/semester-command-center.md. Implements "Materials, notes, and
  * revision"'s spaced cadence, daily cap, and backlog rule:
  *
- * - "A missed review is not duplicated onto the next day" — a topic with
+ * - "A missed review is not duplicated onto the next day": a topic with
  *   an already-open (undone) review task is never given a second one;
  *   the same task just stays overdue until completed.
- * - "Instead it merges into the next scheduled review for that topic" —
+ * - "Instead it merges into the next scheduled review for that topic":
  *   achieved implicitly: the next stage's due date is always computed
  *   from the *actual* completion date (handled by the caller when a
  *   review task is completed), never from the original rigid schedule.
  *   A late review naturally reschedules forward with no separate merge
  *   step needed.
- * - "Confidence decays one step if more than one review is missed" — if
+ * - "Confidence decays one step if more than one review is missed": if
  *   a topic's open review has sat overdue for more than one full
  *   interval's worth of days, confidence decays once (guarded by
  *   $alreadyDecayedForThisReview so it doesn't re-decay every day it
@@ -27,7 +27,7 @@ use DateTimeImmutable;
 final class RevisionScheduler
 {
     /**
-     * @param  TopicReviewInput[]  $topics  Processed in array order — caller controls priority.
+     * @param  TopicReviewInput[]  $topics  Processed in array order; caller controls priority.
      * @return ReviewAction[]
      */
     public function planReviews(array $topics, string $today, int $dailyCapMinutes = RevisionConstants::DAILY_CAP_MINUTES): array

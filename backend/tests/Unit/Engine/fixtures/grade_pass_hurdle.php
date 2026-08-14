@@ -1,7 +1,7 @@
 <?php
 
 // A pass hurdle is a separate pass/fail check independent of the weighted
-// average — the item can still contribute normally to currentStanding
+// average; the item can still contribute normally to currentStanding
 // even while failing its hurdle.
 return [
     'items' => [

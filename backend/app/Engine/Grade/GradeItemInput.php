@@ -3,7 +3,7 @@
 namespace App\Engine\Grade;
 
 /**
- * Plain input value object — no Eloquent, same "Planning engine boundary"
+ * Plain input value object, no Eloquent, same "Planning engine boundary"
  * rule as the capacity engine (see mdfile/semester-command-center.md).
  */
 final class GradeItemInput

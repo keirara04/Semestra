@@ -71,6 +71,8 @@ body:has(.fn) {
   --fn-oxide: #ae4d40;
   --fn-sage: #64816c;
   --fn-ochre: #b68a2c;
+  --fn-cork: #cdb28a;
+  --fn-cork-frame: #8c6a44;
 
   background: var(--fn-canvas);
   color: var(--fn-ink);
@@ -100,6 +102,16 @@ body:has(.fn) {
     var(--fn-rule) 31px,
     var(--fn-rule) 32px
   );
+}
+
+/* Corkboard — "Today's board" backing. A pinned-up index card reads as
+   campus/dorm bulletin board in a way a ruled ledger row never could;
+   this is the one place the page borrows a warm, un-paper colour. */
+.fn-cork {
+  background-color: var(--fn-cork);
+  background-image: radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.1) 1px, transparent 0);
+  background-size: 12px 12px;
+  border: 1px solid var(--fn-cork-frame);
 }
 
 .fn-margin::before {
@@ -248,6 +260,23 @@ body:has(.fn) {
   }
 }
 
+/* Dashboard date stamp — lands like a librarian stamped today's date on
+   the page, once on mount. Not reused as a generic hover effect. */
+.fn-stamp {
+  animation: fn-stamp-in 320ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+
+@keyframes fn-stamp-in {
+  from {
+    opacity: 0;
+    transform: scale(1.6) rotate(2deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(-4deg);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .fn-oauth-btn,
   .fn-btn-primary {
@@ -258,6 +287,11 @@ body:has(.fn) {
     animation: none;
     stroke-dashoffset: 0;
     fill-opacity: 1;
+  }
+
+  .fn-stamp {
+    animation: none;
+    transform: rotate(-4deg);
   }
 }
 

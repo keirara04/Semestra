@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Per-feature consent, off by default — see "Consent levels" in
+     * Per-feature consent, off by default. See "Consent levels" in
      * mdfile/AI.md. Timestamp (not a bare boolean) so "when did they
      * consent" is answerable if the policy changes later.
      */

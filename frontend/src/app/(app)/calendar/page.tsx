@@ -62,7 +62,7 @@ function monthLabel(monthAnchor: Date): string {
 }
 
 // Suggested blocks get a dashed outline, committed (accepted/moved/done)
-// blocks a solid one — the distinction between "the plan suggested this"
+// blocks a solid one: the distinction between "the plan suggested this"
 // and "you committed to this" is load-bearing for trust, per "Calendar
 // view" in mdfile/DESIGN.md.
 function blockStyle(status: CalendarBlock["status"]): string {
@@ -75,7 +75,7 @@ function blockStyle(status: CalendarBlock["status"]): string {
   return "border border-[var(--fn-cobalt)] bg-[var(--fn-cobalt)]/10 text-[var(--fn-cobalt)]";
 }
 
-// Calendar month grid — see "Calendar view" in mdfile/DESIGN.md.
+// Calendar month grid, see "Calendar view" in mdfile/DESIGN.md.
 export default function CalendarPage() {
   const [monthAnchor, setMonthAnchor] = useState(() => startOfMonth(new Date()));
   const [days, setDays] = useState<DayCapacity[] | null>(null);

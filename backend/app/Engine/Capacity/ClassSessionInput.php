@@ -3,7 +3,7 @@
 namespace App\Engine\Capacity;
 
 /**
- * Plain input value object — no Eloquent. See "Planning engine boundary"
+ * Plain input value object, no Eloquent. See "Planning engine boundary"
  * in the plan: capacity math lives in a framework-agnostic module,
  * covered by fixture-based unit tests, never duplicated by controllers.
  */

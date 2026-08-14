@@ -1,6 +1,6 @@
 <?php
 
-// A full week covered by an academic_calendar_exceptions break — class
+// A full week covered by an academic_calendar_exceptions break; class
 // sessions are defined but must not count: capacity calculations exclude
 // break periods entirely (see "Time, dates, and recurrence" in the plan).
 return [

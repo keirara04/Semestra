@@ -10,7 +10,7 @@ return new class extends Migration
      * "Extract draft assessment dates and tasks from a pasted syllabus or
      * uploaded document. Every extracted deadline, weighting, or task is
      * presented as an editable draft with source location. Nothing is
-     * saved automatically." — Stage 1 in mdfile/AI.md. `candidates` holds
+     * saved automatically." (Stage 1 in mdfile/AI.md). `candidates` holds
      * the model's proposed assessments/tasks, each with a source fragment
      * and confidence; nothing here writes to assessments/tasks until
      * confirmed.

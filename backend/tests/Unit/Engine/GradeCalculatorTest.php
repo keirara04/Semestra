@@ -9,7 +9,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 /**
- * Golden fixture tests for the grade tracker — see "Grade and outcome
+ * Golden fixture tests for the grade tracker. See "Grade and outcome
  * tracker" in mdfile/semester-command-center.md.
  */
 class GradeCalculatorTest extends TestCase

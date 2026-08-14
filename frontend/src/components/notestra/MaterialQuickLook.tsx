@@ -13,7 +13,7 @@ interface MaterialQuickLookProps {
   onClose: () => void;
 }
 
-// Click-to-preview modal for a material row — a first look at the full
+// Click-to-preview modal for a material row: a first look at the full
 // first page before committing to opening the full Notestra editor.
 // Hand-rolled (no Dialog primitive exists in components/ui/ yet, see the
 // earlier frontend-patterns audit) rather than pulling in a new dependency
@@ -81,14 +81,15 @@ export function MaterialQuickLook({ materialId, title, onClose }: MaterialQuickL
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6"
+      className="fixed inset-0 z-50 flex items-center justify-center p-6"
+      style={{ backgroundColor: "rgba(34, 41, 51, 0.6)" }}
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label={`Preview of ${title}`}
     >
       <div
-        className="flex max-h-full flex-col overflow-hidden rounded-2xl bg-[var(--fn-paper)] shadow-2xl"
+        className="animate-in fade-in zoom-in-95 flex max-h-full flex-col overflow-hidden rounded-2xl bg-[var(--fn-paper)] shadow-2xl duration-150"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-center justify-between gap-4 border-b px-4 py-3" style={{ borderColor: "var(--fn-rule)" }}>
@@ -97,14 +98,27 @@ export function MaterialQuickLook({ materialId, title, onClose }: MaterialQuickL
             <Link href={`/notestra/${materialId}`} className="fn-btn-primary px-3 py-1 text-sm">
               Open in Notestra
             </Link>
-            <button type="button" aria-label="Close preview" onClick={onClose} className="text-[var(--fn-muted)] hover:text-[var(--fn-ink)]">
+            <button
+              type="button"
+              aria-label="Close preview"
+              onClick={onClose}
+              className="rounded text-[var(--fn-muted)] hover:text-[var(--fn-ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--fn-cobalt)] focus-visible:outline-offset-2"
+            >
               <X size={18} />
             </button>
           </div>
         </div>
 
         <div className="overflow-auto p-4">
-          {loading && <p className="text-sm text-[var(--fn-muted)]">Loading preview…</p>}
+          {loading && (
+            <div className="flex flex-col items-center gap-2">
+              <div
+                className="fn-sheet rounded border"
+                style={{ borderColor: "var(--fn-rule)", width: QUICKLOOK_WIDTH * 0.75, height: QUICKLOOK_WIDTH * 0.97 }}
+              />
+              <p className="fn-mono text-xs text-[var(--fn-muted)]">Loading preview…</p>
+            </div>
+          )}
           {error && <p className="text-sm text-[var(--fn-oxide)]">{error}</p>}
           <canvas ref={canvasRef} className="rounded shadow-sm" style={{ display: loading || error ? "none" : "block" }} />
         </div>

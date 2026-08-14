@@ -38,7 +38,7 @@ class CalendarBlockController extends Controller
         $validated = $request->validated();
 
         // A manual time change is itself the "accept this, but at a
-        // different time" signal — see "Manual calendar moves persist as
+        // different time" signal, see "Manual calendar moves persist as
         // intentional changes" in the plan. Treated the same as pinned:
         // the next run must not silently move it back.
         $timesChanged = array_key_exists('start_at', $validated) || array_key_exists('end_at', $validated);

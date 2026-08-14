@@ -1,6 +1,6 @@
 <?php
 
-// Overnight sleep block (23:00-07:00) — see CapacityCalculator::minutesBetween
+// Overnight sleep block (23:00-07:00). See CapacityCalculator::minutesBetween
 // for the documented v1 simplification: full duration attributed to the
 // start day, not split across the midnight boundary.
 return [

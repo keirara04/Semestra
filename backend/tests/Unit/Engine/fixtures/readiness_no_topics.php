@@ -1,6 +1,6 @@
 <?php
 
-// No linked topics — readiness is unknown, not 0%, same "distinguish
+// No linked topics; readiness is unknown, not 0%, same "distinguish
 // unknown from zero" principle as the grade tracker.
 return [
     'topic_confidences' => [],

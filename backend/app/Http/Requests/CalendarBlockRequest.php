@@ -21,7 +21,7 @@ class CalendarBlockRequest extends FormRequest
         return [
             'task_id' => ['nullable', 'integer', 'exists:tasks,id'],
             'type' => ['sometimes', 'string', 'in:lecture,commitment,study'],
-            // "suggested" is a planner-only status — the API never lets a
+            // "suggested" is a planner-only status; the API never lets a
             // student set it directly, only PlanningRunController writes
             // it. accepted/skipped/done/moved are all real student actions.
             'status' => ['sometimes', 'string', 'in:accepted,skipped,done,moved'],

@@ -14,7 +14,7 @@ use Tests\TestCase;
 /**
  * Covers the offline evaluation set from "Evaluation and release gates"
  * in mdfile/AI.md, to the extent it's testable without a real model call
- * (every provider call here is Http::fake — this verifies *our* side of
+ * (every provider call here is Http::fake, this verifies *our* side of
  * the contract: what we send and what we do with an untrusted response,
  * not a live model's actual behaviour).
  */

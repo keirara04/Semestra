@@ -60,7 +60,7 @@ return [
             'report' => false,
         ],
 
-        // DigitalOcean Spaces (S3-compatible) — materials upload storage, see plan.
+        // DigitalOcean Spaces (S3-compatible), materials upload storage, see plan.
         'spaces' => [
             'driver' => 's3',
             'key' => env('DO_SPACES_KEY'),

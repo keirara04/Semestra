@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Per-viewer Notestra reading state — see
+     * Per-viewer Notestra reading state. See
      * mdfile/NOTESTRA_FUNCTIONAL_SPEC.md, Section 15. Deliberately separate
      * from `materials`/`material_annotations`: this is per-viewer session
      * state (last page, zoom) that updates far more frequently than

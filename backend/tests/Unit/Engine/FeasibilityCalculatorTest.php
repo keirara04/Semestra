@@ -8,7 +8,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 /**
- * Golden fixture tests for the feasibility pass — see "Smart study
+ * Golden fixture tests for the feasibility pass. See "Smart study
  * planner" (pipeline steps 2-4) in mdfile/semester-command-center.md.
  */
 class FeasibilityCalculatorTest extends TestCase

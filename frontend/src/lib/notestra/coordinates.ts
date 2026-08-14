@@ -1,4 +1,4 @@
-// Normalized (0-1) coordinate conversion — see
+// Normalized (0-1) coordinate conversion, see
 // mdfile/NOTESTRA_FUNCTIONAL_SPEC.md, Section 6. Annotation data is always
 // persisted normalized to the page's own dimensions; conversion to/from
 // screen pixels happens only at capture time and render time, so zoom and

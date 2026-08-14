@@ -16,7 +16,7 @@ class AuthenticationTest extends TestCase
         parent::setUp();
 
         // CSRF verification is a browser/cookie concern (the Next.js client
-        // fetches /sanctum/csrf-cookie first) — not what these feature
+        // fetches /sanctum/csrf-cookie first), not what these feature
         // tests are checking, so it's disabled here rather than faked.
         $this->withoutMiddleware(PreventRequestForgery::class);
     }

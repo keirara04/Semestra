@@ -2,7 +2,7 @@
 
 // Task 2 depends on task 1, which isn't done and isn't in this ranked
 // list at all (e.g. it's mandatory-reserved, or ranks so low it wasn't
-// included) — task 2 is skipped entirely this run.
+// included), task 2 is skipped entirely this run.
 return [
     'day_start_time' => '09:00',
     'capacity_by_date' => ['2026-01-01' => 200],

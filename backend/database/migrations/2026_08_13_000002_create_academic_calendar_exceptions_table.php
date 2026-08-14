@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Term breaks/holidays — see "Time, dates, and recurrence" in the plan:
+     * Term breaks/holidays. See "Time, dates, and recurrence" in the plan:
      * Semester "carries ... a list of term breaks/holidays
      * (academic_calendar_exceptions)". Own table (not a json column on
      * semesters) so the capacity engine (Phase 3) can query a date range

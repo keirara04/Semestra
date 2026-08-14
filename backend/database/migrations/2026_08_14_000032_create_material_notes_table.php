@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Notestra study notes — see mdfile/NOTESTRA_FUNCTIONAL_SPEC.md, Section 7.
+     * Notestra study notes. See mdfile/NOTESTRA_FUNCTIONAL_SPEC.md, Section 7.
      * Separate from `material_annotations`: a note may refer to the whole
      * material (`page_number` null) or a specific page, and is not drawn
      * onto the PDF itself. `note_type` is constrained at the validation

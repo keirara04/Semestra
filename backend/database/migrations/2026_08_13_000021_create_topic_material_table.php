@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Topic <-> Material tagging — see "Core data model" in
-     * mdfile/semester-command-center.md ("(join) TopicMaterial —
+     * Topic <-> Material tagging. See "Core data model" in
+     * mdfile/semester-command-center.md ("(join) TopicMaterial <->
      * Material").
      */
     public function up(): void

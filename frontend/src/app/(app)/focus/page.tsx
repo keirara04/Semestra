@@ -27,7 +27,7 @@ function formatElapsed(seconds: number): string {
   return `${mins}:${secs}`;
 }
 
-// Focus session — see "Focus session" in mdfile/DESIGN.md. The circular
+// Focus session, see "Focus session" in mdfile/DESIGN.md. The circular
 // timer is not the only way to read progress: elapsed/remaining are also
 // rendered as plain text for screen readers and low-motion users.
 export default function FocusPage() {
@@ -280,7 +280,7 @@ function RunningSession({
         onClick={onStuck}
         className="text-sm text-[var(--fn-muted)] underline underline-offset-2"
       >
-        {stuck ? "Blocker noted — logged at end" : "I am stuck"}
+        {stuck ? "Blocker noted, logged at end" : "I am stuck"}
       </button>
     </main>
   );

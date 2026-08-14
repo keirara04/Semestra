@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Sanctum SPA cookie auth — these routes live under the "web" middleware
+ * Sanctum SPA cookie auth. These routes live under the "web" middleware
  * group (routes/web.php), not routes/api.php, so session + CSRF apply.
  * The Next.js frontend must GET /sanctum/csrf-cookie before calling any of
  * these. See "Hosting and domain" in the plan for the subdomain/CORS shape
@@ -50,7 +50,7 @@ class AuthController extends Controller
 
     public function logout(Request $request): JsonResponse
     {
-        // Explicit "web" guard — Sanctum's EnsureFrontendRequestsAreStateful
+        // Explicit "web" guard, since Sanctum's EnsureFrontendRequestsAreStateful
         // switches the default guard to "sanctum" (a RequestGuard with no
         // logout()) for stateful-domain requests, so Auth::logout() without
         // an explicit guard throws here.

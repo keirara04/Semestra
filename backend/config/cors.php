@@ -20,7 +20,7 @@ return [
     'allowed_methods' => ['*'],
 
     // Frontend lives on its own subdomain (app.<domain> / bare domain) while
-    // this API lives on api.<domain> — Sanctum's SPA auth requires the exact
+    // this API lives on api.<domain>; Sanctum's SPA auth requires the exact
     // frontend origin(s) listed here, not a wildcard, once supports_credentials is true.
     'allowed_origins' => [
         env('FRONTEND_URL', 'http://localhost:3000'),

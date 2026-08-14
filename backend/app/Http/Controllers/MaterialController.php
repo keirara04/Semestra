@@ -83,7 +83,7 @@ class MaterialController extends Controller
     }
 
     /**
-     * Signed viewer URL for Notestra — see
+     * Signed viewer URL for Notestra, see
      * mdfile/NOTESTRA_FUNCTIONAL_SPEC.md, Section 4. Also touches
      * user_material_states.last_opened_at (Section 15) as a side effect of
      * opening the viewer.
@@ -101,7 +101,7 @@ class MaterialController extends Controller
     }
 
     /**
-     * Signed streaming route backing temporaryViewUrl() on the local disk —
+     * Signed streaming route backing temporaryViewUrl() on the local disk;
      * the Spaces branch returns a Storage-generated URL directly and never
      * hits this route. Auth is the URL signature itself (see the
      * "materials.stream" route definition, outside the auth:sanctum group).

@@ -1,7 +1,7 @@
 <?php
 
 // A single task needing more than every minute available before its
-// deadline — infeasible in isolation. Nothing gets reserved for it; the
+// deadline, infeasible in isolation. Nothing gets reserved for it; the
 // deficit is reported plainly rather than inventing a partial schedule.
 return [
     'today' => '2026-01-01',

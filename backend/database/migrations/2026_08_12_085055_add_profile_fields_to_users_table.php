@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // Profile fields — see "Time, dates, and recurrence" and
+            // Profile fields. See "Time, dates, and recurrence" and
             // "Timetable and availability" in the plan. One profile per
             // student, so these live directly on users rather than a
             // separate profiles table.

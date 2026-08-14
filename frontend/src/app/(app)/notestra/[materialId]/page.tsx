@@ -21,14 +21,15 @@ const SAVE_LABEL: Record<string, string> = {
   error: "Save failed",
 };
 
-// Notestra — in-browser PDF annotation workspace, see
+// Notestra: in-browser PDF annotation workspace, see
 // mdfile/NOTESTRA_FUNCTIONAL_SPEC.md. Full-viewport overlay rather than a
 // route-tree layout change, since (app)/layout.tsx always wraps children in
 // AppShell chrome and there's no existing opt-out precedent to build on.
-// Layout (gray canvas, floating toolbar/page-nav pills, white page card) is
-// modelled on a provided reference screenshot rather than the fn-* house
-// style used elsewhere in the app — Notestra is a focused workspace, not a
-// form-driven page.
+// Floating toolbar/page-nav pills keep the layout concept from an earlier
+// reference, but every color/border/font now comes from Field Notes'
+// tokens (mdfile/DESIGN.md); AppShell already puts this page inside the
+// `.fn` scope, so var(--fn-*) resolves; Notestra should look like part of
+// the course workspace, not a bolted-on third-party viewer.
 export default function NotestraPage({
   params,
 }: {
@@ -70,20 +71,29 @@ export default function NotestraPage({
   const pageAnnotations = sync.annotations.filter((a) => a.page_number === page);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col" style={{ background: "#eceef1" }}>
-      <header className="flex shrink-0 items-center justify-between gap-4 px-4 py-3">
+    <div className="fixed inset-0 z-50 flex flex-col bg-[var(--fn-canvas)]">
+      <header
+        className="flex shrink-0 items-center justify-between gap-4 border-b bg-[var(--fn-paper)] px-4 py-3"
+        style={{ borderColor: "var(--fn-rule)" }}
+      >
         <div className="flex min-w-0 items-center gap-3">
           <Link
             href={`/courses/${material?.course_id ?? ""}`}
-            className="flex items-center gap-1 text-sm text-[var(--fn-muted)] hover:text-[var(--fn-ink)]"
+            className="flex items-center gap-1 rounded text-sm text-[var(--fn-muted)] hover:text-[var(--fn-ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--fn-cobalt)] focus-visible:outline-offset-2"
           >
             <ArrowLeft size={16} />
             Exit
           </Link>
-          <span className="truncate font-medium">{material?.title ?? "Loading…"}</span>
+          <div className="min-w-0">
+            <p className="fn-eyebrow leading-none">Notestra</p>
+            <span className="truncate font-medium">{material?.title ?? "Loading…"}</span>
+          </div>
         </div>
 
-        <span className="fn-mono shrink-0 text-sm text-[var(--fn-muted)]">
+        <span
+          className="fn-mono shrink-0 text-sm"
+          style={{ color: sync.saveState === "error" ? "var(--fn-oxide)" : "var(--fn-muted)" }}
+        >
           {SAVE_LABEL[sync.saveState]}
           {sync.saveState === "error" && (
             <button type="button" className="ml-2 underline" onClick={sync.retry}>
@@ -112,8 +122,12 @@ export default function NotestraPage({
               {loadError && <p className="mt-8 text-[var(--fn-oxide)]">{loadError}</p>}
               {!loadError && (
                 <div
-                  className="relative rounded-2xl bg-white shadow-xl"
-                  style={{ width: pageSize.width || undefined, height: pageSize.height || undefined }}
+                  className="relative rounded-2xl border bg-[var(--fn-paper)] shadow-lg"
+                  style={{
+                    width: pageSize.width || undefined,
+                    height: pageSize.height || undefined,
+                    borderColor: "var(--fn-rule)",
+                  }}
                 >
                   <PDFViewer
                     url={viewerUrl}

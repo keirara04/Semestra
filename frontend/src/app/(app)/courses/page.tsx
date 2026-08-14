@@ -74,7 +74,7 @@ export default function CoursesPage() {
           </li>
         ))}
         {courses?.length === 0 && (
-          <li className="text-sm text-[var(--fn-muted)]">No courses yet — add one below.</li>
+          <li className="text-sm text-[var(--fn-muted)]">No courses yet. Add one below.</li>
         )}
       </ul>
 

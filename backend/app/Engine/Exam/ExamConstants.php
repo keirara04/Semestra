@@ -3,7 +3,7 @@
 namespace App\Engine\Exam;
 
 /**
- * v1 defaults for exam mode — one file, not hardcoded per view. See "Exam
+ * v1 defaults for exam mode, one file, not hardcoded per view. See "Exam
  * mode" in mdfile/semester-command-center.md: "confidence score maps Not
  * started/Learning/Comfortable/Confident to 0/0.33/0.66/1, and topic
  * weight defaults to equal unless the syllabus states otherwise." No
@@ -20,7 +20,7 @@ final class ExamConstants
     ];
 
     /**
-     * Target study minutes per topic not yet at "confident" — the basis
+     * Target study minutes per topic not yet at "confident", the basis
      * for the suggested-pace sentence.
      */
     public const MINUTES_PER_WEAK_TOPIC = 45;

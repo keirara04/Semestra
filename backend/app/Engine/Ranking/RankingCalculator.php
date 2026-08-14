@@ -5,15 +5,15 @@ namespace App\Engine\Ranking;
 use DateTimeImmutable;
 
 /**
- * Pure PHP, no Eloquent — see "Planning engine boundary" in
+ * Pure PHP, no Eloquent, see "Planning engine boundary" in
  * mdfile/semester-command-center.md. Implements "Ranking": a bounded,
- * clamped weighted sum (never multiplicative/log-additive — see the
+ * clamped weighted sum (never multiplicative/log-additive, see the
  * plan's reasoning) deciding which *flexible* work gets the next open
- * slot. Does not decide whether mandatory work is scheduled at all —
+ * slot. Does not decide whether mandatory work is scheduled at all;
  * that's the feasibility pass (RankingConstants/FeasibilityCalculator).
  *
  * v1 scope boundary: academic_impact uses the assessment's GradeItem
- * weighting directly as the impact proxy, not weighting × gap-to-target —
+ * weighting directly as the impact proxy, not weighting × gap-to-target;
  * computing a live gap-to-target would mean re-running the grade tracker
  * per course on every ranking call. Documented simplification, not a bug.
  */
@@ -150,7 +150,7 @@ final class RankingCalculator
         }
 
         if (count($reasons) === 0) {
-            $reasons[] = 'No single factor stands out — ranked on the balance of all four.';
+            $reasons[] = 'No single factor stands out: ranked on the balance of all four.';
         }
 
         return $reasons;

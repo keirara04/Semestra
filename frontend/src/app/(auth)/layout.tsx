@@ -40,17 +40,17 @@ const steps = [
   },
 ];
 
-// Route group (auth)/ has no URL segment of its own — plain ReactNode
+// Route group (auth)/ has no URL segment of its own, so it uses plain ReactNode
 // children, same reasoning as (app)/layout.tsx.
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div className={`${dmSans.variable} ${ibmPlexMono.variable} ${caveat.variable} fn`}>
       <div className="grid min-h-dvh w-full grid-cols-1 lg:grid-cols-2">
-        {/* Left panel — brand + the product's own semester-map vocabulary as a preview */}
+        {/* Left panel: brand + the product's own semester-map vocabulary as a preview */}
         <div className="fn-sheet fn-margin relative hidden flex-col px-12 py-14 lg:flex xl:pl-24 xl:pr-16">
-          {/* Hero wordmark — pinned to the top, not part of the centered block below */}
+          {/* Hero wordmark, pinned to the top, not part of the centered block below */}
           <div className="flex items-center gap-4">
-            {/* Settles once on mount (blank -> SEMESTRA), doesn't loop —
+            {/* Settles once on mount (blank -> SEMESTRA), doesn't loop:
                 a single deliberate moment, not a marquee. */}
             <SplitFlapText
               words={["        ", "SEMESTRA"]}
@@ -104,7 +104,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
 
-        {/* Right panel — the actual form, per-page */}
+        {/* Right panel: the actual form, per-page */}
         <div className="fn-sheet flex flex-col justify-center px-6 py-14 sm:px-12 lg:px-16 xl:px-20">
           <div className="mx-auto w-full max-w-sm">{children}</div>
         </div>

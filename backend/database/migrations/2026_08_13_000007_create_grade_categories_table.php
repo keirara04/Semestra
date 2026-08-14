@@ -8,7 +8,7 @@ return new class extends Migration
 {
     /**
      * Assessment-group for drop-lowest / best-N-of-M rules, declared at
-     * course setup — see "Grade and outcome tracker" in the plan.
+     * course setup. See "Grade and outcome tracker" in the plan.
      */
     public function up(): void
     {

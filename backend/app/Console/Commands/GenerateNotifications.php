@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Auth;
 
 /**
  * Runs hourly (see routes/console.php). Generates the idempotent
- * Notification rows for every user, then queues delivery — delayed past
+ * Notification rows for every user, then queues delivery, delayed past
  * quiet_hours.end when the moment of generation falls inside a user's
  * configured quiet window, so the row still exists immediately but the
  * email doesn't land at 2am.

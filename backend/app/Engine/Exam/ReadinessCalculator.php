@@ -3,7 +3,7 @@
 namespace App\Engine\Exam;
 
 /**
- * Pure PHP, no Eloquent — see "Planning engine boundary" in
+ * Pure PHP, no Eloquent, see "Planning engine boundary" in
  * mdfile/semester-command-center.md. Implements "Exam mode"'s v1
  * readiness formula: confidence-weighted topic coverage, equal weight
  * per topic (no syllabus-declared weighting exists yet).

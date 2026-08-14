@@ -3,7 +3,7 @@
 namespace App\Engine\Ranking;
 
 /**
- * Plain input value object — no Eloquent, same "Planning engine boundary"
+ * Plain input value object, no Eloquent, same "Planning engine boundary"
  * rule as the other engines (see mdfile/semester-command-center.md).
  */
 final class TaskRankingInput
@@ -14,7 +14,7 @@ final class TaskRankingInput
      *                                               capacity between now and $dueDate. Null when $dueDate is null.
      * @param  float|null  $gradeWeight  Parent assessment's GradeItem.weighting (0-100). Null if ungraded/no assessment.
      * @param  string|null  $estimateConfidence  "low"|"medium"|"high"|null.
-     * @param  string  $lastTouchedAt  "Y-m-d" — proxy for last-updated.
+     * @param  string  $lastTouchedAt  "Y-m-d", proxy for last-updated.
      * @param  string|null  $topicConfidence  "not_started"|"learning"|"comfortable"|"confident"|null. Null = not revision-linked.
      * @param  string|null  $topicLastReviewedAt  "Y-m-d". Null with a non-null $topicConfidence means never reviewed (max need).
      */

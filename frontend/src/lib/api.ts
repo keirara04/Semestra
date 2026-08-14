@@ -1,4 +1,4 @@
-// Client for the Laravel API — Sanctum SPA cookie auth (see Technical
+// Client for the Laravel API, using Sanctum SPA cookie auth (see Technical
 // direction in the plan). Every mutating request needs the XSRF-TOKEN
 // cookie (fetched via /sanctum/csrf-cookie) echoed back as a header;
 // getCsrfCookie() + apiFetch() below handle that so callers never touch it.
@@ -42,7 +42,7 @@ export async function apiFetch<T>(
 ): Promise<T> {
   const xsrfToken = readCookie("XSRF-TOKEN");
   // FormData bodies (file uploads) need the browser to set their own
-  // multipart boundary header — forcing application/json here would break it.
+  // multipart boundary header; forcing application/json here would break it.
   const isFormData = options.body instanceof FormData;
 
   const response = await fetch(`${API_URL}${path}`, {

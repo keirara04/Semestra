@@ -4,7 +4,7 @@ namespace App\Engine\Ranking;
 
 /**
  * Every clamp range, default, and missing-data fallback for the ranking
- * formula lives here — one file, not hardcoded per view. See "Ranking" in
+ * formula lives here, one file, not hardcoded per view. See "Ranking" in
  * mdfile/semester-command-center.md: "Start with these fixed weights. Do
  * not begin with a log-based or otherwise mathematically clever formula
  * unless real acceptance/completion data proves it schedules better."
@@ -24,7 +24,7 @@ final class RankingConstants
     /** Missing due date → flexible task, fixed low urgency, never zero. */
     public const URGENCY_DEFAULT_NO_DUE_DATE = 10.0;
 
-    /** Non-graded work (e.g. plain reading) — fixed baseline, not zero. */
+    /** Non-graded work (e.g. plain reading), fixed baseline, not zero. */
     public const ACADEMIC_IMPACT_DEFAULT_NON_GRADED = 20.0;
 
     /**

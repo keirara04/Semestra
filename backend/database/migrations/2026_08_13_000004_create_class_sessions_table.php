@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Weekly-pattern-plus-exceptions recurrence, not RRULE — see "Time,
+     * Weekly-pattern-plus-exceptions recurrence, not RRULE. See "Time,
      * dates, and recurrence" in the plan. Base weekly pattern lives here;
      * one-off cancellations/moves live in class_session_exceptions.
      */

@@ -8,7 +8,7 @@ return new class extends Migration
 {
     /**
      * tasks.topic_id existed unenforced since Foundation Phase 2 ("no FK
-     * yet — Topic ships in Academic Intelligence"). Topic now exists —
+     * yet, Topic ships in Academic Intelligence"). Topic now exists;
      * add the real constraint.
      */
     public function up(): void

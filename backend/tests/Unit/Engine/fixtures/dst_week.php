@@ -1,6 +1,6 @@
 <?php
 
-// DST week — America/New_York springs forward on Sunday 8 March 2026
+// DST week: America/New_York springs forward on Sunday 8 March 2026
 // (23-hour day). The calculator works in whole calendar days and H:i
 // clock times, never elapsed wall-clock duration, so lecture minutes on
 // the DST day itself must come out identical to any other day.

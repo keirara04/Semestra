@@ -93,7 +93,7 @@ export default function AssessmentsPage() {
                   )}
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-medium">{assessment.title}</span>
-                    <span className="fn-mono text-[var(--fn-muted)]">{course?.title ?? "—"}</span>
+                    <span className="fn-mono text-[var(--fn-muted)]">{course?.title ?? "N/A"}</span>
                   </span>
                   <span className="fn-mono shrink-0 text-[var(--fn-muted)]">
                     {daysUntil(assessment.due_at)}
@@ -106,7 +106,7 @@ export default function AssessmentsPage() {
             );
           })}
         {assessments?.length === 0 && (
-          <li className="text-sm text-[var(--fn-muted)]">No assessments yet — add one below.</li>
+          <li className="text-sm text-[var(--fn-muted)]">No assessments yet. Add one below.</li>
         )}
       </ul>
 

@@ -1,7 +1,7 @@
 <?php
 
 // Two topics due the same day, but the daily cap (15 min = one review)
-// only fits one — the second is deferred, not silently dropped.
+// only fits one; the second is deferred, not silently dropped.
 return [
     'today' => '2026-01-10',
     'daily_cap_minutes' => 15,

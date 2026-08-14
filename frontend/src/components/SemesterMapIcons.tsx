@@ -2,8 +2,8 @@
 
 import { useId } from "react";
 
-// Ported from src/app/(app)/semester/asset/{assessment-marker,risk-window}.svg
-// — see SEMESTER_MAP_SVG_KIT.md. Both use `currentColor`, so set `color`
+// Ported from src/app/(app)/semester/asset/{assessment-marker,risk-window}.svg,
+// see SEMESTER_MAP_SVG_KIT.md. Both use `currentColor`, so set `color`
 // on a wrapper (or pass `className`) to recolor per course.
 
 export function AssessmentMarker({ className }: { className?: string }) {
@@ -14,7 +14,7 @@ export function AssessmentMarker({ className }: { className?: string }) {
   );
 }
 
-/** Diagonally hatched at-risk marker — replaces AssessmentMarker when the assessment falls in an at-risk/critical week. */
+/** Diagonally hatched at-risk marker, replaces AssessmentMarker when the assessment falls in an at-risk/critical week. */
 export function RiskWindow({ className }: { className?: string }) {
   const patternId = useId();
   return (

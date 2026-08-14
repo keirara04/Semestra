@@ -1,6 +1,6 @@
 <?php
 
-// Declared weights sum to 80, not 100 — normalize by the declared total
+// Declared weights sum to 80, not 100; normalize by the declared total
 // rather than erroring, and flag it visibly (weights_normalized: true).
 return [
     'items' => [
