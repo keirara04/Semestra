@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AcademicCalendarExceptionController;
 use App\Http\Controllers\AiSettingsController;
+use App\Http\Controllers\AnnotationSyncController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\CalendarBlockController;
 use App\Http\Controllers\CalendarCapacityController;
@@ -13,7 +14,10 @@ use App\Http\Controllers\CourseGradesController;
 use App\Http\Controllers\ExamReadinessController;
 use App\Http\Controllers\GradeCategoryController;
 use App\Http\Controllers\GradeItemController;
+use App\Http\Controllers\MaterialAnnotationController;
 use App\Http\Controllers\MaterialController;
+use App\Http\Controllers\MaterialNoteController;
+use App\Http\Controllers\MaterialStateController;
 use App\Http\Controllers\MilestoneController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PlanningFeasibilityController;
@@ -34,6 +38,14 @@ use Illuminate\Support\Facades\Route;
 
 // Everything mounted under /api, served from api.<domain> per the
 // hosting/subdomain decision in the plan.
+
+// Notestra — signed streaming route for materials on the local disk (the
+// "spaces" branch of Material::temporaryViewUrl() never hits this; auth is
+// the URL signature itself, not the session, so it stays outside the
+// auth:sanctum group — see mdfile/NOTESTRA_FUNCTIONAL_SPEC.md, Section 4).
+Route::get('/materials/{material}/stream', [MaterialController::class, 'stream'])
+    ->middleware('signed')
+    ->name('materials.stream');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
@@ -99,6 +111,17 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Academic Intelligence Phase A — Materials library.
     Route::apiResource('materials', MaterialController::class);
+
+    // Notestra — in-browser PDF annotation workspace (see mdfile/NOTESTRA_FUNCTIONAL_SPEC.md).
+    Route::get('/materials/{material}/view-url', [MaterialController::class, 'viewUrl']);
+    Route::get('/materials/{material}/annotations', [MaterialAnnotationController::class, 'index']);
+    Route::put('/materials/{material}/annotations', [AnnotationSyncController::class, 'sync']);
+    Route::get('/materials/{material}/notes', [MaterialNoteController::class, 'index']);
+    Route::post('/materials/{material}/notes', [MaterialNoteController::class, 'store']);
+    Route::patch('/notes/{note}', [MaterialNoteController::class, 'update']);
+    Route::delete('/notes/{note}', [MaterialNoteController::class, 'destroy']);
+    Route::get('/materials/{material}/state', [MaterialStateController::class, 'show']);
+    Route::put('/materials/{material}/state', [MaterialStateController::class, 'update']);
 
     // Academic Intelligence Phase B — Topics + confidence.
     Route::apiResource('topics', TopicController::class);

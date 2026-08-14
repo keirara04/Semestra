@@ -8,6 +8,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   CircleDot,
+  FileText,
   GraduationCap,
   LayoutGrid,
   ListChecks,
@@ -20,8 +21,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth-context";
-import { NotificationBell } from "@/components/NotificationBell";
-import { useNotifications } from "@/lib/notifications";
 
 interface NavItem {
   href: string;
@@ -29,9 +28,11 @@ interface NavItem {
   icon: typeof Sun;
 }
 
-// Primary navigation — see "Primary navigation" in mdfile/DESIGN.md. Eight
-// destinations; nothing in the interface should require a name that isn't
-// one of these.
+// Primary navigation — see "Primary navigation" in mdfile/DESIGN.md. Originally
+// eight fixed destinations; Notestra (mdfile/NOTESTRA_FUNCTIONAL_SPEC.md) is a
+// deliberate ninth addition, added on request rather than through that doc.
+const NOTESTRA_ITEM: NavItem = { href: "/notestra", label: "Notestra", icon: FileText };
+
 const RAIL_GROUPS: NavItem[][] = [
   [
     { href: "/dashboard", label: "Today", icon: Sun },
@@ -41,6 +42,7 @@ const RAIL_GROUPS: NavItem[][] = [
   [
     { href: "/courses", label: "Courses", icon: GraduationCap },
     { href: "/assessments", label: "Assessments", icon: ListChecks },
+    NOTESTRA_ITEM,
   ],
   [
     { href: "/focus", label: "Focus", icon: CircleDot },
@@ -61,6 +63,7 @@ const MORE_ITEMS: NavItem[] = [
   { href: "/semester", label: "Semester", icon: CalendarDays },
   { href: "/assessments", label: "Assessments", icon: ListChecks },
   { href: "/insights", label: "Insights", icon: Sparkles },
+  NOTESTRA_ITEM,
   SETTINGS_ITEM,
 ];
 
@@ -79,7 +82,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
-  const { unreadCount } = useNotifications();
   const [moreOpen, setMoreOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -137,7 +139,6 @@ export function AppShell({ children }: { children: ReactNode }) {
           >
             {!collapsed && <span className="fn-eyebrow text-[#c9cdd3]">Semestra</span>}
             <div className="flex items-center gap-1">
-              <NotificationBell />
               <button
                 type="button"
                 onClick={toggleCollapsed}
@@ -210,14 +211,11 @@ export function AppShell({ children }: { children: ReactNode }) {
             type="button"
             onClick={() => setMoreOpen(true)}
             className={cn(
-              "relative flex min-w-11 flex-col items-center gap-0.5 px-2 py-1 text-[var(--fn-muted)]",
+              "flex min-w-11 flex-col items-center gap-0.5 px-2 py-1 text-[var(--fn-muted)]",
               FOCUS_RING,
             )}
           >
             <Menu className="h-5 w-5" />
-            {unreadCount > 0 && (
-              <span className="absolute right-1.5 top-0.5 h-2 w-2 rounded-full bg-[var(--fn-ochre)]" />
-            )}
             <span className="text-[11px]">More</span>
           </button>
         </nav>

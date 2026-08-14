@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\MaterialRequest;
 use App\Models\Material;
+use App\Models\UserMaterialState;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class MaterialController extends Controller
 {
@@ -77,5 +80,37 @@ class MaterialController extends Controller
         $material->delete();
 
         return response()->json(status: 204);
+    }
+
+    /**
+     * Signed viewer URL for Notestra — see
+     * mdfile/NOTESTRA_FUNCTIONAL_SPEC.md, Section 4. Also touches
+     * user_material_states.last_opened_at (Section 15) as a side effect of
+     * opening the viewer.
+     */
+    public function viewUrl(Request $request, Material $material): JsonResponse
+    {
+        $this->authorize('view', $material);
+
+        UserMaterialState::query()->updateOrInsert(
+            ['user_id' => $request->user()->id, 'material_id' => $material->id],
+            ['last_opened_at' => now(), 'updated_at' => now()],
+        );
+
+        return response()->json(['url' => $material->temporaryViewUrl()]);
+    }
+
+    /**
+     * Signed streaming route backing temporaryViewUrl() on the local disk —
+     * the Spaces branch returns a Storage-generated URL directly and never
+     * hits this route. Auth is the URL signature itself (see the
+     * "materials.stream" route definition, outside the auth:sanctum group).
+     */
+    public function stream(Request $request, Material $material): StreamedResponse
+    {
+        abort_unless($request->hasValidSignature(), 403);
+        abort_unless($material->disk && $material->path, 404);
+
+        return Storage::disk($material->disk)->response($material->path);
     }
 }

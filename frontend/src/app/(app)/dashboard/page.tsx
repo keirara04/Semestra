@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Bell, X } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { apiFetch } from "@/lib/api";
 import type { Today, WeeklyReview } from "@/lib/types";
 import { WEEK_STATE_LABEL, WeekStateMarker, weekState } from "@/components/WeekState";
+import { useNotifications } from "@/lib/notifications";
 import { daysUntil, formatMinutes } from "@/lib/format";
 
 const REVIEW_DISMISSED_KEY = "semestra:review-dismissed-id";
@@ -32,6 +34,8 @@ export default function DashboardPage() {
   const [today, setToday] = useState<Today | null>(null);
   const [expandedTaskId, setExpandedTaskId] = useState<number | null>(null);
   const [pendingReview, setPendingReview] = useState<WeeklyReview | null>(null);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const { notifications, unreadCount, markRead } = useNotifications();
 
   useEffect(() => {
     apiFetch<Today>("/api/today").then(setToday);
@@ -64,11 +68,26 @@ export default function DashboardPage() {
       )}
 
       {/* Greeting strip */}
+      <div className="flex min-w-0 items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="fn-eyebrow">{dayEyebrow(date)}</p>
+          <h1 className="mt-1 text-2xl font-semibold break-words">
+            {greeting()}, {user?.name}
+          </h1>
+        </div>
+        <button
+          type="button"
+          onClick={() => setNotificationsOpen(true)}
+          aria-label={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : "Notifications"}
+          className="relative shrink-0 rounded-md border border-[var(--fn-rule)] p-2 text-[var(--fn-muted)] hover:text-[var(--fn-ink)]"
+        >
+          <Bell className="h-4 w-4" />
+          {unreadCount > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-[var(--fn-ochre)]" />
+          )}
+        </button>
+      </div>
       <div className="min-w-0">
-        <p className="fn-eyebrow">{dayEyebrow(date)}</p>
-        <h1 className="mt-1 text-2xl font-semibold break-words">
-          {greeting()}, {user?.name}
-        </h1>
         {nextClass ? (
           <p className="fn-mono mt-1 text-sm text-[var(--fn-muted)]">
             Next: {nextClass.course_title} {nextClass.type} · {nextClass.start_time.slice(0, 5)}–
@@ -173,6 +192,55 @@ export default function DashboardPage() {
           {formatMinutes(today.capacity.recommended_study_minutes)} capacity
         </span>
       </section>
+
+      {notificationsOpen && (
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center bg-black/30 px-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Notifications"
+          onClick={() => setNotificationsOpen(false)}
+        >
+          <div
+            className="w-full max-w-sm rounded-md border border-[var(--fn-rule)] bg-[var(--fn-paper)] p-4 shadow-lg"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <p className="fn-eyebrow">Notifications</p>
+              <button
+                type="button"
+                onClick={() => setNotificationsOpen(false)}
+                aria-label="Close"
+                className="rounded text-[var(--fn-muted)] hover:text-[var(--fn-ink)]"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {notifications.length === 0 ? (
+              <p className="mt-3 text-sm text-[var(--fn-muted)]">No notifications yet.</p>
+            ) : (
+              <ul className="mt-3 flex max-h-80 flex-col gap-1 overflow-y-auto">
+                {notifications.map((notification) => (
+                  <li key={notification.id}>
+                    <button
+                      type="button"
+                      onClick={() => markRead(notification.id)}
+                      className={`w-full rounded-md px-3 py-2 text-left text-sm ${
+                        notification.read_at
+                          ? "text-[var(--fn-muted)]"
+                          : "bg-[var(--fn-canvas)] text-[var(--fn-ink)]"
+                      }`}
+                    >
+                      {notification.message}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
     </main>
   );
 }

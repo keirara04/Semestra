@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { use } from "react";
+import Link from "next/link";
 import { apiFetch, ApiError } from "@/lib/api";
 import type {
   ClassSession,
@@ -501,6 +502,14 @@ function Materials({ courseId }: { courseId: number }) {
               <span className="fn-mono shrink-0 text-[11px] text-[var(--fn-muted)]">
                 Week {material.week}
               </span>
+            )}
+            {material.type === "pdf" && (
+              <Link
+                href={`/notestra/${material.id}`}
+                className="shrink-0 text-[11px] text-[var(--fn-cobalt)] underline underline-offset-2"
+              >
+                Open in Notestra
+              </Link>
             )}
             <button
               type="button"

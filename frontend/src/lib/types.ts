@@ -74,6 +74,58 @@ export interface Material {
   assessments?: { id: number; title: string }[];
 }
 
+// Notestra — in-browser PDF annotation workspace, see
+// mdfile/NOTESTRA_FUNCTIONAL_SPEC.md. All coordinates are normalized (0-1,
+// relative to page width/height) so zoom/viewport changes never require
+// re-deriving stored data — see spec Section 6.
+export type AnnotationType = "drawing" | "highlight" | "text";
+
+export interface AnnotationData {
+  // highlight / text
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  color?: string;
+  opacity?: number;
+  // text only, normalized as a fraction of page height
+  font_size?: number;
+  text?: string;
+  // drawing only
+  points?: [number, number][];
+  stroke_width?: number;
+}
+
+export interface Annotation {
+  id: string; // client_uuid
+  material_id: number;
+  page_number: number;
+  type: AnnotationType;
+  data: AnnotationData;
+  updated_at?: string;
+}
+
+export type NoteType = "general" | "exam" | "concept" | "question" | "formula";
+
+export interface MaterialNote {
+  id: number;
+  material_id: number;
+  page_number: number | null;
+  title: string;
+  content: string;
+  note_type: NoteType;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserMaterialState {
+  user_id: number;
+  material_id: number;
+  last_opened_at: string | null;
+  last_page: number | null;
+  zoom: string | null;
+}
+
 export type ClassSessionType = "lecture" | "tutorial" | "lab" | "exam";
 
 export interface ClassSession {

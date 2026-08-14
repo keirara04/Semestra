@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { apiFetch, ApiError } from "@/lib/api";
 import type {
   Assessment,
@@ -11,7 +12,7 @@ import type {
   Semester,
   Task,
 } from "@/lib/types";
-import { weekState, type WeekState } from "@/components/WeekState";
+import { WEEK_STATE_LABEL, weekState, type WeekState } from "@/components/WeekState";
 import { AssessmentMarker, CourseLaneLine, RiskWindow } from "@/components/SemesterMapIcons";
 import { pickCurrentSemester } from "@/lib/semester";
 import { formatMinutes } from "@/lib/format";
@@ -371,6 +372,95 @@ function monthGroups(weeks: Week[]): { label: string; span: number }[] {
 
 const OTHER_COLOUR = "#68707B"; // var(--fn-muted) — lecture/commitment minutes not tied to a course
 
+/** Per-course breakdown behind a week's workload bar, for the hover popover. */
+function weekBreakdown(week: Week, courses: Course[]): { name: string; minutes: number; colour: string }[] {
+  return [...week.plannedByCourse.entries()]
+    .filter(([, minutes]) => minutes > 0)
+    .sort((a, b) => b[1] - a[1])
+    .map(([courseId, minutes]) => {
+      const course = courseId ? courses.find((c) => c.id === courseId) : undefined;
+      return { name: course?.title ?? "Other", minutes, colour: course?.colour ?? OTHER_COLOUR };
+    });
+}
+
+function WeekTooltipContent({ week, state, courses }: { week: Week; state: WeekState; courses: Course[] }) {
+  const dateLabel = week.start.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+  const breakdown = weekBreakdown(week, courses);
+
+  return (
+    <>
+      <p className="fn-mono text-[11px] font-semibold">
+        {week.label} — week of {dateLabel}
+      </p>
+      <p className="fn-mono mt-1 text-[11px] text-[#c9cdd3]">
+        {WEEK_STATE_LABEL[state]} — {formatMinutes(week.plannedMinutes)} planned /{" "}
+        {formatMinutes(week.capacityMinutes)} capacity
+      </p>
+      {breakdown.length > 0 && (
+        <ul className="mt-2 flex flex-col gap-0.5 border-t border-white/10 pt-2">
+          {breakdown.map((item) => (
+            <li key={item.name} className="fn-mono flex items-center gap-1.5 text-[11px] text-[#c9cdd3]">
+              <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: item.colour }} />
+              <span className="min-w-0 flex-1 truncate">{item.name}</span>
+              <span>{formatMinutes(item.minutes)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
+  );
+}
+
+const TOOLTIP_WIDTH = 224; // px — matches the w-56 tooltip below
+
+// Portal + fixed-position, not CSS group-hover — the chart's own
+// container is a fixed-height overflow-x-auto box, which would clip an
+// absolutely-positioned popover before it ever became visible (the same
+// class of bug the notification bell hit, see AppShell.tsx).
+function WeekBar({
+  week,
+  state,
+  courses,
+  children,
+}: {
+  week: Week;
+  state: WeekState;
+  courses: Course[];
+  children: ReactNode;
+}) {
+  const anchorRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState<{ top: number; left: number } | null>(null);
+
+  function show() {
+    const rect = anchorRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const half = TOOLTIP_WIDTH / 2;
+    const left = Math.min(Math.max(rect.left + rect.width / 2, half + 8), window.innerWidth - half - 8);
+    setPosition({ top: rect.top - 8, left });
+  }
+
+  return (
+    <div
+      ref={anchorRef}
+      className="flex w-10 shrink-0 flex-col items-center gap-1"
+      onMouseEnter={show}
+      onMouseLeave={() => setPosition(null)}
+    >
+      {children}
+      {position &&
+        createPortal(
+          <div
+            style={{ top: position.top, left: position.left }}
+            className="pointer-events-none fixed z-30 w-56 -translate-x-1/2 -translate-y-full rounded-md border border-[var(--fn-rule)] bg-[var(--fn-sidebar)] p-3 text-left text-[#e7e9ec] shadow-lg"
+          >
+            <WeekTooltipContent week={week} state={state} courses={courses} />
+          </div>,
+          document.body,
+        )}
+    </div>
+  );
+}
+
 function SemesterMap({ semester }: { semester: Semester }) {
   const [courses, setCourses] = useState<Course[] | null>(null);
   const [assessments, setAssessments] = useState<Assessment[]>([]);
@@ -520,7 +610,7 @@ function SemesterMap({ semester }: { semester: Semester }) {
           const isHighLoad = state === "at_risk" || state === "critical";
           const segments = [...week.plannedByCourse.entries()].sort((a, b) => (a[0] ?? -1) - (b[0] ?? -1));
           return (
-            <div key={week.label} className="flex w-10 shrink-0 flex-col items-center gap-1">
+            <WeekBar key={week.label} week={week} state={state} courses={courses}>
               <div
                 className="relative flex w-full flex-1 flex-col-reverse overflow-hidden rounded-t"
                 style={{ minHeight: "1px" }}
@@ -535,12 +625,10 @@ function SemesterMap({ semester }: { semester: Semester }) {
                     />
                   );
                 })}
-                {isHighLoad && (
-                  <div className="absolute inset-x-0 top-0 h-2 bg-[var(--fn-oxide)]" title="High-load week" />
-                )}
+                {isHighLoad && <div className="absolute inset-x-0 top-0 h-2 bg-[var(--fn-oxide)]" />}
               </div>
               <span className="fn-mono text-[10px] text-[var(--fn-ink)]">{week.label}</span>
-            </div>
+            </WeekBar>
           );
         })}
         {weeks.length === 0 && <p className="text-sm text-[var(--fn-muted)]">No weeks in range.</p>}
