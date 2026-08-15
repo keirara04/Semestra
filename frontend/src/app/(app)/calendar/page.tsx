@@ -62,6 +62,46 @@ function monthLabel(monthAnchor: Date): string {
   return monthAnchor.toLocaleDateString(undefined, { month: "long", year: "numeric" });
 }
 
+function weekChunks<T>(items: T[]): T[][] {
+  const weeks: T[][] = [];
+  for (let i = 0; i < items.length; i += 7) weeks.push(items.slice(i, i + 7));
+  return weeks;
+}
+
+// A pen-circled date, not a UI selection ring: today gets marked the way a
+// student actually marks today on a paper planner, not highlighted the way
+// a web app highlights a selected cell. Two overlapping, slightly
+// mismatched arcs read as one imperfect hand-drawn loop, not a UI element.
+function TodayMark() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 44 30"
+      className="pointer-events-none absolute -inset-x-2.5 -inset-y-1.5 h-[calc(100%+0.75rem)] w-[calc(100%+1.25rem)] -rotate-2 text-[var(--fn-oxide)]"
+    >
+      {/* Two overlapping, mismatched loops — a quick double-circle, the
+          way a pen actually marks "today" on a paper planner, not one
+          clean vector ellipse. */}
+      <path
+        d="M7 16C5 8 13 3 23 2.5C34 2 40 7 38.5 14C37 21 29 26 20 26.5C11 27 5 23 7.5 17"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        opacity="0.9"
+      />
+      <path
+        d="M9 14C8 9 15 4.5 24 5C32 5.5 38 10 37 15.5C36 20.5 28 24.5 19 24C13 23.7 8 20 8.5 15"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+        opacity="0.55"
+      />
+    </svg>
+  );
+}
+
 // Suggested blocks get a dashed outline, committed (accepted/moved/done)
 // blocks a solid one: the distinction between "the plan suggested this"
 // and "you committed to this" is load-bearing for trust, per "Calendar
@@ -263,15 +303,18 @@ export default function CalendarPage() {
   const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set());
   const [openTasks, setOpenTasks] = useState<Task[]>([]);
   const [editingBlockId, setEditingBlockId] = useState<number | "new" | null>(null);
+  const [detailsBlockId, setDetailsBlockId] = useState<number | null>(null);
 
   useEffect(() => {
-    if (editingBlockId === null) return;
+    if (editingBlockId === null && detailsBlockId === null) return;
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setEditingBlockId(null);
+      if (event.key !== "Escape") return;
+      setEditingBlockId(null);
+      setDetailsBlockId(null);
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [editingBlockId]);
+  }, [editingBlockId, detailsBlockId]);
   const [blockForm, setBlockForm] = useState<BlockFormValues>(EMPTY_BLOCK_FORM);
   const [blockFormError, setBlockFormError] = useState<string | null>(null);
   const [blockFormSubmitting, setBlockFormSubmitting] = useState(false);
@@ -394,8 +437,28 @@ export default function CalendarPage() {
     return true;
   }
 
+  const weeks = weekChunks(gridDays);
+  const detailsBlock = blocks.find((b) => b.id === detailsBlockId) ?? null;
+
   return (
-    <main className="bg-[var(--fn-paper)] min-h-dvh w-full px-8 py-10 md:px-12">
+    <main className="relative bg-[var(--fn-paper)] min-h-dvh w-full px-8 py-10 md:pr-12 md:pl-24">
+      {/* Ring-binder margin: an oxide rule + three punched holes, the
+          same "notebook margin" motif the system already defines
+          (.fn-margin in globals.css) but built locally against this
+          block's own content height rather than a viewport-fixed
+          overlay, since that class is meant for full-page use. This is
+          the page's one signature move — the calendar reads as a loose
+          leaf in a binder, not a boxed dashboard grid. */}
+      <div className="pointer-events-none absolute top-10 bottom-10 left-12 hidden w-px bg-[var(--fn-oxide)] opacity-50 md:block" aria-hidden="true">
+        {[0.12, 0.5, 0.88].map((position) => (
+          <span
+            key={position}
+            className="absolute left-1/2 h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--fn-rule)] bg-[var(--fn-canvas)]"
+            style={{ top: `${position * 100}%` }}
+          />
+        ))}
+      </div>
+
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <p className="fn-eyebrow">{semester?.name ?? "Calendar"}</p>
@@ -443,13 +506,24 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-7 gap-px overflow-hidden rounded-md border border-[var(--fn-rule)] bg-[var(--fn-rule)]">
+      {/* Ruled like notebook paper: a horizontal rule between weeks,
+          no boxed cells and no vertical gridlines — the grid comes from
+          column alignment, not table borders. This is the deliberate
+          departure from the generic "SaaS calendar" boxed-grid default. */}
+      <div className="fn-mono mt-8 grid grid-cols-7 text-center text-[11px] tracking-widest text-[var(--fn-muted)]">
         {DAYS.map((label) => (
-          <div key={label} className="fn-eyebrow bg-[var(--fn-canvas)] px-2 py-1.5 text-center">
-            {label}
+          <div key={label} className="pb-2">
+            {label.toUpperCase()}
           </div>
         ))}
-        {gridDays.map((cellDate) => {
+      </div>
+      <div className="border-t border-[var(--fn-rule)]">
+      {weeks.map((week, weekIndex) => (
+        <div
+          key={weekIndex}
+          className={`grid grid-cols-7 ${weekIndex < weeks.length - 1 ? "border-b border-[var(--fn-rule)]" : ""}`}
+        >
+        {week.map((cellDate) => {
           const dateParam = toDateParam(cellDate);
           const day = days?.find((d) => d.date === dateParam);
           const inMonth = cellDate.getMonth() === monthAnchor.getMonth();
@@ -472,19 +546,22 @@ export default function CalendarPage() {
           return (
             <div
               key={dateParam}
-              className={`flex min-h-28 flex-col gap-1 bg-[var(--fn-paper)] p-2 ${
+              className={`flex min-h-28 flex-col gap-1 border-r border-[var(--fn-rule)]/40 p-2 last:border-r-0 ${
                 inMonth ? "" : "opacity-40"
-              } ${isToday(dateParam) ? "ring-1 ring-inset ring-[var(--fn-cobalt)]" : ""}`}
+              }`}
             >
               <div className="flex items-baseline justify-between" title={capacityReadout}>
                 {inMonth ? (
-                  <button
-                    type="button"
-                    onClick={() => startCreate(dateParam)}
-                    className="fn-mono text-xs text-[var(--fn-muted)] hover:text-[var(--fn-cobalt)] hover:underline"
-                  >
-                    {cellDate.getDate()}
-                  </button>
+                  <span className="relative inline-block">
+                    {isToday(dateParam) && <TodayMark />}
+                    <button
+                      type="button"
+                      onClick={() => startCreate(dateParam)}
+                      className="fn-mono relative text-xs text-[var(--fn-muted)] hover:text-[var(--fn-cobalt)] hover:underline"
+                    >
+                      {cellDate.getDate()}
+                    </button>
+                  </span>
                 ) : (
                   <span className="fn-mono text-xs text-[var(--fn-muted)]">{cellDate.getDate()}</span>
                 )}
@@ -495,51 +572,17 @@ export default function CalendarPage() {
               {dayBlocks.length > 0 && (
                 <div className="flex flex-col gap-1">
                   {visibleBlocks.map((block) => (
-                    <div
+                    <button
                       key={block.id}
-                      className={`flex flex-col gap-0.5 rounded px-1.5 py-1 text-[11px] ${blockStyle(block.status)}`}
+                      type="button"
+                      onClick={() => setDetailsBlockId(block.id)}
+                      className={`flex w-full flex-col gap-0.5 rounded px-1.5 py-1 text-left text-[11px] hover:brightness-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--fn-cobalt)] ${blockStyle(block.status)}`}
                     >
                       <span className="truncate font-medium">{block.title ?? "Study"}</span>
                       <span className="fn-mono">
                         {formatTime(block.start_at)}–{formatTime(block.end_at)}
                       </span>
-                      {block.status === "suggested" && (
-                        <div className="flex gap-2 pt-0.5">
-                          <button
-                            type="button"
-                            onClick={() => updateStatus(block, "accepted")}
-                            className="underline underline-offset-2"
-                          >
-                            Accept
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => updateStatus(block, "skipped")}
-                            className="underline underline-offset-2"
-                          >
-                            Skip
-                          </button>
-                        </div>
-                      )}
-                      {block.status !== "suggested" && block.type !== "lecture" && (
-                        <div className="flex gap-2 pt-0.5">
-                          <button
-                            type="button"
-                            onClick={() => startEdit(block)}
-                            className="underline underline-offset-2"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => deleteBlock(block)}
-                            className="text-[var(--fn-oxide)] underline underline-offset-2"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                    </button>
                   ))}
                   {hiddenCount > 0 && (
                     <button
@@ -555,6 +598,8 @@ export default function CalendarPage() {
             </div>
           );
         })}
+        </div>
+      ))}
       </div>
 
       {editingBlockId !== null && (
@@ -605,6 +650,113 @@ export default function CalendarPage() {
         </div>
       )}
 
+      {/* Block details: click a block to see its full info; Edit/Delete
+          only ever show up in here, never sitting exposed on the card
+          itself. */}
+      {detailsBlock && (
+        <div
+          className="fn-popup-backdrop fixed inset-0 z-40 flex items-center justify-center bg-black/30 p-4"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) setDetailsBlockId(null);
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={detailsBlock.title ?? "Block details"}
+            className="fn-popup-card w-full max-w-md rounded-lg border border-[var(--fn-rule)] bg-[var(--fn-paper)] p-6 shadow-xl"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="fn-eyebrow">{detailsBlock.type === "lecture" ? "Lecture" : detailsBlock.status === "suggested" ? "Suggested" : "Block"}</p>
+                <h2 className="mt-1 text-lg font-semibold">{detailsBlock.title ?? "Study"}</h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDetailsBlockId(null)}
+                aria-label="Close"
+                className="fn-mono text-lg leading-none text-[var(--fn-muted)] hover:text-[var(--fn-ink)]"
+              >
+                ×
+              </button>
+            </div>
+
+            <dl className="fn-mono mt-4 flex flex-col gap-2 text-sm">
+              <div className="flex gap-2">
+                <dt className="w-20 shrink-0 text-[var(--fn-muted)]">When</dt>
+                <dd>
+                  {new Date(detailsBlock.start_at).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
+                  {" · "}
+                  {formatTime(detailsBlock.start_at)}–{formatTime(detailsBlock.end_at)}
+                </dd>
+              </div>
+              {detailsBlock.location && (
+                <div className="flex gap-2">
+                  <dt className="w-20 shrink-0 text-[var(--fn-muted)]">Where</dt>
+                  <dd>{detailsBlock.location}</dd>
+                </div>
+              )}
+              {detailsBlock.description && (
+                <div className="flex gap-2">
+                  <dt className="w-20 shrink-0 text-[var(--fn-muted)]">Notes</dt>
+                  <dd className="whitespace-pre-wrap">{detailsBlock.description}</dd>
+                </div>
+              )}
+            </dl>
+
+            <div className="mt-6 flex items-center gap-3">
+              {detailsBlock.status === "suggested" && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      updateStatus(detailsBlock, "accepted");
+                      setDetailsBlockId(null);
+                    }}
+                    className="fn-btn-primary !w-fit px-4"
+                  >
+                    Accept
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      updateStatus(detailsBlock, "skipped");
+                      setDetailsBlockId(null);
+                    }}
+                    className="rounded-md border border-[var(--fn-rule)] px-4 py-2 text-sm hover:bg-[var(--fn-canvas)]"
+                  >
+                    Skip
+                  </button>
+                </>
+              )}
+              {detailsBlock.status !== "suggested" && detailsBlock.type !== "lecture" && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDetailsBlockId(null);
+                      startEdit(detailsBlock);
+                    }}
+                    className="rounded-md border border-[var(--fn-rule)] px-4 py-2 text-sm hover:bg-[var(--fn-canvas)]"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      deleteBlock(detailsBlock).then((deleted) => deleted && setDetailsBlockId(null));
+                    }}
+                    className="text-sm text-[var(--fn-oxide)] underline underline-offset-2"
+                  >
+                    Delete
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Legend: same "explain every symbol once, in one place" rule the semester map's legend follows. */}
       <div className="fn-mono mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-[var(--fn-rule)] pt-4 text-xs tracking-wide text-[var(--fn-ink)]">
         <span className="flex items-center gap-2">
@@ -620,7 +772,10 @@ export default function CalendarPage() {
           <WeekStateMarker state="busy" /> BUSY / AT RISK / CRITICAL
         </span>
         <span className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded-sm ring-1 ring-inset ring-[var(--fn-cobalt)]" /> TODAY
+          <span className="relative inline-block h-4 w-6">
+            <TodayMark />
+          </span>{" "}
+          TODAY
         </span>
       </div>
     </main>
