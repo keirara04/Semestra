@@ -230,7 +230,7 @@ export function SyllabusExtractionPanel({ courseId, materials }: { courseId: num
                       />
                       <select
                         value={candidate.type}
-                        onChange={(event) => updateAssessment(index, { type: event.target.value })}
+                        onChange={(event) => updateAssessment(index, { type: event.target.value as AssessmentCandidate["type"] })}
                         className="fn-input w-auto py-1"
                       >
                         {ASSESSMENT_TYPES.map((type) => (

@@ -32,6 +32,16 @@ class SendNotificationEmail implements ShouldQueue
             return;
         }
 
+        // Sending reminder mail to an address nobody's confirmed is how
+        // this domain's sender reputation gets bounce-listed — this is
+        // the only place the app mails a user on its own schedule
+        // (everything else is a direct response to something they did).
+        if (! $notification->user->hasVerifiedEmail()) {
+            $notification->update(['status' => 'skipped']);
+
+            return;
+        }
+
         try {
             Mail::to($notification->user->email)->send(new NotificationMail($notification));
             $notification->update(['status' => 'sent', 'sent_at' => now()]);

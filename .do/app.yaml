@@ -85,6 +85,13 @@ services:
         value: ${semestra-redis.PASSWORD}
       - key: FILESYSTEM_DISK
         value: spaces
+      # config/materials.php reads this independently of FILESYSTEM_DISK
+      # (dev defaults it to the local "public" disk so uploads work
+      # without Spaces credentials) — without this, production uploads
+      # silently fall back to "public" too: a world-readable disk with no
+      # signed-URL protection.
+      - key: MATERIALS_DISK
+        value: spaces
       - key: DO_SPACES_KEY
         type: SECRET
       - key: DO_SPACES_SECRET
@@ -95,8 +102,75 @@ services:
         type: SECRET
       - key: DO_SPACES_BUCKET
         type: SECRET
-      - key: OPENAI_API_KEY
+      # config/services.php reads OPENROUTER_API_KEY, not OPENAI_API_KEY —
+      # this app calls OpenRouter, not OpenAI's API directly.
+      - key: OPENROUTER_API_KEY
         type: SECRET
+      - key: QUEUE_CONNECTION
+        value: redis
+      - key: CACHE_STORE
+        value: redis
+      - key: MAIL_MAILER
+        value: smtp
+      - key: MAIL_HOST
+        type: SECRET
+      - key: MAIL_PORT
+        type: SECRET
+      - key: MAIL_USERNAME
+        type: SECRET
+      - key: MAIL_PASSWORD
+        type: SECRET
+      - key: MAIL_ENCRYPTION
+        value: tls
+      - key: MAIL_FROM_ADDRESS
+        type: SECRET
+      - key: MAIL_FROM_NAME
+        value: Semestra
+
+  - name: scheduler
+    github:
+      repo: keirara04/Semestra
+      branch: main
+      deploy_on_push: true
+    source_dir: backend
+    dockerfile_path: backend/Dockerfile
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+    # Laravel's own scheduler dispatches routes/console.php's registered
+    # commands (planning:run-nightly, notifications:generate,
+    # reviews:generate-weekly, google-calendar:sync) at their configured
+    # times — nothing else in this spec ever invokes them, so without this
+    # worker they're dead code that happens to have tests.
+    run_command: php artisan schedule:work
+    envs:
+      - key: APP_ENV
+        value: production
+      - key: APP_KEY
+        type: SECRET
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        value: ${semestra-db.HOSTNAME}
+      - key: DB_PORT
+        value: ${semestra-db.PORT}
+      - key: DB_DATABASE
+        value: ${semestra-db.DATABASE}
+      - key: DB_USERNAME
+        value: ${semestra-db.USERNAME}
+      - key: DB_PASSWORD
+        type: SECRET
+        value: ${semestra-db.PASSWORD}
+      - key: REDIS_HOST
+        value: ${semestra-redis.HOSTNAME}
+      - key: REDIS_PORT
+        value: ${semestra-redis.PORT}
+      - key: REDIS_PASSWORD
+        type: SECRET
+        value: ${semestra-redis.PASSWORD}
+      - key: QUEUE_CONNECTION
+        value: redis
+      - key: CACHE_STORE
+        value: redis
 
   - name: queue
     github:
@@ -133,6 +207,10 @@ services:
       - key: REDIS_PASSWORD
         type: SECRET
         value: ${semestra-redis.PASSWORD}
+      - key: QUEUE_CONNECTION
+        value: redis
+      - key: CACHE_STORE
+        value: redis
 
 jobs:
   - name: migrate

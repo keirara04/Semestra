@@ -17,6 +17,7 @@ class UpdateProfileRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'name' => ['sometimes', 'string', 'max:255'],
             'timezone' => ['sometimes', 'string', 'timezone'],
             'max_study_hours_per_day' => ['sometimes', 'integer', 'min:1', 'max:24'],
             'grade_scale' => ['sometimes', 'string', 'max:20'],

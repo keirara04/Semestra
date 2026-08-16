@@ -726,34 +726,44 @@ function CalendarPageInner() {
     if (mobileViewInitialized.current) return;
     mobileViewInitialized.current = true;
     if (window.matchMedia("(max-width: 767px)").matches) {
+      // Deliberately deferred to post-mount (see comment on `view` above) —
+      // matchMedia isn't available during SSR/first paint, so this can't be
+      // a lazy useState initializer without hydration mismatch.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setView("day");
     }
   }, []);
 
   const anyPopupOpen = editingBlockId !== null || detailsBlockId !== null || detailsOccurrence !== null || suggestions !== null;
 
-  useEffect(() => {
+  // Selecting (or deselecting) a block/occurrence always starts its details
+  // popup on the read-only view, never mid-edit from whatever the last
+  // selection left behind — bundled into the same setter that changes the
+  // selection itself, rather than a separate effect reacting to it.
+  function selectBlock(id: number | null) {
+    setDetailsBlockId(id);
     setEditingDescription(false);
     setDescriptionDraft("");
     setReminderEnabled(false);
     setReminderMinutes(15);
-  }, [detailsBlockId]);
+  }
 
-  useEffect(() => {
+  function selectOccurrence(occurrence: CalendarOccurrence | null) {
+    setDetailsOccurrence(occurrence);
     setEditingOccurrenceDescription(false);
     setOccurrenceDescriptionDraft("");
     setOccurrenceReminderEnabled(false);
     setOccurrenceReminderMinutes(15);
     setOccurrenceReminderRecurring(false);
-  }, [detailsOccurrence]);
+  }
 
   useEffect(() => {
     if (!anyPopupOpen) return;
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key !== "Escape") return;
       setEditingBlockId(null);
-      setDetailsBlockId(null);
-      setDetailsOccurrence(null);
+      selectBlock(null);
+      selectOccurrence(null);
       setSuggestions(null);
     }
     window.addEventListener("keydown", handleKeyDown);
@@ -1452,7 +1462,7 @@ function CalendarPageInner() {
                         <button
                           type="button"
                           key={`${occurrence.source}-${occurrence.sourceId}-${occurrence.date}`}
-                          onClick={() => setDetailsOccurrence(occurrence)}
+                          onClick={() => selectOccurrence(occurrence)}
                           title={occurrence.location ? `${occurrence.title} · ${occurrence.location}` : occurrence.title}
                           className={`flex w-full flex-col gap-0.5 rounded px-1.5 py-1 text-left text-[11px] hover:brightness-95 ${occurrenceStyle(occurrence.source)}`}
                         >
@@ -1471,7 +1481,7 @@ function CalendarPageInner() {
                         <DraggableBlock
                           key={block.id}
                           block={block}
-                          onClick={() => setDetailsBlockId(block.id)}
+                          onClick={() => selectBlock(block.id)}
                           displayTimezone={displayTimezone}
                           className={`relative flex w-full flex-col gap-0.5 rounded px-1.5 py-1 text-left text-[11px] hover:brightness-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--fn-cobalt)] ${blockStyle(block)} ${isBlockDraggable(block) ? "cursor-grab active:cursor-grabbing" : ""}`}
                         >
@@ -1567,7 +1577,7 @@ function CalendarPageInner() {
                           type="button"
                           data-block-drag
                           key={`${occurrence.source}-${occurrence.sourceId}-${occurrence.date}`}
-                          onClick={() => setDetailsOccurrence(occurrence)}
+                          onClick={() => selectOccurrence(occurrence)}
                           title={occurrence.location ? `${occurrence.title} · ${occurrence.location}` : occurrence.title}
                           style={{ top, height }}
                           className={`absolute left-0 right-0 overflow-hidden rounded px-1.5 py-1 text-left text-[11px] hover:brightness-95 ${occurrenceStyle(occurrence.source)}`}
@@ -1599,7 +1609,7 @@ function CalendarPageInner() {
                         <DraggableBlock
                           key={block.id}
                           block={block}
-                          onClick={() => setDetailsBlockId(block.id)}
+                          onClick={() => selectBlock(block.id)}
                           displayTimezone={displayTimezone}
                           style={{
                             top,
@@ -1681,7 +1691,7 @@ function CalendarPageInner() {
         <div
           className="fn-popup-backdrop fixed inset-0 z-40 flex items-center justify-center bg-black/30 p-4"
           onClick={(event) => {
-            if (event.target === event.currentTarget) setDetailsBlockId(null);
+            if (event.target === event.currentTarget) selectBlock(null);
           }}
         >
           <div
@@ -1697,7 +1707,7 @@ function CalendarPageInner() {
               </div>
               <button
                 type="button"
-                onClick={() => setDetailsBlockId(null)}
+                onClick={() => selectBlock(null)}
                 aria-label="Close"
                 className="fn-mono text-lg leading-none text-[var(--fn-muted)] hover:text-[var(--fn-ink)]"
               >
@@ -1837,7 +1847,7 @@ function CalendarPageInner() {
                     type="button"
                     onClick={() => {
                       updateStatus(detailsBlock, "accepted");
-                      setDetailsBlockId(null);
+                      selectBlock(null);
                     }}
                     className="fn-btn-primary !w-fit px-4"
                   >
@@ -1847,7 +1857,7 @@ function CalendarPageInner() {
                     type="button"
                     onClick={() => {
                       updateStatus(detailsBlock, "skipped");
-                      setDetailsBlockId(null);
+                      selectBlock(null);
                     }}
                     className="rounded-md border border-[var(--fn-rule)] px-4 py-2 text-sm hover:bg-[var(--fn-canvas)]"
                   >
@@ -1860,7 +1870,7 @@ function CalendarPageInner() {
                   <button
                     type="button"
                     onClick={() => {
-                      setDetailsBlockId(null);
+                      selectBlock(null);
                       startEdit(detailsBlock);
                     }}
                     className="rounded-md border border-[var(--fn-rule)] px-4 py-2 text-sm hover:bg-[var(--fn-canvas)]"
@@ -1869,7 +1879,7 @@ function CalendarPageInner() {
                   </button>
                   <DeleteBlockControls
                     block={detailsBlock}
-                    onDelete={(scope) => deleteBlock(detailsBlock, scope).then((deleted) => deleted && setDetailsBlockId(null))}
+                    onDelete={(scope) => deleteBlock(detailsBlock, scope).then((deleted) => deleted && selectBlock(null))}
                   />
                 </>
               )}
@@ -1889,7 +1899,7 @@ function CalendarPageInner() {
         <div
           className="fn-popup-backdrop fixed inset-0 z-40 flex items-center justify-center bg-black/30 p-4"
           onClick={(event) => {
-            if (event.target === event.currentTarget) setDetailsOccurrence(null);
+            if (event.target === event.currentTarget) selectOccurrence(null);
           }}
         >
           <div
@@ -1907,7 +1917,7 @@ function CalendarPageInner() {
               </div>
               <button
                 type="button"
-                onClick={() => setDetailsOccurrence(null)}
+                onClick={() => selectOccurrence(null)}
                 aria-label="Close"
                 className="fn-mono text-lg leading-none text-[var(--fn-muted)] hover:text-[var(--fn-ink)]"
               >

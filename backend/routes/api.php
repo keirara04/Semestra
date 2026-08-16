@@ -12,6 +12,7 @@ use App\Http\Controllers\ClassSessionExceptionController;
 use App\Http\Controllers\CommitmentController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\CourseGradesController;
+use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\ExamReadinessController;
 use App\Http\Controllers\GoogleCalendarCallbackController;
 use App\Http\Controllers\GoogleCalendarConnectController;
@@ -55,6 +56,14 @@ Route::get('/materials/{material}/stream', [MaterialController::class, 'stream']
     ->middleware('signed')
     ->name('materials.stream');
 
+// Email verification link: opened from a mail client with no session, so
+// the signature is the auth, not auth:sanctum. Covers both a fresh
+// signup and an email-change confirmation — see
+// EmailVerificationController and User::sendEmailVerificationNotification().
+Route::get('/email/verify/{user}/{hash}', [EmailVerificationController::class, 'verify'])
+    ->middleware('signed')
+    ->name('email.verify');
+
 // Google OAuth callback: outside auth:sanctum on purpose — see
 // GoogleCalendarConnectController's docblock. The redirect arrives from
 // accounts.google.com, so Sanctum's stateful-domain check would reject
@@ -78,9 +87,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
-    // Settings, see "Settings" in mdfile/DESIGN.md.
+    // Settings, see "Settings" in mdfile/DESIGN.md. Preferences (incl.
+    // name) vs. credentials (email, password) are separate endpoints —
+    // see ProfileController's docblock for why. Both credential routes
+    // and destroy() are throttled: current_password re-auth makes each
+    // one a password oracle if a hijacked session could hammer it freely.
     Route::patch('/user', [ProfileController::class, 'update']);
-    Route::delete('/user', [ProfileController::class, 'destroy']);
+    Route::patch('/user/email', [ProfileController::class, 'updateEmail'])->middleware('throttle:6,1');
+    Route::delete('/user/email', [ProfileController::class, 'cancelPendingEmail']);
+    Route::patch('/user/password', [ProfileController::class, 'updatePassword'])->middleware('throttle:6,1');
+    Route::post('/email/verification/resend', [EmailVerificationController::class, 'resend'])->middleware('throttle:6,1');
+    Route::delete('/user', [ProfileController::class, 'destroy'])->middleware('throttle:6,1');
 
     // Foundation Phase 1: Core data model. Route-model binding is
     // automatically owner-scoped by BelongsToUser's global scope; the

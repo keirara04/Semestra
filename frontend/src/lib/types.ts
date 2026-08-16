@@ -1,12 +1,25 @@
+export interface DeepWorkWindow {
+  start: string; // "HH:MM"
+  end: string; // "HH:MM"
+}
+
+export interface QuietHours {
+  start: string; // "HH:MM"
+  end: string; // "HH:MM"
+}
+
 export interface User {
   id: number;
   name: string;
   email: string;
+  pending_email: string | null;
+  email_verified_at: string | null;
   timezone: string;
   max_study_hours_per_day: number;
-  deep_work_windows: unknown | null;
-  quiet_hours: unknown | null;
+  deep_work_windows: DeepWorkWindow[] | null;
+  quiet_hours: QuietHours | null;
   grade_scale: string;
+  ai_syllabus_extraction_consent_at: string | null;
 }
 
 export interface Semester {
@@ -178,6 +191,7 @@ export interface TodayTask {
   remaining_estimate_minutes: number | null;
   course_title: string;
   course_colour: string;
+  reasons: string[];
 }
 
 export interface Today {
@@ -243,4 +257,128 @@ export interface Task {
   remaining_estimate_minutes: number | null;
   status: TaskStatus;
   due_at: string | null;
+}
+
+export type MaterialType = "slide" | "pdf" | "reading" | "recording" | "link";
+
+export interface Material {
+  id: number;
+  course_id: number;
+  type: MaterialType;
+  title: string;
+  disk: string;
+  path: string | null;
+  url: string | null;
+  week: number | null;
+  mime_type: string | null;
+  size_bytes: number | null;
+  file_url: string | null;
+}
+
+export type NoteType = "general" | "exam" | "concept" | "question" | "formula";
+
+export interface MaterialNote {
+  id: number;
+  material_id: number;
+  page_number: number | null;
+  title: string | null;
+  content: string;
+  note_type: NoteType;
+}
+
+export interface UserMaterialState {
+  material_id: number;
+  last_opened_at: string | null;
+  last_page: number | null;
+  zoom: string | number | null;
+}
+
+export type AnnotationType = "drawing" | "highlight" | "text";
+
+export interface AnnotationData {
+  points?: [number, number][];
+  stroke_width?: number;
+  color?: string;
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  opacity?: number;
+  text?: string;
+  font_size?: number;
+}
+
+export interface Annotation {
+  id: string;
+  material_id: number;
+  page_number: number;
+  type: AnnotationType;
+  data: AnnotationData;
+  updated_at?: string;
+}
+
+import type { Confidence } from "@/components/Confidence";
+
+export interface Topic {
+  id: number;
+  course_id: number;
+  title: string;
+  confidence: Confidence;
+  review_stage: number;
+  last_reviewed_at: string | null;
+  next_review_at: string | null;
+  missed_decay_applied_at: string | null;
+  assessments?: Assessment[];
+  materials?: Material[];
+}
+
+export interface ExamReadiness {
+  readiness_percent: number | null;
+  target_minutes_remaining: number;
+  suggested_pace_minutes_per_day: number | null;
+  days_remaining: number;
+  topics: { id: number; title: string; confidence: Confidence }[];
+}
+
+export type WeekRisk = "comfortable" | "busy" | "at_risk" | "critical";
+
+export interface WeeklyReview {
+  id: number;
+  week_start_date: string;
+  planned_minutes: number;
+  completed_minutes: number;
+  cause_breakdown: Record<string, number> | null;
+  next_week_risk: WeekRisk;
+}
+
+export type CandidateConfidence = "low" | "medium" | "high";
+
+export interface AssessmentCandidate {
+  title: string;
+  type: AssessmentType;
+  due_date: string | null;
+  source_fragment: string;
+  confidence: CandidateConfidence;
+}
+
+export interface TaskCandidate {
+  title: string;
+  estimated_minutes: number | null;
+  source_fragment: string;
+  confidence: CandidateConfidence;
+}
+
+export type SyllabusDraftStatus = "pending" | "confirmed" | "discarded";
+
+export interface SyllabusDraft {
+  id: number;
+  course_id: number;
+  material_id: number | null;
+  status: SyllabusDraftStatus;
+  candidates: {
+    assessments: AssessmentCandidate[];
+    tasks: TaskCandidate[];
+  };
+  model: string | null;
+  applied_at: string | null;
 }

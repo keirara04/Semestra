@@ -33,7 +33,10 @@ class MaterialController extends Controller
 
             $attributes['disk'] = $disk;
             $attributes['path'] = $path;
-            $attributes['mime_type'] = $file->getClientMimeType();
+            // Server-detected from the file's actual bytes, not
+            // getClientMimeType() — that reads the browser-supplied
+            // Content-Type header, which the uploader fully controls.
+            $attributes['mime_type'] = $file->getMimeType();
             $attributes['size_bytes'] = $file->getSize();
         }
 
@@ -111,6 +114,13 @@ class MaterialController extends Controller
         abort_unless($request->hasValidSignature(), 403);
         abort_unless($material->disk && $material->path, 404);
 
-        return Storage::disk($material->disk)->response($material->path);
+        return Storage::disk($material->disk)->response($material->path, headers: [
+            // Belt-and-suspenders alongside the upload-time mimes/mimetypes
+            // check: even an allowed type (e.g. an svg-like edge case)
+            // can't be interpreted as something else by the browser, and
+            // can't execute inline in this response.
+            'X-Content-Type-Options' => 'nosniff',
+            'Content-Security-Policy' => "default-src 'none'",
+        ]);
     }
 }

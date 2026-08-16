@@ -33,6 +33,10 @@ interface AuthContextValue {
   updateProfile: (input: Partial<User>) => Promise<void>;
   deleteAccount: (password: string) => Promise<void>;
   setAiConsent: (enabled: boolean) => Promise<void>;
+  updateEmail: (email: string, currentPassword: string) => Promise<void>;
+  cancelPendingEmail: () => Promise<void>;
+  updatePassword: (currentPassword: string, password: string, passwordConfirmation: string) => Promise<void>;
+  resendVerificationEmail: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -118,9 +122,57 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser((current) => (current ? { ...current, ...result } : current));
   }, []);
 
+  // Writes pending_email only — email itself doesn't change until the
+  // link mailed to the new address is clicked, so this never logs the
+  // current session out or changes what /api/user returns for `email`.
+  const updateEmail = useCallback(async (email: string, currentPassword: string) => {
+    const updated = await apiFetch<User>("/api/user/email", {
+      method: "PATCH",
+      body: JSON.stringify({ email, current_password: currentPassword }),
+    });
+    setUser(updated);
+  }, []);
+
+  const cancelPendingEmail = useCallback(async () => {
+    const updated = await apiFetch<User>("/api/user/email", { method: "DELETE" });
+    setUser(updated);
+  }, []);
+
+  const updatePassword = useCallback(
+    async (currentPassword: string, password: string, passwordConfirmation: string) => {
+      const updated = await apiFetch<User>("/api/user/password", {
+        method: "PATCH",
+        body: JSON.stringify({
+          current_password: currentPassword,
+          password,
+          password_confirmation: passwordConfirmation,
+        }),
+      });
+      setUser(updated);
+    },
+    [],
+  );
+
+  const resendVerificationEmail = useCallback(async () => {
+    await apiFetch("/api/email/verification/resend", { method: "POST" });
+  }, []);
+
   return (
     <AuthContext.Provider
-      value={{ user, loading, register, login, logout, updateProfile, deleteAccount, setAiConsent }}
+      value={{
+        user,
+        loading,
+        register,
+        login,
+        logout,
+        updateProfile,
+        deleteAccount,
+        setAiConsent,
+        updateEmail,
+        cancelPendingEmail,
+        updatePassword,
+        resendVerificationEmail,
+      }}
     >
       {children}
     </AuthContext.Provider>

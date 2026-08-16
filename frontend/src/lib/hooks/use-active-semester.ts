@@ -35,17 +35,6 @@ export function useActiveSemester() {
     return resolveActiveSemester(semesters, paramId ?? storedId);
   }, [semesters, paramId, storedId]);
 
-  // The param can point at an id that turned out not to exist (deleted term,
-  // link copied between accounts) — once semesters have loaded, normalize
-  // the URL to what's actually being shown so it doesn't keep pointing at
-  // a ghost id.
-  useEffect(() => {
-    if (!semesters || !activeSemester) return;
-    if (paramId && Number(paramId) !== activeSemester.id) {
-      setActiveSemester(activeSemester.id);
-    }
-  }, [semesters, activeSemester, paramId]); // eslint-disable-line react-hooks/exhaustive-deps
-
   const setActiveSemester = useCallback(
     (id: number) => {
       window.localStorage.setItem(STORAGE_KEY, String(id));
@@ -55,6 +44,17 @@ export function useActiveSemester() {
     },
     [router, pathname, searchParams],
   );
+
+  // The param can point at an id that turned out not to exist (deleted term,
+  // link copied between accounts) — once semesters have loaded, normalize
+  // the URL to what's actually being shown so it doesn't keep pointing at
+  // a ghost id.
+  useEffect(() => {
+    if (!semesters || !activeSemester) return;
+    if (paramId && Number(paramId) !== activeSemester.id) {
+      setActiveSemester(activeSemester.id);
+    }
+  }, [semesters, activeSemester, paramId, setActiveSemester]);
 
   return {
     semesters: semesters ?? [],
