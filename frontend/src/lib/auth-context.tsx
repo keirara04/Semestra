@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { ApiError, apiFetch, getCsrfCookie, onUnauthorized } from "@/lib/api";
+import { ApiError, apiFetch, getCsrfCookie, logApiError, onUnauthorized } from "@/lib/api";
 import { UserSchema, type User } from "@/lib/types";
 
 interface RegisterInput {
@@ -58,10 +58,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
       .catch((error) => {
         if (ignore) return;
-        if (error instanceof ApiError && error.status === 401) {
-          setUser(null);
-        } else {
-          throw error;
+        // Any failure here — 401, 429 throttled, 500, a dropped connection —
+        // means we don't know who's logged in, so fail closed (treat as
+        // logged out) rather than rethrow: this runs on mount, unguarded by
+        // any caller's try/catch, so rethrowing here was an unhandled
+        // promise rejection that crashed the whole app on anything but a 401.
+        setUser(null);
+        if (!(error instanceof ApiError && error.status === 401)) {
+          logApiError(error);
         }
       })
       .finally(() => {
