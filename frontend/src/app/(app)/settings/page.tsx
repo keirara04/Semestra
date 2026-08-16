@@ -1,10 +1,45 @@
 "use client";
 
-import { Suspense, useEffect, useState, type FormEvent } from "react";
+import { Suspense, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Bell, Bot, CalendarDays, Clock, GraduationCap, TriangleAlert } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { ApiError, apiFetch, API_URL } from "@/lib/api";
 import type { DeepWorkWindow, User } from "@/lib/types";
+
+// Each preference group reads as its own ledger card (border + faint
+// canvas fill, same language courses/deliverable rows already use) with
+// a small line icon next to its eyebrow — replaces the old flat
+// border-t-divided list, which gave every section (Planning, Academic,
+// AI, danger-zone delete) equal visual weight regardless of how
+// different they actually are.
+function SettingsSection({
+  icon: Icon,
+  title,
+  danger,
+  children,
+}: {
+  icon: typeof Clock;
+  title: string;
+  danger?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <section
+      className={
+        danger
+          ? "flex flex-col gap-4 rounded-lg border border-[var(--fn-oxide)]/30 bg-[var(--fn-oxide)]/[0.04] p-5"
+          : "flex flex-col gap-4 rounded-lg border border-[var(--fn-rule)] bg-[var(--fn-canvas)]/40 p-5"
+      }
+    >
+      <p className="fn-eyebrow flex items-center gap-1.5">
+        <Icon className="h-3.5 w-3.5" strokeWidth={2} />
+        {title}
+      </p>
+      {children}
+    </section>
+  );
+}
 
 // Settings, see "Settings" in mdfile/DESIGN.md. Only fields that exist
 // and are actually read by something are editable here: deep-work windows
@@ -129,9 +164,8 @@ function SettingsForm({
       <p className="fn-eyebrow">Settings</p>
       <h1 className="mt-1 text-2xl font-semibold">Preferences</h1>
 
-      <form onSubmit={handleSave} className="mt-8 flex flex-col gap-8">
-        <section className="flex flex-col gap-4">
-          <p className="fn-eyebrow">Planning</p>
+      <form onSubmit={handleSave} className="mt-8 flex max-w-2xl flex-col gap-6">
+        <SettingsSection icon={Clock} title="Planning">
           <label className="flex flex-col gap-1.5">
             <span className="fn-label">Max study hours per day</span>
             <input
@@ -191,10 +225,9 @@ function SettingsForm({
               Add window
             </button>
           </div>
-        </section>
+        </SettingsSection>
 
-        <section className="flex flex-col gap-4 border-t border-[var(--fn-rule)] pt-6">
-          <p className="fn-eyebrow">Academic</p>
+        <SettingsSection icon={GraduationCap} title="Academic">
           <label className="flex flex-col gap-1.5">
             <span className="fn-label">Timezone</span>
             <input
@@ -213,10 +246,9 @@ function SettingsForm({
               placeholder="4.0"
             />
           </label>
-        </section>
+        </SettingsSection>
 
-        <section className="flex flex-col gap-4 border-t border-[var(--fn-rule)] pt-6">
-          <p className="fn-eyebrow">Notifications</p>
+        <SettingsSection icon={Bell} title="Notifications">
           <div className="flex items-center gap-2">
             <label className="flex flex-col gap-1.5">
               <span className="fn-label">Quiet hours start</span>
@@ -240,7 +272,7 @@ function SettingsForm({
           <p className="text-xs text-[var(--fn-muted)]">
             Reminder emails are delayed until quiet hours end.
           </p>
-        </section>
+        </SettingsSection>
 
         {error && (
           <p role="alert" className="text-sm text-[var(--fn-oxide)]">
@@ -258,8 +290,8 @@ function SettingsForm({
         </div>
       </form>
 
-      <section className="mt-10 flex flex-col gap-3 border-t border-[var(--fn-rule)] pt-6">
-        <p className="fn-eyebrow">AI</p>
+      <div className="mt-6 flex max-w-2xl flex-col gap-6">
+      <SettingsSection icon={Bot} title="AI">
         <p className="text-xs text-[var(--fn-muted)]">
           Off by default. When enabled, a syllabus you paste or upload is sent to an AI provider
           to draft candidate assessments and tasks. Nothing is saved until you review and
@@ -279,15 +311,13 @@ function SettingsForm({
             {aiBudget.remaining} of {aiBudget.limit} extractions left today.
           </p>
         )}
-      </section>
+      </SettingsSection>
 
       <Suspense fallback={null}>
         <GoogleCalendarSection />
       </Suspense>
 
-      <section className="mt-10 flex flex-col gap-3 border-t border-[var(--fn-rule)] pt-6">
-        <p className="fn-eyebrow">Data</p>
-
+      <SettingsSection icon={TriangleAlert} title="Data" danger>
         {!confirmingDelete ? (
           <button
             type="button"
@@ -339,7 +369,8 @@ function SettingsForm({
             </div>
           </form>
         )}
-      </section>
+      </SettingsSection>
+      </div>
     </main>
   );
 }
@@ -401,8 +432,7 @@ function GoogleCalendarSection() {
   }
 
   return (
-    <section className="mt-10 flex flex-col gap-3 border-t border-[var(--fn-rule)] pt-6">
-      <p className="fn-eyebrow">Google Calendar</p>
+    <SettingsSection icon={CalendarDays} title="Google Calendar">
       <p className="text-xs text-[var(--fn-muted)]">
         Two-way sync with one Google Calendar: events from Google show up here, and study/commitment
         blocks you accept here show up in Google.
@@ -450,6 +480,6 @@ function GoogleCalendarSection() {
           Connect Google Calendar
         </a>
       )}
-    </section>
+    </SettingsSection>
   );
 }

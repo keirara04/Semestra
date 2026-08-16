@@ -25,6 +25,9 @@ class ClassSessionRequest extends FormRequest
             'start_time' => [$required, 'date_format:H:i'],
             'end_time' => [$required, 'date_format:H:i', 'after:start_time'],
             'location' => ['nullable', 'string', 'max:255'],
+            'description' => ['nullable', 'string', 'max:2000'],
+            'remind_minutes_before' => ['nullable', 'integer', 'min:0', 'max:10080'],
+            'remind_recurring' => ['sometimes', 'boolean'],
         ];
     }
 }

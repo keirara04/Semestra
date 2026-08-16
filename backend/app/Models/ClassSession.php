@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['course_id', 'type', 'day_of_week', 'start_time', 'end_time', 'location'])]
+#[Fillable(['course_id', 'type', 'day_of_week', 'start_time', 'end_time', 'location', 'description', 'remind_minutes_before', 'remind_recurring'])]
 class ClassSession extends Model
 {
     use BelongsToUser, HasFactory;
@@ -18,6 +18,8 @@ class ClassSession extends Model
     {
         return [
             'day_of_week' => 'integer',
+            'remind_minutes_before' => 'integer',
+            'remind_recurring' => 'boolean',
         ];
     }
 

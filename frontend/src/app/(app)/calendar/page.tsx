@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Suspense,
   useEffect,
   useMemo,
   useRef,
@@ -21,12 +22,36 @@ import {
 } from "@dnd-kit/core";
 import { Check, ChevronLeft, ChevronRight, PenLine, Plus, RefreshCw, Search, X } from "lucide-react";
 import { apiFetch, ApiError } from "@/lib/api";
-import type { CalendarBlock, DayCapacity, Semester, Task } from "@/lib/types";
+import type { CalendarBlock, ClassSession, DayCapacity, Task } from "@/lib/types";
 import { WeekStateMarker, weekState } from "@/components/WeekState";
-import { pickCurrentSemester } from "@/lib/semester";
+import { useActiveSemester } from "@/lib/hooks/use-active-semester";
 import { formatMinutes } from "@/lib/format";
+import {
+  TIMELINE_START_HOUR,
+  TIMELINE_END_HOUR,
+  HOUR_HEIGHT_PX,
+  timelineHours,
+  hourLabel,
+  occurrenceStyle,
+  occurrenceTimelinePosition,
+  type TimelinePosition,
+  type CalendarOccurrence,
+} from "@/lib/timeline";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+// Presets are offsets from the block's current start_at, picked at
+// selection time and stored as an absolute remind_at — moving the block
+// afterward does not recompute it. null = no reminder.
+const REMINDER_PRESETS: { label: string; minutes: number | null }[] = [
+  { label: "None", minutes: null },
+  { label: "At start time", minutes: 0 },
+  { label: "5 minutes before", minutes: 5 },
+  { label: "15 minutes before", minutes: 15 },
+  { label: "30 minutes before", minutes: 30 },
+  { label: "1 hour before", minutes: 60 },
+  { label: "1 day before", minutes: 1440 },
+];
 
 function startOfWeek(date: Date): Date {
   const day = date.getDay();
@@ -65,8 +90,15 @@ function monthGridDays(monthAnchor: Date): Date[] {
   return days;
 }
 
+// Local Y-m-d, not toISOString().slice(0, 10) — toISOString() converts to
+// UTC first, so for any timezone ahead of UTC (Korea, +9, among others) a
+// local midnight rolls back to the previous UTC day, silently shifting
+// every date-keyed lookup (occurrences, blocks, capacity) back by one day.
 function toDateParam(date: Date): string {
-  return date.toISOString().slice(0, 10);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function isToday(dateString: string): boolean {
@@ -348,25 +380,6 @@ function DroppableZone({
   );
 }
 
-// Week/day timeline geometry: a fixed 7am–10pm window covers the vast
-// majority of study blocks without scrolling; blocks outside it clip at
-// the edge rather than growing the grid for a rare 6am or midnight entry.
-const TIMELINE_START_HOUR = 7;
-const TIMELINE_END_HOUR = 22;
-const HOUR_HEIGHT_PX = 48;
-
-function timelineHours(): number[] {
-  const hours: number[] = [];
-  for (let h = TIMELINE_START_HOUR; h <= TIMELINE_END_HOUR; h++) hours.push(h);
-  return hours;
-}
-
-function hourLabel(hour: number): string {
-  const period = hour < 12 ? "AM" : "PM";
-  const displayHour = hour % 12 === 0 ? 12 : hour % 12;
-  return `${displayHour} ${period}`;
-}
-
 // Minutes since TIMELINE_START_HOUR:00, clamped to the visible window —
 // the geometry input shared by both the pixel-position calc and the
 // column-packing algorithm below.
@@ -376,11 +389,6 @@ function timelineMinutes(iso: string): number {
   const startMinutes = TIMELINE_START_HOUR * 60;
   const endMinutes = TIMELINE_END_HOUR * 60;
   return Math.min(Math.max(minutes, startMinutes), endMinutes) - startMinutes;
-}
-
-interface TimelinePosition {
-  top: number;
-  height: number;
 }
 
 function timelineBlockPosition(block: CalendarBlock): TimelinePosition {
@@ -441,46 +449,11 @@ function layoutDayBlocks(dayBlocks: CalendarBlock[]): LaidOutBlock[] {
   return placed.map(({ block, column }) => ({ block, column, columns }));
 }
 
-// Virtual occurrences from /api/calendar/occurrences — expanded
-// ClassSession/Commitment rows, not real CalendarBlocks. Read-only on the
-// grid: managed from Settings/Courses, not editable here (see Phase 4a
-// scoping in the calendar roadmap plan).
-interface CalendarOccurrence {
-  source: "class_session" | "commitment";
-  sourceId: number;
-  date: string;
-  startTime: string;
-  endTime: string;
-  title: string;
-  location: string | null;
-  type: string;
-}
-
-function occurrenceStyle(source: CalendarOccurrence["source"]): string {
-  if (source === "class_session") {
-    return "border border-[var(--fn-sage)] bg-[var(--fn-sage)]/10 text-[var(--fn-sage)]";
-  }
-  return "border border-[var(--fn-ochre)] bg-[var(--fn-ochre)]/10 text-[var(--fn-ochre)]";
-}
-
-// Same clamped-minutes-since-TIMELINE_START idea as timelineMinutes(),
-// for occurrences that only carry a plain "HH:mm" time rather than a
-// full ISO instant.
-function timelineMinutesFromTime(time: string): number {
-  const [hourStr, minuteStr] = time.split(":");
-  const minutes = Number(hourStr) * 60 + Number(minuteStr);
-  const startMinutes = TIMELINE_START_HOUR * 60;
-  const endMinutes = TIMELINE_END_HOUR * 60;
-  return Math.min(Math.max(minutes, startMinutes), endMinutes) - startMinutes;
-}
-
-function occurrenceTimelinePosition(occurrence: CalendarOccurrence): TimelinePosition {
-  const top = (timelineMinutesFromTime(occurrence.startTime) / 60) * HOUR_HEIGHT_PX;
-  const rawStart = timelineMinutesFromTime(occurrence.startTime);
-  const rawEnd = timelineMinutesFromTime(occurrence.endTime);
-  const height = Math.max(((rawEnd - rawStart) / 60) * HOUR_HEIGHT_PX, 18);
-  return { top, height };
-}
+// CalendarOccurrence, occurrenceStyle, timelineMinutesFromTime, and
+// occurrenceTimelinePosition now live in @/lib/timeline (shared with the
+// Dashboard TimetableWidget). Occurrences are read-only on this grid:
+// managed from Settings/Courses, not editable here (see Phase 4a scoping
+// in the calendar roadmap plan).
 
 interface PlanSuggestionItem {
   taskId: number;
@@ -690,16 +663,48 @@ function BlockForm({
 
 // Calendar month grid, see "Calendar view" in mdfile/DESIGN.md.
 export default function CalendarPage() {
+  return (
+    <Suspense fallback={null}>
+      <CalendarPageInner />
+    </Suspense>
+  );
+}
+
+function CalendarPageInner() {
   const [view, setView] = useState<CalendarView>("month");
+  // "Week view (default on desktop) ... Day view (default on mobile,
+  // reachable from week view by tapping a day)" — DESIGN.md's "Calendar
+  // view". A 7-column month grid on a phone-width screen is unreadable;
+  // this runs post-mount (not in the useState initializer) so server and
+  // first client render still agree and don't hydration-mismatch.
+  const mobileViewInitialized = useRef(false);
   const [anchorDate, setAnchorDate] = useState(() => startOfMonth(new Date()));
   const [days, setDays] = useState<DayCapacity[] | null>(null);
   const [blocks, setBlocks] = useState<CalendarBlock[]>([]);
   const [occurrences, setOccurrences] = useState<CalendarOccurrence[]>([]);
-  const [semester, setSemester] = useState<Semester | null>(null);
+  const { activeSemester: semester } = useActiveSemester();
   const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set());
   const [openTasks, setOpenTasks] = useState<Task[]>([]);
   const [editingBlockId, setEditingBlockId] = useState<number | "new" | null>(null);
   const [detailsBlockId, setDetailsBlockId] = useState<number | null>(null);
+  const [editingDescription, setEditingDescription] = useState(false);
+  const [descriptionDraft, setDescriptionDraft] = useState("");
+  const [savingDescription, setSavingDescription] = useState(false);
+  // Reminder is offered alongside the note being written, not as its own
+  // standalone control — checking it commits together with whatever's in
+  // the textarea on Save, per the "reminder based on the note" flow.
+  const [reminderEnabled, setReminderEnabled] = useState(false);
+  const [reminderMinutes, setReminderMinutes] = useState(15);
+  // Occurrences (class timetable / recurring commitments) are virtual —
+  // they don't carry a CalendarBlock id, so their "details" state is the
+  // occurrence itself, not a lookup by id like detailsBlockId.
+  const [detailsOccurrence, setDetailsOccurrence] = useState<CalendarOccurrence | null>(null);
+  const [editingOccurrenceDescription, setEditingOccurrenceDescription] = useState(false);
+  const [occurrenceDescriptionDraft, setOccurrenceDescriptionDraft] = useState("");
+  const [savingOccurrenceDescription, setSavingOccurrenceDescription] = useState(false);
+  const [occurrenceReminderEnabled, setOccurrenceReminderEnabled] = useState(false);
+  const [occurrenceReminderMinutes, setOccurrenceReminderMinutes] = useState(15);
+  const [occurrenceReminderRecurring, setOccurrenceReminderRecurring] = useState(false);
   const [suggestions, setSuggestions] = useState<PlanSuggestionDay[] | null>(null);
   const [suggesting, setSuggesting] = useState(false);
   const [suggestError, setSuggestError] = useState<string | null>(null);
@@ -717,7 +722,30 @@ export default function CalendarPage() {
       .catch(() => setGoogleConnected(false));
   }, []);
 
-  const anyPopupOpen = editingBlockId !== null || detailsBlockId !== null || suggestions !== null;
+  useEffect(() => {
+    if (mobileViewInitialized.current) return;
+    mobileViewInitialized.current = true;
+    if (window.matchMedia("(max-width: 767px)").matches) {
+      setView("day");
+    }
+  }, []);
+
+  const anyPopupOpen = editingBlockId !== null || detailsBlockId !== null || detailsOccurrence !== null || suggestions !== null;
+
+  useEffect(() => {
+    setEditingDescription(false);
+    setDescriptionDraft("");
+    setReminderEnabled(false);
+    setReminderMinutes(15);
+  }, [detailsBlockId]);
+
+  useEffect(() => {
+    setEditingOccurrenceDescription(false);
+    setOccurrenceDescriptionDraft("");
+    setOccurrenceReminderEnabled(false);
+    setOccurrenceReminderMinutes(15);
+    setOccurrenceReminderRecurring(false);
+  }, [detailsOccurrence]);
 
   useEffect(() => {
     if (!anyPopupOpen) return;
@@ -725,6 +753,7 @@ export default function CalendarPage() {
       if (event.key !== "Escape") return;
       setEditingBlockId(null);
       setDetailsBlockId(null);
+      setDetailsOccurrence(null);
       setSuggestions(null);
     }
     window.addEventListener("keydown", handleKeyDown);
@@ -813,9 +842,6 @@ export default function CalendarPage() {
     });
   }
 
-  useEffect(() => {
-    apiFetch<Semester[]>("/api/semesters").then((list) => setSemester(pickCurrentSemester(list)));
-  }, []);
 
   useEffect(() => {
     apiFetch<Task[]>("/api/tasks").then((list) => setOpenTasks(list.filter((t) => t.status === "open")));
@@ -854,6 +880,56 @@ export default function CalendarPage() {
     const updated = await apiFetch<CalendarBlock>(`/api/calendar-blocks/${block.id}`, {
       method: "PUT",
       body: JSON.stringify({ status }),
+    });
+    setBlocks((current) => current.map((b) => (b.id === block.id ? updated : b)));
+  }
+
+  // Lecture/external blocks skip the full Add/Edit form (their time and
+  // type come from the class session or Google, not something to hand-edit
+  // here) but a note is still just a note — every block type can carry
+  // one, saved on its own rather than bundled into that form.
+  async function updateDescription(block: CalendarBlock, description: string) {
+    const updated = await apiFetch<CalendarBlock>(`/api/calendar-blocks/${block.id}`, {
+      method: "PUT",
+      body: JSON.stringify({ description: description || null }),
+    });
+    setBlocks((current) => current.map((b) => (b.id === block.id ? updated : b)));
+  }
+
+  // ClassSession's remind_minutes_before is already an offset, unlike
+  // CalendarBlock's remind_at — no absolute-time math needed here, it's
+  // saved as-is and re-evaluated against each week's occurrence server-side.
+  async function updateOccurrenceDescription(occurrence: CalendarOccurrence, description: string) {
+    const updated = await apiFetch<ClassSession>(`/api/class-sessions/${occurrence.sourceId}`, {
+      method: "PUT",
+      body: JSON.stringify({ description: description || null }),
+    });
+    setDetailsOccurrence((current) =>
+      current && current.sourceId === occurrence.sourceId ? { ...current, description: updated.description } : current,
+    );
+  }
+
+  async function updateOccurrenceReminder(occurrence: CalendarOccurrence, minutes: number | null, recurring: boolean) {
+    const updated = await apiFetch<ClassSession>(`/api/class-sessions/${occurrence.sourceId}`, {
+      method: "PUT",
+      // A class recurs weekly on its own, but a reminder on it doesn't
+      // inherit that — off by default (fires once, for the next
+      // occurrence, then the backend clears it), recurring only if asked.
+      body: JSON.stringify({ remind_minutes_before: minutes, remind_recurring: minutes === null ? false : recurring }),
+    });
+    setDetailsOccurrence((current) =>
+      current && current.sourceId === occurrence.sourceId
+        ? { ...current, remindMinutesBefore: updated.remind_minutes_before, remindRecurring: updated.remind_recurring }
+        : current,
+    );
+  }
+
+  async function updateReminder(block: CalendarBlock, offsetMinutes: number | null) {
+    const remindAt =
+      offsetMinutes === null ? null : new Date(new Date(block.start_at).getTime() - offsetMinutes * 60_000).toISOString();
+    const updated = await apiFetch<CalendarBlock>(`/api/calendar-blocks/${block.id}`, {
+      method: "PUT",
+      body: JSON.stringify({ remind_at: remindAt }),
     });
     setBlocks((current) => current.map((b) => (b.id === block.id ? updated : b)));
   }
@@ -1098,7 +1174,7 @@ export default function CalendarPage() {
   }
 
   return (
-    <main className="relative bg-[var(--fn-paper)] min-h-dvh w-full px-8 py-10 md:pr-12 md:pl-24">
+    <main className="relative bg-[var(--fn-paper)] min-h-dvh w-full px-4 py-6 md:px-8 md:py-10 md:pr-12 md:pl-24">
       {/* Ring-binder margin: an oxide rule + three punched holes, the
           same "notebook margin" motif the system already defines
           (.fn-margin in globals.css) but built locally against this
@@ -1234,7 +1310,7 @@ export default function CalendarPage() {
             onChange={(event) => setDisplayTimezone(event.target.value)}
             aria-label="Display timezone"
             title="Display timezone for block times"
-            className="fn-mono rounded-md border border-[var(--fn-rule)] bg-transparent px-2 py-1.5 text-xs text-[var(--fn-muted)] hover:text-[var(--fn-ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--fn-cobalt)]"
+            className="fn-mono w-20 rounded-md border border-[var(--fn-rule)] bg-transparent px-2 py-1.5 text-xs text-[var(--fn-muted)] hover:text-[var(--fn-ink)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--fn-cobalt)] sm:w-auto"
           >
             <option value={systemTimezone()}>{systemTimezone()} (this device)</option>
             {TIMEZONE_OPTIONS.filter((zone) => zone !== systemTimezone()).map((zone) => (
@@ -1262,10 +1338,11 @@ export default function CalendarPage() {
             type="button"
             onClick={showPlanSuggestions}
             disabled={suggesting}
+            aria-label={suggesting ? "Sketching…" : "Suggest study plan"}
             className="fn-suggest-btn"
           >
             <PenLine size={15} strokeWidth={2} className={suggesting ? "fn-suggest-btn-icon animate-[fn-scribble_0.6s_ease-in-out_infinite]" : "fn-suggest-btn-icon"} />
-            {suggesting ? "Sketching…" : "Suggest study plan"}
+            <span className="hidden sm:inline">{suggesting ? "Sketching…" : "Suggest study plan"}</span>
           </button>
 
           {/* Sage, not cobalt — same "borrow the color of what it
@@ -1278,6 +1355,7 @@ export default function CalendarPage() {
               type="button"
               onClick={syncGoogleCalendar}
               disabled={googleSyncing}
+              aria-label={googleSynced ? "Synced" : googleSyncing ? "Syncing…" : "Sync Google Calendar"}
               className={`fn-sync-btn ${googleSynced ? "fn-sync-btn--done" : ""}`}
             >
               {googleSynced ? (
@@ -1285,7 +1363,9 @@ export default function CalendarPage() {
               ) : (
                 <RefreshCw size={15} strokeWidth={2} className={googleSyncing ? "animate-spin" : ""} />
               )}
-              {googleSynced ? "Synced" : googleSyncing ? "Syncing…" : "Sync Google Calendar"}
+              <span className="hidden sm:inline">
+                {googleSynced ? "Synced" : googleSyncing ? "Syncing…" : "Sync Google Calendar"}
+              </span>
             </button>
           )}
         </div>
@@ -1363,21 +1443,24 @@ export default function CalendarPage() {
                   {day?.is_break && <span className="fn-mono text-[11px] text-[var(--fn-muted)]">Break</span>}
 
                   {dayOccurrences.length > 0 && (
-                    // Read-only: the class timetable and recurring
-                    // commitments are managed in Settings/Courses, not
-                    // editable here — no click handler, no drag.
+                    // Not draggable (the underlying schedule/pattern lives
+                    // in Settings/Courses, not here) but clickable — every
+                    // occurrence, course lectures included, opens details
+                    // where a note or reminder can be added.
                     <div className="flex flex-col gap-1">
                       {dayOccurrences.map((occurrence) => (
-                        <div
+                        <button
+                          type="button"
                           key={`${occurrence.source}-${occurrence.sourceId}-${occurrence.date}`}
+                          onClick={() => setDetailsOccurrence(occurrence)}
                           title={occurrence.location ? `${occurrence.title} · ${occurrence.location}` : occurrence.title}
-                          className={`flex w-full flex-col gap-0.5 rounded px-1.5 py-1 text-left text-[11px] ${occurrenceStyle(occurrence.source)}`}
+                          className={`flex w-full flex-col gap-0.5 rounded px-1.5 py-1 text-left text-[11px] hover:brightness-95 ${occurrenceStyle(occurrence.source)}`}
                         >
                           <span className="truncate font-medium">{occurrence.title}</span>
                           <span className="fn-mono">
                             {occurrence.startTime}–{occurrence.endTime}
                           </span>
-                        </div>
+                        </button>
                       ))}
                     </div>
                   )}
@@ -1471,23 +1554,29 @@ export default function CalendarPage() {
                     {day?.is_break && (
                       <span className="fn-mono absolute left-1 top-1 text-[10px] text-[var(--fn-muted)]">Break</span>
                     )}
-                    {/* Read-only timetable/commitment occurrences, drawn
-                        behind real blocks (lower in the DOM = painted
-                        first) — no drag, no click, managed elsewhere. */}
+                    {/* Timetable/commitment occurrences, drawn behind real
+                        blocks (lower in the DOM = painted first). Not
+                        draggable (the pattern lives in Settings/Courses)
+                        but clickable — data-block-drag keeps a click from
+                        also starting the drag-to-create-block gesture on
+                        the timeline underneath it. */}
                     {dayOccurrences.map((occurrence) => {
                       const { top, height } = occurrenceTimelinePosition(occurrence);
                       return (
-                        <div
+                        <button
+                          type="button"
+                          data-block-drag
                           key={`${occurrence.source}-${occurrence.sourceId}-${occurrence.date}`}
+                          onClick={() => setDetailsOccurrence(occurrence)}
                           title={occurrence.location ? `${occurrence.title} · ${occurrence.location}` : occurrence.title}
                           style={{ top, height }}
-                          className={`absolute left-0 right-0 overflow-hidden rounded px-1.5 py-1 text-left text-[11px] ${occurrenceStyle(occurrence.source)}`}
+                          className={`absolute left-0 right-0 overflow-hidden rounded px-1.5 py-1 text-left text-[11px] hover:brightness-95 ${occurrenceStyle(occurrence.source)}`}
                         >
                           <span className="block truncate font-medium">{occurrence.title}</span>
                           <span className="fn-mono block truncate">
                             {occurrence.startTime}–{occurrence.endTime}
                           </span>
-                        </div>
+                        </button>
                       );
                     })}
                     {dragPreview?.date === dateParam && (
@@ -1631,18 +1720,108 @@ export default function CalendarPage() {
                   <dd>{detailsBlock.location}</dd>
                 </div>
               )}
-              {detailsBlock.description && (
-                <div className="flex gap-2">
-                  <dt className="w-20 shrink-0 text-[var(--fn-muted)]">Notes</dt>
-                  {/* Google's auto-generated event notes can run to several
-                      paragraphs with long unbroken URLs (Gmail/Calendar
-                      boilerplate) — capped with its own scroll rather than
-                      growing the whole popup past the viewport, and
-                      break-words stops a long URL from blowing out the
-                      fixed-width card. */}
-                  <dd className="max-h-40 overflow-y-auto whitespace-pre-wrap break-words">{detailsBlock.description}</dd>
-                </div>
-              )}
+              <div className="flex gap-2">
+                <dt className="w-20 shrink-0 pt-1 text-[var(--fn-muted)]">Notes</dt>
+                <dd className="min-w-0 flex-1">
+                  {editingDescription ? (
+                    <div className="flex flex-col gap-2">
+                      <textarea
+                        autoFocus
+                        value={descriptionDraft}
+                        onChange={(event) => setDescriptionDraft(event.target.value)}
+                        rows={3}
+                        placeholder="Add a note…"
+                        className="fn-input w-full resize-y font-sans text-sm"
+                      />
+                      {/* Reminder rides on the note being written, not a
+                          standalone control — "remind me about this"
+                          reads naturally right under what "this" is. */}
+                      <label className="flex items-center gap-2 text-xs text-[var(--fn-ink)]">
+                        <input
+                          type="checkbox"
+                          checked={reminderEnabled}
+                          onChange={(event) => setReminderEnabled(event.target.checked)}
+                        />
+                        Remind me about this
+                      </label>
+                      {reminderEnabled && (
+                        <select
+                          value={reminderMinutes}
+                          onChange={(event) => setReminderMinutes(Number(event.target.value))}
+                          className="fn-input w-fit py-1 text-sm"
+                        >
+                          {REMINDER_PRESETS.filter((preset) => preset.minutes !== null).map((preset) => (
+                            <option key={preset.label} value={preset.minutes ?? 0}>
+                              {preset.label}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          disabled={savingDescription}
+                          onClick={async () => {
+                            setSavingDescription(true);
+                            await Promise.all([
+                              updateDescription(detailsBlock, descriptionDraft),
+                              updateReminder(detailsBlock, reminderEnabled ? reminderMinutes : null),
+                            ]);
+                            setSavingDescription(false);
+                            setEditingDescription(false);
+                          }}
+                          className="fn-btn-primary !w-fit px-3 py-1 text-xs"
+                        >
+                          {savingDescription ? "Saving…" : "Save"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingDescription(false)}
+                          className="rounded-md border border-[var(--fn-rule)] px-3 py-1 text-xs hover:bg-[var(--fn-canvas)]"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDescriptionDraft(detailsBlock.description ?? "");
+                        if (detailsBlock.remind_at !== null) {
+                          setReminderEnabled(true);
+                          setReminderMinutes(
+                            Math.round(
+                              (new Date(detailsBlock.start_at).getTime() - new Date(detailsBlock.remind_at).getTime()) /
+                                60_000,
+                            ),
+                          );
+                        }
+                        setEditingDescription(true);
+                      }}
+                      title={detailsBlock.description ? "Edit note" : undefined}
+                      // Google's auto-generated event notes can run to several
+                      // paragraphs with long unbroken URLs (Gmail/Calendar
+                      // boilerplate) — capped with its own scroll rather than
+                      // growing the whole popup past the viewport, and
+                      // break-words stops a long URL from blowing out the
+                      // fixed-width card.
+                      className="max-h-40 w-full overflow-y-auto text-left whitespace-pre-wrap break-words hover:text-[var(--fn-cobalt)]"
+                    >
+                      {detailsBlock.description ? (
+                        detailsBlock.description
+                      ) : (
+                        <span className="text-[var(--fn-cobalt)] underline underline-offset-2">Add a note</span>
+                      )}
+                      {detailsBlock.remind_at !== null && (
+                        <span className="fn-mono mt-1 block text-[11px] font-normal text-[var(--fn-muted)]">
+                          Reminder set
+                        </span>
+                      )}
+                    </button>
+                  )}
+                </dd>
+              </div>
               {detailsBlock.recurrence_group_id !== null && (
                 <div className="flex gap-2">
                   <dt className="w-20 shrink-0 text-[var(--fn-muted)]">Repeats</dt>
@@ -1695,6 +1874,176 @@ export default function CalendarPage() {
                 </>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Occurrence details: class-timetable and recurring-commitment
+          entries have no CalendarBlock row (see CalendarOccurrence's
+          docblock), so this is a lighter sibling of the block-details
+          popup above — day/time/location come from the underlying
+          ClassSession/Commitment and aren't editable here (that's
+          Courses/Settings' job), but every occurrence, course lectures
+          included, can carry its own note and reminder. */}
+      {detailsOccurrence && (
+        <div
+          className="fn-popup-backdrop fixed inset-0 z-40 flex items-center justify-center bg-black/30 p-4"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) setDetailsOccurrence(null);
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={detailsOccurrence.title}
+            className="fn-popup-card max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg border border-[var(--fn-rule)] bg-[var(--fn-paper)] p-6 shadow-xl"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="fn-eyebrow">
+                  {detailsOccurrence.source === "class_session" ? detailsOccurrence.type : "Commitment"}
+                </p>
+                <h2 className="mt-1 text-lg font-semibold">{detailsOccurrence.title}</h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDetailsOccurrence(null)}
+                aria-label="Close"
+                className="fn-mono text-lg leading-none text-[var(--fn-muted)] hover:text-[var(--fn-ink)]"
+              >
+                ×
+              </button>
+            </div>
+
+            <dl className="fn-mono mt-4 flex flex-col gap-2 text-sm">
+              <div className="flex gap-2">
+                <dt className="w-20 shrink-0 text-[var(--fn-muted)]">When</dt>
+                <dd>
+                  {detailsOccurrence.startTime}–{detailsOccurrence.endTime}
+                </dd>
+              </div>
+              {detailsOccurrence.location && (
+                <div className="flex gap-2">
+                  <dt className="w-20 shrink-0 text-[var(--fn-muted)]">Where</dt>
+                  <dd>{detailsOccurrence.location}</dd>
+                </div>
+              )}
+
+              {detailsOccurrence.source === "class_session" && (
+                <div className="flex gap-2">
+                  <dt className="w-20 shrink-0 pt-1 text-[var(--fn-muted)]">Notes</dt>
+                  <dd className="min-w-0 flex-1">
+                    {editingOccurrenceDescription ? (
+                      <div className="flex flex-col gap-2">
+                        <textarea
+                          autoFocus
+                          value={occurrenceDescriptionDraft}
+                          onChange={(event) => setOccurrenceDescriptionDraft(event.target.value)}
+                          rows={3}
+                          placeholder="Add a note…"
+                          className="fn-input w-full resize-y font-sans text-sm"
+                        />
+                        <label className="flex items-center gap-2 text-xs text-[var(--fn-ink)]">
+                          <input
+                            type="checkbox"
+                            checked={occurrenceReminderEnabled}
+                            onChange={(event) => setOccurrenceReminderEnabled(event.target.checked)}
+                          />
+                          Remind me about this
+                        </label>
+                        {occurrenceReminderEnabled && (
+                          <>
+                            <select
+                              value={occurrenceReminderMinutes}
+                              onChange={(event) => setOccurrenceReminderMinutes(Number(event.target.value))}
+                              className="fn-input w-fit py-1 text-sm"
+                            >
+                              {REMINDER_PRESETS.filter((preset) => preset.minutes !== null).map((preset) => (
+                                <option key={preset.label} value={preset.minutes ?? 0}>
+                                  {preset.label}
+                                </option>
+                              ))}
+                            </select>
+                            {/* Off by default — a reminder fires once for
+                                the next class, then clears itself; this
+                                class happening every week doesn't mean the
+                                reminder should too, unless asked. */}
+                            <label className="flex items-center gap-2 text-xs text-[var(--fn-muted)]">
+                              <input
+                                type="checkbox"
+                                checked={occurrenceReminderRecurring}
+                                onChange={(event) => setOccurrenceReminderRecurring(event.target.checked)}
+                              />
+                              Repeat every week
+                            </label>
+                          </>
+                        )}
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            disabled={savingOccurrenceDescription}
+                            onClick={async () => {
+                              setSavingOccurrenceDescription(true);
+                              await Promise.all([
+                                updateOccurrenceDescription(detailsOccurrence, occurrenceDescriptionDraft),
+                                updateOccurrenceReminder(
+                                  detailsOccurrence,
+                                  occurrenceReminderEnabled ? occurrenceReminderMinutes : null,
+                                  occurrenceReminderRecurring,
+                                ),
+                              ]);
+                              setSavingOccurrenceDescription(false);
+                              setEditingOccurrenceDescription(false);
+                            }}
+                            className="fn-btn-primary !w-fit px-3 py-1 text-xs"
+                          >
+                            {savingOccurrenceDescription ? "Saving…" : "Save"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingOccurrenceDescription(false)}
+                            className="rounded-md border border-[var(--fn-rule)] px-3 py-1 text-xs hover:bg-[var(--fn-canvas)]"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setOccurrenceDescriptionDraft(detailsOccurrence.description ?? "");
+                          if (detailsOccurrence.remindMinutesBefore !== null) {
+                            setOccurrenceReminderEnabled(true);
+                            setOccurrenceReminderMinutes(detailsOccurrence.remindMinutesBefore);
+                            setOccurrenceReminderRecurring(detailsOccurrence.remindRecurring);
+                          }
+                          setEditingOccurrenceDescription(true);
+                        }}
+                        title={detailsOccurrence.description ? "Edit note" : undefined}
+                        className="max-h-40 w-full overflow-y-auto text-left whitespace-pre-wrap break-words hover:text-[var(--fn-cobalt)]"
+                      >
+                        {detailsOccurrence.description ? (
+                          detailsOccurrence.description
+                        ) : (
+                          <span className="text-[var(--fn-cobalt)] underline underline-offset-2">Add a note</span>
+                        )}
+                        {detailsOccurrence.remindMinutesBefore !== null && (
+                          <span className="fn-mono mt-1 block text-[11px] font-normal text-[var(--fn-muted)]">
+                            Reminder set{detailsOccurrence.remindRecurring ? " · repeats weekly" : " · next class only"}
+                          </span>
+                        )}
+                      </button>
+                    )}
+                  </dd>
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <dt className="w-20 shrink-0 text-[var(--fn-muted)]">Repeats</dt>
+                <dd>Weekly</dd>
+              </div>
+            </dl>
           </div>
         </div>
       )}

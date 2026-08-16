@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { Bell, X } from "lucide-react";
+import { Bell, CheckCircle2, Clock, TrendingUp, X } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { apiFetch } from "@/lib/api";
-import type { CalendarBlock, DayCapacity, Semester, Today, WeeklyReview } from "@/lib/types";
+import type { CalendarBlock, DayCapacity, Today, WeeklyReview } from "@/lib/types";
 import { WEEK_STATE_LABEL, weekState, type WeekState } from "@/components/WeekState";
 import { useNotifications } from "@/lib/notifications";
-import { pickCurrentSemester, weekNumberSince } from "@/lib/semester";
+import { useActiveSemester } from "@/lib/hooks/use-active-semester";
+import { TimetableWidget } from "@/components/TimetableWidget";
+import { weekNumberSince } from "@/lib/semester";
 import { daysUntil, formatMinutes } from "@/lib/format";
 
 const REVIEW_DISMISSED_KEY = "semestra:review-dismissed-id";
@@ -38,8 +40,14 @@ function startOfWeek(date: Date): Date {
   return start;
 }
 
+// Local Y-m-d, not toISOString().slice(0, 10) — see calendar/page.tsx's
+// toDateParam for why: UTC conversion silently shifts the date back a day
+// for any timezone ahead of UTC.
 function toDateParam(date: Date): string {
-  return date.toISOString().slice(0, 10);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 // The one signature moment on this page: today's date, stamped like a
@@ -115,12 +123,23 @@ function WorkloadRing({ percent, ringPercent, colour }: { percent: number; ringP
 // rows, a course-colour tab per row, and an "at a glance" rail alongside
 // it rather than the workload verdict buried at the bottom of the page.
 export default function DashboardPage() {
+  return (
+    <Suspense fallback={null}>
+      <DashboardPageInner />
+    </Suspense>
+  );
+}
+
+function DashboardPageInner() {
   const { user } = useAuth();
   const [today, setToday] = useState<Today | null>(null);
   const [expandedTaskId, setExpandedTaskId] = useState<number | null>(null);
   const [pendingReview, setPendingReview] = useState<WeeklyReview | null>(null);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [semester, setSemester] = useState<Semester | null>(null);
+  // Read-only here: dashboard data (/api/today) is always "today", so a
+  // switcher would only ever change this label, not any real content —
+  // this just picks up ?semester= if a link arrived carrying one.
+  const { activeSemester: semester } = useActiveSemester();
   const [weekDays, setWeekDays] = useState<DayCapacity[]>([]);
   const [weekBlocks, setWeekBlocks] = useState<CalendarBlock[]>([]);
   const { notifications, unreadCount, markRead } = useNotifications();
@@ -133,7 +152,6 @@ export default function DashboardPage() {
         setPendingReview(review);
       }
     });
-    apiFetch<Semester[]>("/api/semesters").then((list) => setSemester(pickCurrentSemester(list)));
 
     const weekStart = startOfWeek(new Date());
     const weekEnd = new Date(weekStart);
@@ -225,22 +243,28 @@ export default function DashboardPage() {
                 {estimateMinutesToday > 0 && ` · ${formatMinutes(estimateMinutesToday)} estimated`}
               </p>
             )}
+            {/* Same one-line verdict the aside's Workload card shows in
+                full, surfaced here too on mobile so it's not buried below
+                the corkboard and Upcoming strip. */}
+            <p className="fn-mono mt-1.5 text-xs md:hidden" style={{ color: STATE_RING_COLOUR[state] }}>
+              Workload: {WEEK_STATE_LABEL[state]} · {formatMinutes(today.planned_minutes_today)} planned
+            </p>
           </div>
         </div>
         <button
           type="button"
           onClick={() => setNotificationsOpen(true)}
           aria-label={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : "Notifications"}
-          className="relative shrink-0 rounded-md border border-[var(--fn-rule)] p-2 text-[var(--fn-muted)] hover:text-[var(--fn-ink)]"
+          className="fn-nav-arrow relative shrink-0"
         >
           <Bell className="h-4 w-4" />
           {unreadCount > 0 && (
-            <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-[var(--fn-ochre)]" />
+            <span className="absolute right-0 top-0.5 h-2 w-2 rounded-full bg-[var(--fn-ochre)]" />
           )}
         </button>
       </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_280px]">
+      <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-[1fr_260px]">
         <div className="min-w-0">
           {/* Today's board — pinned index cards, corkboard */}
           <section>
@@ -251,8 +275,8 @@ export default function DashboardPage() {
                 Nothing urgent. Next planned work is your upcoming deadlines below.
               </p>
             ) : (
-              <div className="fn-cork mt-3 rounded-md p-4">
-                <div className="flex flex-wrap items-start gap-x-5 gap-y-6">
+              <div className="fn-cork fn-scroll-fade mt-3 overflow-x-auto rounded-md p-4 sm:overflow-visible">
+                <div className="flex snap-x snap-mandatory flex-nowrap items-start gap-x-5 gap-y-6 sm:flex-wrap sm:snap-none">
                   {visibleTasks.map((task, index) => {
                     const expanded = expandedTaskId === task.id;
                     const tilt = expanded ? 0 : index % 2 === 0 ? -1.5 : 1.5;
@@ -260,7 +284,7 @@ export default function DashboardPage() {
                     return (
                       <div
                         key={task.id}
-                        className="relative w-44 shrink-0"
+                        className="relative w-44 shrink-0 snap-start"
                         style={{ transform: `rotate(${tilt}deg)`, transition: "transform 150ms ease" }}
                       >
                         <span
@@ -313,17 +337,19 @@ export default function DashboardPage() {
             )}
           </section>
 
+          <TimetableWidget />
+
           {/* Upcoming — index cards */}
           <section className="mt-8">
             <p className="fn-eyebrow">Upcoming</p>
             {upcomingSorted.length === 0 ? (
               <p className="mt-3 text-sm text-[var(--fn-muted)]">Nothing due in the next two weeks.</p>
             ) : (
-              <ul className="mt-3 flex gap-3 overflow-x-auto pb-1">
+              <ul className="fn-scroll-fade mt-3 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1">
                 {upcomingSorted.map((assessment) => (
                   <li
                     key={assessment.id}
-                    className="flex shrink-0 flex-col gap-1 rounded-md p-3"
+                    className="flex shrink-0 snap-start flex-col gap-1 rounded-md p-3"
                     style={{
                       backgroundColor: `color-mix(in srgb, ${assessment.course_colour} 10%, var(--fn-paper))`,
                       borderTop: `3px solid ${assessment.course_colour}`,
@@ -343,24 +369,33 @@ export default function DashboardPage() {
               Fills the space Recent Notestra will take once that data
               exists; swap this out rather than stack both. */}
           {weekDayStats.length > 0 && (
-            <section className="fn-mono mt-8 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-md border border-[var(--fn-rule)] px-4 py-3 text-xs text-[var(--fn-muted)]">
-              <span>
+            <section className="fn-mono mt-8 flex flex-wrap items-center gap-x-5 gap-y-1.5 rounded-md border border-[var(--fn-rule)] px-4 py-3 text-xs text-[var(--fn-muted)]">
+              <span className="flex items-center gap-1.5">
+                <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
                 {doneBlocksThisWeek.length} {doneBlocksThisWeek.length === 1 ? "session" : "sessions"} completed this
                 week
               </span>
-              <span aria-hidden>·</span>
-              <span>{formatMinutes(studiedMinutesThisWeek)} studied</span>
-              <span aria-hidden>·</span>
-              <span>
+              <span className="flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5" aria-hidden />
+                {formatMinutes(studiedMinutesThisWeek)} studied
+              </span>
+              <span className="flex items-center gap-1.5">
+                <TrendingUp className="h-3.5 w-3.5" aria-hidden />
                 {daysOnTrack}/{weekDayStats.length} days on track
               </span>
             </section>
           )}
         </div>
 
-        {/* At a glance rail */}
-        <aside className="flex flex-col gap-4">
-          <div className="flex flex-col items-center gap-2 rounded-md border border-[var(--fn-rule)] p-4">
+        {/* At a glance rail — horizontal scroll-snap strip below md (same
+            pattern as the corkboard/Upcoming strips) so three full-width
+            stacked boxes never appear on tablet/narrow-desktop; a plain
+            vertical stack from md up. */}
+        <aside className="fn-scroll-fade flex snap-x snap-mandatory gap-4 overflow-x-auto pb-1 md:flex-col md:overflow-visible md:pb-0 md:[mask-image:none]">
+          <div
+            className="flex w-64 shrink-0 snap-start flex-col items-center gap-2 rounded-sm border border-t-[3px] border-[var(--fn-rule)] p-4 md:w-auto"
+            style={{ borderTopColor: "var(--fn-cobalt)" }}
+          >
             <p className="fn-eyebrow self-start">Workload</p>
             <WorkloadRing percent={rawPercent} ringPercent={Math.min(100, rawPercent)} colour={STATE_RING_COLOUR[state]} />
             <p className="text-sm font-medium">{WEEK_STATE_LABEL[state]}</p>
@@ -377,8 +412,8 @@ export default function DashboardPage() {
 
           {nextDue && (
             <Link
-              href="/assessments"
-              className="block rounded-md p-4 hover:brightness-95"
+              href={`/assessments/${nextDue.id}`}
+              className="block w-64 shrink-0 snap-start rounded-sm p-4 hover:brightness-95 md:w-auto"
               style={{
                 backgroundColor: `color-mix(in srgb, ${nextDue.course_colour} 10%, var(--fn-paper))`,
                 borderTop: `3px solid ${nextDue.course_colour}`,
@@ -393,7 +428,7 @@ export default function DashboardPage() {
             </Link>
           )}
 
-          <div className="rounded-md border border-[var(--fn-rule)] p-4">
+          <div className="w-64 shrink-0 snap-start rounded-sm border border-[var(--fn-rule)] p-4 md:w-auto">
             <p className="fn-eyebrow">This week</p>
             <div className="mt-3 flex justify-between">
               {weekDayStats.map(({ day, state: dayState }, index) => {
@@ -420,14 +455,14 @@ export default function DashboardPage() {
 
       {notificationsOpen && (
         <div
-          className="fixed inset-0 z-40 flex items-center justify-center bg-black/30 px-4"
+          className="fn-popup-backdrop fixed inset-0 z-40 flex items-center justify-center bg-black/30 px-4"
           role="dialog"
           aria-modal="true"
           aria-label="Notifications"
           onClick={() => setNotificationsOpen(false)}
         >
           <div
-            className="w-full max-w-sm rounded-md border border-[var(--fn-rule)] bg-[var(--fn-paper)] p-4 shadow-lg"
+            className="fn-popup-card w-full max-w-sm rounded-lg border border-[var(--fn-rule)] bg-[var(--fn-paper)] p-4 shadow-xl"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-center justify-between">

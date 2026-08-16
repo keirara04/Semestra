@@ -47,12 +47,13 @@ The first user is a third-year Computer Science student balancing lectures, cour
 Today
 Semester
 Courses
-Assessments
 Calendar
 Focus
 Insights
 Settings
 ```
+
+Assessments ("Deliverables") is folded into Courses rather than a standalone destination: a course's own deliverables live on its detail page, and the cross-course "every deliverable at once" view lives on the Courses index.
 
 On mobile, Today, Calendar, and Focus should be immediately accessible. Desktop should give more space to semester planning, course workspaces, and workload analytics.
 

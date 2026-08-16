@@ -135,7 +135,7 @@ class CalendarBlockController extends Controller
      */
     private function normalizeTimezone(array $validated, string $timezone): array
     {
-        foreach (['start_at', 'end_at'] as $field) {
+        foreach (['start_at', 'end_at', 'remind_at'] as $field) {
             if (array_key_exists($field, $validated) && $validated[$field] !== null) {
                 $validated[$field] = Carbon::parse($validated[$field], $timezone)->utc();
             }

@@ -33,24 +33,23 @@ This matches the pipeline's central decision: **Assessment, Topic, and Course wo
 
 ## Primary navigation
 
-Eight destinations, matching the product plan exactly: nothing in the interface should require a name that isn't one of these:
+Seven destinations: nothing in the interface should require a name that isn't one of these. Assessments ("Deliverables") was originally its own top-level destination; it's since folded into Courses — a course's own deliverables live on its `/courses/[id]` Deliverables tab, and the cross-course "every deliverable at once" view lives on the `/courses` index itself, so there's no longer a separate flat-list destination:
 
 ```text
-Today · Semester · Courses · Assessments · Calendar · Focus · Insights · Settings
+Today · Semester · Courses · Calendar · Focus · Insights · Settings
 ```
 
 | Destination | What it is | Field Notes surface |
 | --- | --- | --- |
 | Today | Opening screen: what's next, what's due, what to work on, whether the semester's on track | See **Today dashboard**, below |
 | Semester | The term-long course-lane view | The **semester map** (already specified) |
-| Courses | Per-course workspace: overview, assessments, materials, revision, grades, insights tabs | Course lane → detail view |
-| Assessments | Flat list of every assessment across courses, sortable by risk/due date | Card list, not a new diagram language; reuse the assessment marker's detail treatment as a list row |
+| Courses | Course list + cross-course deliverables (index), and per-course workspace: overview, deliverables, materials, revision, grades, insights tabs (detail) | Course lane → detail view |
 | Calendar | Day/week scheduling surface where CalendarBlocks are placed and dragged | See **Calendar view**, below, distinct from the semester map, which is term-long, not day-granular |
 | Focus | The execution screen (already specified) | **Focus session** |
 | Insights | Course-specific and cross-course analytics: unreviewed material, upcoming high-weight work, estimation bias | See **Insights**, below |
 | Settings | Quiet hours, thresholds, channels, grade scale, preferences | See **Settings**, below |
 
-**Desktop rail** (224–240 px, deep charcoal) lists all eight in this order, grouped as: Today/Semester/Calendar (planning), Courses/Assessments (structure), Focus/Insights (execution + review), Settings pinned at the bottom, separated by a hairline.
+**Desktop rail** (224–240 px, deep charcoal) lists all seven in this order, grouped as: Today/Semester/Calendar (planning), Courses (structure), Focus/Insights (execution + review), Settings pinned at the bottom, separated by a hairline.
 
 **Mobile bottom nav** compresses to five slots: the plan calls out Today, Calendar, and Focus as needing to stay one tap away on mobile:
 
@@ -58,7 +57,7 @@ Today · Semester · Courses · Assessments · Calendar · Focus · Insights · 
 Today · Calendar · Focus · Courses · More
 ```
 
-`More` opens a sheet listing Semester, Assessments, Insights, Settings. Focus keeps its full-screen mode reachable from the bottom nav even mid-session (see Focus session).
+`More` opens a sheet listing Semester, Insights, Settings. Focus keeps its full-screen mode reachable from the bottom nav even mid-session (see Focus session).
 
 ## Brand character
 

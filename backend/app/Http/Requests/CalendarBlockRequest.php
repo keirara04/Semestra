@@ -28,6 +28,7 @@ class CalendarBlockRequest extends FormRequest
             'title' => ['nullable', 'string', 'max:255'],
             'location' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:2000'],
+            'remind_at' => ['nullable', 'date'],
             'start_at' => [$required, 'date'],
             'end_at' => [$required, 'date', 'after:start_at'],
             // Create-only ("repeat weekly until"): CalendarBlockController

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { Suspense, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { apiFetch, ApiError } from "@/lib/api";
@@ -14,9 +14,10 @@ import type {
   Semester,
   Task,
 } from "@/lib/types";
-import { WEEK_STATE_LABEL, WeekStateDot, weekState, type WeekState } from "@/components/WeekState";
+import { WEEK_STATE_LABEL, WeekStateBar, WeekStateDot, weekState, type WeekState } from "@/components/WeekState";
 import { AssessmentMarker, CourseLaneLine, RiskWindow } from "@/components/SemesterMapIcons";
-import { pickCurrentSemester } from "@/lib/semester";
+import { useActiveSemester } from "@/lib/hooks/use-active-semester";
+import { SemesterTabs } from "@/components/SemesterTabs";
 import { formatMinutes } from "@/lib/format";
 
 // Semester setup + map, see "Primary navigation" (Semester row: "the
@@ -24,21 +25,23 @@ import { formatMinutes } from "@/lib/format";
 // mdfile/DESIGN.md. Visual language (lanes, markers, at-risk hatch,
 // workload stack) follows semester/asset/SEMESTER_MAP_SVG_KIT.md.
 export default function SemesterPage() {
-  const [semesters, setSemesters] = useState<Semester[] | null>(null);
+  return (
+    <Suspense fallback={null}>
+      <SemesterPageInner />
+    </Suspense>
+  );
+}
+
+function SemesterPageInner() {
+  const { semesters, activeSemester, setActiveSemester, mutateSemesters } = useActiveSemester();
   const [showTermsForm, setShowTermsForm] = useState(false);
-
-  useEffect(() => {
-    apiFetch<Semester[]>("/api/semesters").then(setSemesters);
-  }, []);
-
-  const current = semesters ? pickCurrentSemester(semesters) : null;
 
   return (
     <main className="min-h-dvh w-full bg-[var(--fn-paper)] px-8 py-10 md:px-12">
       <div className="flex items-baseline justify-between">
         <div>
           <p className="fn-eyebrow">Semester</p>
-          <h1 className="mt-1 text-2xl font-semibold">{current?.name ?? "Terms"}</h1>
+          <h1 className="mt-1 text-2xl font-semibold">{activeSemester?.name ?? "Terms"}</h1>
         </div>
         <button
           type="button"
@@ -49,11 +52,19 @@ export default function SemesterPage() {
         </button>
       </div>
 
-      {current && <SemesterMap semester={current} />}
+      <div className="mt-4">
+        <SemesterTabs
+          semesters={semesters}
+          activeId={activeSemester?.id ?? null}
+          onChange={(id) => id !== null && setActiveSemester(id)}
+        />
+      </div>
 
-      {showTermsForm && semesters && (
+      {activeSemester && <SemesterMap key={activeSemester.id} semester={activeSemester} />}
+
+      {showTermsForm && (
         <div className="mt-10 border-t border-[var(--fn-rule)] pt-6">
-          <TermsManager semesters={semesters} onChange={setSemesters} />
+          <TermsManager semesters={semesters} onChange={mutateSemesters} />
         </div>
       )}
     </main>
@@ -325,7 +336,10 @@ function buildWeeks(
     const weekDays: DayLoad[] = [];
 
     for (let i = 0; i < 7 && cursor <= end; i++) {
-      const dateString = cursor.toISOString().slice(0, 10);
+      // Local Y-m-d — see calendar/page.tsx's toDateParam for why not
+      // toISOString().slice(0, 10) (UTC conversion shifts the date back a
+      // day for timezones ahead of UTC).
+      const dateString = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}-${String(cursor.getDate()).padStart(2, "0")}`;
       const dayCapacity = capacityByDate.get(dateString) ?? 0;
       const dayPlanned = plannedByDate.get(dateString) ?? 0;
       const dayByCourse = plannedByDateCourse.get(dateString) ?? new Map<number | null, number>();
@@ -675,10 +689,7 @@ function SemesterMap({ semester }: { semester: Semester }) {
 
   return (
     <div className="mt-6">
-      <div className="flex items-baseline justify-between">
-        <p className="fn-eyebrow">Semester map</p>
-        {activeGroup && <p className="fn-mono text-xs text-[var(--fn-muted)]">{semester.name}</p>}
-      </div>
+      <p className="fn-eyebrow">Semester map</p>
 
       {/* Month picker: one selectable month at a time, week numbers underneath stay absolute (a group's first week can read W5 or W12). */}
       <div className="fn-mono mt-3 flex flex-wrap gap-1 text-xs tracking-wide">
@@ -776,16 +787,14 @@ function SemesterMap({ semester }: { semester: Semester }) {
                   isToday ? "border-b-[var(--fn-cobalt)]" : "border-b-transparent"
                 }`}
               >
-                {week.label}
+                <span className="inline-flex items-center gap-1">
+                  {isExamWeek && <AssessmentMarker className="h-2.5 w-2.5 shrink-0 text-[var(--fn-oxide)]" />}
+                  {week.label}
+                </span>
                 <span className="mt-0.5 block text-[10px] font-normal tracking-normal text-[var(--fn-muted)]">
                   {weekDayRangeLabel(week, rangeEnd)}
                 </span>
-                {isExamWeek && (
-                  <span className="fn-mono mt-0.5 block text-[9px] font-semibold tracking-wider text-[var(--fn-oxide)]">
-                    EXAM
-                  </span>
-                )}
-                <WeekStateDot state={state} />
+                <WeekStateBar state={state} />
               </div>
             );
           })}
@@ -927,10 +936,20 @@ function SemesterMap({ semester }: { semester: Semester }) {
           <span className="h-0 w-8 border-t-2 border-dashed border-[var(--fn-muted)]" /> PROJECTED
         </span>
         <span className="flex items-center gap-2">
-          <span className="h-1.5 w-1.5 rounded-full bg-[var(--fn-ochre)]" /> BUSY WEEK
+          <span className="h-[3px] w-8 bg-[var(--fn-ochre)]" /> BUSY WEEK
         </span>
         <span className="flex items-center gap-2">
-          <span className="h-1.5 w-1.5 rounded-full border border-[var(--fn-oxide)] bg-[var(--fn-oxide)]" /> CRITICAL WEEK
+          <span className="h-0 w-8 border-t-2 border-dashed border-[var(--fn-oxide)]" /> AT RISK WEEK
+        </span>
+        <span className="flex items-center gap-2">
+          <span
+            className="h-[3px] w-8"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(135deg, var(--fn-oxide) 0, var(--fn-oxide) 2px, transparent 2px, transparent 5px)",
+            }}
+          />{" "}
+          CRITICAL WEEK
         </span>
         <span className="flex items-center gap-2">
           <span className="h-3 w-0 border-l-2 border-[var(--fn-cobalt)]" /> CURRENT WEEK
@@ -939,7 +958,7 @@ function SemesterMap({ semester }: { semester: Semester }) {
           <span className="h-0 w-8 border-t-2 border-dashed border-[var(--fn-muted)] opacity-70" /> CAPACITY CEILING
         </span>
         <span className="flex items-center gap-2">
-          <span className="fn-mono text-[9px] font-semibold tracking-wider text-[var(--fn-oxide)]">EXAM</span> EXAM WEEK
+          <AssessmentMarker className="h-2.5 w-2.5 text-[var(--fn-oxide)]" /> EXAM WEEK
         </span>
         <span className="flex items-center gap-2">
           <span
@@ -1030,8 +1049,8 @@ function SemesterMap({ semester }: { semester: Semester }) {
           <span className="text-[var(--fn-muted)]">Credits </span>
           <span className="font-semibold text-[var(--fn-ink)]">{hasCreditData ? totalCredits : "— not set"}</span>
         </span>
-        <Link href="/assessments" className="hover:underline underline-offset-2">
-          <span className="text-[var(--fn-muted)]">Assessments remaining </span>
+        <Link href="/courses" className="hover:underline underline-offset-2">
+          <span className="text-[var(--fn-muted)]">Deliverables remaining </span>
           <span className="font-semibold text-[var(--fn-cobalt)]">{assessmentsRemaining} →</span>
         </Link>
         <span className="flex items-center gap-1.5">

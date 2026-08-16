@@ -42,6 +42,48 @@ export function WeekStateDot({ state }: { state: WeekState }) {
   );
 }
 
+// Week-column header version: a full-width edge treatment instead of a
+// corner dot, reusing the same fill/dash/hatch vocabulary RiskWindow and
+// the workload strip already use elsewhere on the semester map, so a
+// critical week's hatch here means the same thing as a critical
+// assessment marker in the lanes below — one visual dialect, not two.
+// Anchored to the top edge, not bottom: the bottom edge is already the
+// "current week" indicator (a solid cobalt border), and a week can be
+// both today and critical at once.
+export function WeekStateBar({ state }: { state: WeekState }) {
+  if (state === "comfortable") return null;
+
+  const base = "absolute inset-x-0 top-0 h-[3px]";
+
+  if (state === "busy") {
+    return (
+      <span role="img" aria-label={WEEK_STATE_LABEL[state]} title={WEEK_STATE_LABEL[state]} className={`${base} bg-[var(--fn-ochre)]`} />
+    );
+  }
+  if (state === "at_risk") {
+    return (
+      <span
+        role="img"
+        aria-label={WEEK_STATE_LABEL[state]}
+        title={WEEK_STATE_LABEL[state]}
+        className={`${base} border-t-2 border-dashed border-[var(--fn-oxide)]`}
+      />
+    );
+  }
+  return (
+    <span
+      role="img"
+      aria-label={WEEK_STATE_LABEL[state]}
+      title={WEEK_STATE_LABEL[state]}
+      className={base}
+      style={{
+        backgroundImage:
+          "repeating-linear-gradient(135deg, var(--fn-oxide) 0, var(--fn-oxide) 2px, transparent 2px, transparent 5px)",
+      }}
+    />
+  );
+}
+
 // Non-colour encoding pairs with colour so risk is never colour-only.
 export function WeekStateMarker({ state }: { state: WeekState }) {
   if (state === "comfortable") {

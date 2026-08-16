@@ -70,7 +70,11 @@ body:has(.fn-board) {
   --fn-ink: #222933;
   --fn-muted: #68707b;
   --fn-rule: #cdd0cf;
-  --fn-sidebar: #20262e;
+  /* Canvas blended with a touch of rule-gray, not a hand-picked hex — a
+     shade darker than --fn-canvas so the rail reads as a distinct panel
+     next to the --fn-paper content instead of blending away entirely
+     (canvas alone was tried first and was nearly invisible on screen). */
+  --fn-sidebar: color-mix(in srgb, var(--fn-canvas) 78%, var(--fn-rule) 22%);
   --fn-cobalt: #2857a0;
   --fn-oxide: #ae4d40;
   --fn-sage: #64816c;
@@ -172,6 +176,15 @@ body:has(.fn-board) {
 .fn-btn-primary:focus-visible {
   outline: 2px solid var(--fn-ink);
   outline-offset: 2px;
+}
+
+/* Horizontal scroll-snap strips (Today's board, Upcoming, the aside "at a
+   glance" strip on mobile): a trailing fade so a cut-off card reads as
+   "more to scroll" instead of a clipped layout. One mask, reused by all
+   three rather than a bespoke gradient per strip. */
+.fn-scroll-fade {
+  mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, black calc(100% - 28px), transparent 100%);
 }
 
 /* Dashboard date stamp — lands like a librarian stamped today's date on
@@ -489,6 +502,23 @@ body:has(.fn-board) {
 .fn-suggestion-item:focus-visible {
   outline: 2px solid var(--fn-cobalt);
   outline-offset: 1px;
+}
+
+/* Split-flap tile flip, see FlipClock.tsx. React remounts a tile only
+   when its digit actually changes, so this replays once per real flip
+   rather than every second. */
+@keyframes fn-flip {
+  0% {
+    transform: rotateX(90deg);
+    opacity: 0.3;
+  }
+  60% {
+    transform: rotateX(-8deg);
+  }
+  100% {
+    transform: rotateX(0deg);
+    opacity: 1;
+  }
 }
 
 @keyframes fn-scribble {

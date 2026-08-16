@@ -45,6 +45,28 @@ export interface ClassSession {
   start_time: string; // "HH:MM:SS"
   end_time: string;
   location: string | null;
+  description: string | null;
+  remind_minutes_before: number | null;
+  remind_recurring: boolean;
+}
+
+export interface ParsedTimetableSubject {
+  title: string;
+  professor: string | null;
+  day_of_week: number; // 0 = Sunday .. 6 = Saturday
+  start_time: string; // "HH:MM"
+  end_time: string;
+  location: string | null;
+}
+
+export type TimetableImportStatus = "pending" | "confirmed" | "discarded";
+
+export interface TimetableImport {
+  id: number;
+  semester_id: number;
+  source_url: string;
+  status: TimetableImportStatus;
+  payload: ParsedTimetableSubject[];
 }
 
 export type AssessmentType =
@@ -98,6 +120,7 @@ export interface CalendarBlock {
   title: string | null;
   location: string | null;
   description: string | null;
+  remind_at: string | null;
   start_at: string;
   end_at: string;
   recurrence_group_id: number | null;

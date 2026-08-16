@@ -213,7 +213,7 @@ export function SyllabusExtractionPanel({ courseId, materials }: { courseId: num
 
           {assessments.length > 0 && (
             <div>
-              <p className="fn-label">Assessments</p>
+              <p className="fn-label">Deliverables</p>
               <ul className="mt-2 flex flex-col gap-3">
                 {assessments.map((candidate, index) => (
                   <li key={index} className="flex flex-col gap-1.5 rounded-md border border-[var(--fn-rule)] p-3">

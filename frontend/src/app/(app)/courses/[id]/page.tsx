@@ -5,6 +5,8 @@ import { use } from "react";
 import Link from "next/link";
 import { apiFetch, ApiError } from "@/lib/api";
 import type {
+  Assessment,
+  AssessmentType,
   ClassSession,
   ClassSessionType,
   Course,
@@ -16,8 +18,10 @@ import type {
 } from "@/lib/types";
 import { ConfidenceBar, type Confidence } from "@/components/Confidence";
 import { SyllabusExtractionPanel } from "@/components/SyllabusExtractionPanel";
+import { HelpTooltip } from "@/components/HelpTooltip";
+import { daysUntil } from "@/lib/format";
 
-const TABS = ["Overview", "Assessments", "Materials", "Revision", "Grades", "Insights"] as const;
+const TABS = ["Overview", "Deliverables", "Materials", "Revision", "Grades", "Insights"] as const;
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -41,14 +45,31 @@ export default function CourseWorkspacePage({
 
   if (!course) return null;
 
+  async function handleColourChange(colour: string) {
+    setCourse((current) => (current ? { ...current, colour } : current));
+    const updated = await apiFetch<Course>(`/api/courses/${id}`, {
+      method: "PUT",
+      body: JSON.stringify({ colour }),
+    });
+    setCourse((current) => (current ? { ...current, colour: updated.colour } : current));
+  }
+
   return (
     <main className="bg-[var(--fn-paper)] min-h-dvh w-full px-8 py-10 md:px-12">
       <div className="flex items-center gap-3">
-        <span
-          className="h-9 w-1.5 shrink-0 rounded-full"
+        <label
+          title="Change course colour"
+          className="relative h-9 w-1.5 shrink-0 cursor-pointer rounded-full"
           style={{ backgroundColor: course.colour }}
-          aria-hidden
-        />
+        >
+          <input
+            type="color"
+            value={course.colour}
+            onChange={(event) => handleColourChange(event.target.value)}
+            className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+            aria-label="Course colour"
+          />
+        </label>
         <div>
           <p className="fn-eyebrow">Course</p>
           <h1 className="text-2xl font-semibold">{course.title}</h1>
@@ -87,10 +108,15 @@ export default function CourseWorkspacePage({
           }
         />
       )}
+      {tab === "Deliverables" && <Deliverables courseId={course.id} />}
       {tab === "Grades" && <Grades courseId={course.id} />}
       {tab === "Materials" && <Materials courseId={course.id} />}
       {tab === "Revision" && <Revision courseId={course.id} />}
-      {tab !== "Overview" && tab !== "Grades" && tab !== "Materials" && tab !== "Revision" && (
+      {tab !== "Overview" &&
+        tab !== "Deliverables" &&
+        tab !== "Grades" &&
+        tab !== "Materials" &&
+        tab !== "Revision" && (
         <p className="mt-6 text-sm text-[var(--fn-muted)]">
           {tab} isn&apos;t built yet. This ships in a later release.
         </p>
@@ -211,6 +237,158 @@ function Overview({
         </label>
         <button type="submit" disabled={submitting} className="fn-btn-primary !w-fit px-4 py-1.5">
           {submitting ? "Saving…" : "Add session"}
+        </button>
+      </form>
+
+      {error && (
+        <p role="alert" className="mt-2 text-sm text-[var(--fn-oxide)]">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+const ASSESSMENT_TYPES: AssessmentType[] = [
+  "report",
+  "quiz",
+  "lab",
+  "project",
+  "participation",
+  "midterm",
+  "final",
+  "exam",
+  "other",
+];
+
+const ASSESSMENT_STATUS_LABEL: Record<Assessment["status"], string> = {
+  not_started: "Not started",
+  in_progress: "In progress",
+  blocked: "Blocked",
+  done: "Done",
+};
+
+// Deliverables, scoped to this course — the top-level /assessments page
+// (also labeled "Deliverables") shows every course at once; here we're
+// already inside one course, so the course picker from that page's add
+// form is redundant and dropped.
+function Deliverables({ courseId }: { courseId: number }) {
+  const [assessments, setAssessments] = useState<Assessment[] | null>(null);
+  const [type, setType] = useState<AssessmentType>("report");
+  const [title, setTitle] = useState("");
+  const [dueAt, setDueAt] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  function refresh() {
+    apiFetch<Assessment[]>("/api/assessments").then((list) =>
+      setAssessments(list.filter((item) => item.course_id === courseId)),
+    );
+  }
+
+  useEffect(() => {
+    apiFetch<Assessment[]>("/api/assessments").then((list) =>
+      setAssessments(list.filter((item) => item.course_id === courseId)),
+    );
+  }, [courseId]);
+
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    setError(null);
+    setSubmitting(true);
+    try {
+      await apiFetch<Assessment>("/api/assessments", {
+        method: "POST",
+        body: JSON.stringify({ course_id: courseId, type, title, due_at: dueAt }),
+      });
+      setTitle("");
+      setDueAt("");
+      refresh();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Something went wrong.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleDelete(assessment: Assessment) {
+    await apiFetch(`/api/assessments/${assessment.id}`, { method: "DELETE" });
+    setAssessments((current) => current?.filter((item) => item.id !== assessment.id) ?? null);
+  }
+
+  return (
+    <div className="mt-6">
+      <span className="flex items-center gap-1.5">
+        <p className="fn-eyebrow">Deliverables</p>
+        <HelpTooltip label="What are deliverables?">
+          Deliverables are graded coursework — assignments, quizzes, exams, projects — each with a due
+          date and a status. This tab shows only this course&apos;s; see every course at once from the
+          Deliverables section on the Courses page.
+        </HelpTooltip>
+      </span>
+      <ul className="mt-3 flex flex-col divide-y divide-[var(--fn-rule)]">
+        {assessments
+          ?.slice()
+          .sort((a, b) => a.due_at.localeCompare(b.due_at))
+          .map((assessment) => (
+            <li key={assessment.id} className="flex items-center gap-3 py-2.5 text-sm">
+              <Link href={`/assessments/${assessment.id}`} className="min-w-0 flex-1">
+                <span className="block truncate">{assessment.title}</span>
+                <span className="fn-mono text-[11px] text-[var(--fn-muted)]">
+                  {daysUntil(assessment.due_at)} · {ASSESSMENT_STATUS_LABEL[assessment.status]}
+                </span>
+              </Link>
+              <button
+                type="button"
+                onClick={() => handleDelete(assessment)}
+                className="shrink-0 text-[11px] text-[var(--fn-oxide)] underline underline-offset-2"
+              >
+                Remove
+              </button>
+            </li>
+          ))}
+        {assessments?.length === 0 && (
+          <li className="py-2.5 text-sm text-[var(--fn-muted)]">No deliverables yet.</li>
+        )}
+      </ul>
+
+      <form onSubmit={handleSubmit} className="mt-6 flex flex-wrap items-end gap-3">
+        <label className="flex flex-col gap-1.5">
+          <span className="fn-label">Type</span>
+          <select
+            value={type}
+            onChange={(event) => setType(event.target.value as AssessmentType)}
+            className="fn-input w-auto py-1.5"
+          >
+            {ASSESSMENT_TYPES.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="flex flex-col gap-1.5">
+          <span className="fn-label">Title</span>
+          <input
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            required
+            className="fn-input w-auto py-1.5"
+            placeholder="Midterm report"
+          />
+        </label>
+        <label className="flex flex-col gap-1.5">
+          <span className="fn-label">Due</span>
+          <input
+            type="datetime-local"
+            value={dueAt}
+            onChange={(event) => setDueAt(event.target.value)}
+            required
+            className="fn-input w-auto py-1.5"
+          />
+        </label>
+        <button type="submit" disabled={submitting} className="fn-btn-primary !w-fit px-4 py-1.5">
+          {submitting ? "Saving…" : "Add deliverable"}
         </button>
       </form>
 

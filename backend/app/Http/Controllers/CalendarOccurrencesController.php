@@ -74,6 +74,9 @@ class CalendarOccurrencesController extends Controller
                         'title' => $session->course?->title ?? ucfirst($session->type),
                         'location' => $location,
                         'type' => $session->type,
+                        'description' => $session->description,
+                        'remindMinutesBefore' => $session->remind_minutes_before,
+                        'remindRecurring' => $session->remind_recurring,
                     ];
                 }
 
@@ -95,6 +98,9 @@ class CalendarOccurrencesController extends Controller
                         'title' => $commitment->title,
                         'location' => null,
                         'type' => $commitment->type,
+                        'description' => null,
+                        'remindMinutesBefore' => null,
+                        'remindRecurring' => false,
                     ];
                 }
             }

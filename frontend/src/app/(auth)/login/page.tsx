@@ -51,7 +51,9 @@ export default function LoginPage() {
           loopFrom={1}
           padTo={8}
         />
-        <p className="fn-board-tagline mt-2">Your semester, on schedule.</p>
+        <p className="fn-board-tagline mt-2">Not another planner. Your actual semester.In your hands.
+
+        </p>
         <div className="fn-board-divider mx-auto mt-4" />
       </div>
 

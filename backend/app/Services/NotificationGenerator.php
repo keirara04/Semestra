@@ -9,6 +9,7 @@ use App\Engine\Planning\TaskDemandInput;
 use App\Http\Controllers\Concerns\BuildsCapacityInputs;
 use App\Models\Assessment;
 use App\Models\CalendarBlock;
+use App\Models\ClassSession;
 use App\Models\Notification;
 use App\Models\Task;
 use App\Models\Topic;
@@ -41,7 +42,8 @@ class NotificationGenerator
     public function generate(User $user): array
     {
         $timezone = new DateTimeZone($user->timezone);
-        $today = Carbon::now($timezone)->startOfDay();
+        $now = Carbon::now($timezone);
+        $today = $now->copy()->startOfDay();
         $horizon = $today->copy()->addDays(self::EXAM_LOOKAHEAD_DAYS);
 
         $days = app(CapacityCalculator::class)->calculate(
@@ -63,6 +65,8 @@ class NotificationGenerator
         $created = array_merge($created, $this->topicUnreviewed($user, $today));
         $created = array_merge($created, $this->tomorrowOverloaded($user, $capacityByDate, $today));
         $created = array_merge($created, $this->examWeakTopics($user, $today));
+        $created = array_merge($created, $this->blockReminders($user, $now));
+        $created = array_merge($created, $this->classSessionReminders($user, $now));
 
         return array_values(array_filter($created));
     }
@@ -173,6 +177,90 @@ class NotificationGenerator
             "Tomorrow has {$plannedHours}h planned; consider moving one task.",
             ['planned_minutes' => $planned, 'capacity_minutes' => $capacity],
         )]);
+    }
+
+    /**
+     * A student-set reminder on a CalendarBlock (any type — lecture,
+     * commitment, or study). This command runs hourly, so the window
+     * looks back two hours: wide enough that an hourly cron never misses
+     * a `remind_at` that lands between two runs, but bounded so a block
+     * whose reminder time is long past (the schedule was paused, e.g.)
+     * doesn't fire a stale notification days later. One-shot, not
+     * date-bucketed — the idempotency key is just the block id.
+     *
+     * @return Notification[]
+     */
+    private function blockReminders(User $user, Carbon $now): array
+    {
+        $due = CalendarBlock::whereNotNull('remind_at')
+            ->where('remind_at', '<=', $now)
+            ->where('remind_at', '>=', $now->copy()->subHours(2))
+            ->where('status', '!=', 'skipped')
+            ->get();
+
+        $created = [];
+        foreach ($due as $block) {
+            $label = $block->title ?: ucfirst($block->type);
+            $time = $block->start_at->copy()->setTimezone($user->timezone)->format('g:ia');
+
+            $created[] = $this->createIfNew($user, 'block_reminder', 'calendar_block', $block->id,
+                $this->hash($user->id, 'block_reminder', $block->id, 'once'),
+                "Reminder: {$label} starts at {$time}.",
+                ['block_id' => $block->id],
+            );
+        }
+
+        return $created;
+    }
+
+    /**
+     * A reminder on a recurring ClassSession (a course's lecture/tutorial/
+     * lab/exam slot), distinct from blockReminders: a ClassSession has no
+     * single start_at, it recurs every week on day_of_week, so "today"
+     * this occurrence happens is recomputed each run rather than read off
+     * a stored timestamp. Idempotency key includes today's date so each
+     * week's occurrence gets its own notification, not just the first
+     * one ever.
+     *
+     * @return Notification[]
+     */
+    private function classSessionReminders(User $user, Carbon $now): array
+    {
+        $todayDayOfWeek = (int) $now->format('w');
+
+        $sessions = ClassSession::where('day_of_week', $todayDayOfWeek)
+            ->whereNotNull('remind_minutes_before')
+            ->with('course')
+            ->get();
+
+        $created = [];
+        foreach ($sessions as $session) {
+            $start = $now->copy()->setTimeFromTimeString((string) $session->start_time);
+            $remindAt = $start->copy()->subMinutes($session->remind_minutes_before);
+
+            if ($now->lt($remindAt) || $now->gt($remindAt->copy()->addHours(2))) {
+                continue;
+            }
+
+            $label = $session->course?->title ?? ucfirst($session->type);
+
+            $notification = $this->createIfNew($user, 'class_session_reminder', 'class_session', $session->id,
+                $this->hash($user->id, 'class_session_reminder', $session->id, $now->format('Y-m-d')),
+                "Reminder: {$label} starts at {$start->format('g:ia')}.",
+                ['class_session_id' => $session->id],
+            );
+
+            // Recurring is opt-in, not assumed just because the class
+            // itself repeats weekly — a plain "remind me about this"
+            // fires once, for the next occurrence, then turns itself off.
+            if ($notification !== null && ! $session->remind_recurring) {
+                $session->update(['remind_minutes_before' => null]);
+            }
+
+            $created[] = $notification;
+        }
+
+        return $created;
     }
 
     /**

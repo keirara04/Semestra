@@ -37,6 +37,7 @@ use App\Http\Controllers\StudySessionController;
 use App\Http\Controllers\SubmissionController;
 use App\Http\Controllers\SyllabusDraftController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TimetableImportController;
 use App\Http\Controllers\TodayController;
 use App\Http\Controllers\TopicController;
 use App\Http\Controllers\WeeklyReviewController;
@@ -183,4 +184,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/courses/{course}/syllabus-drafts', [SyllabusDraftController::class, 'store']);
     Route::post('/syllabus-drafts/{draft}/confirm', [SyllabusDraftController::class, 'confirm']);
     Route::post('/syllabus-drafts/{draft}/discard', [SyllabusDraftController::class, 'discard']);
+
+    // Everytime (에브리타임) share-link timetable import — same
+    // draft-then-confirm shape as syllabus-drafts above, see
+    // EverytimeImportService.
+    Route::post('/timetable-imports', [TimetableImportController::class, 'store']);
+    Route::post('/timetable-imports/{import}/confirm', [TimetableImportController::class, 'confirm']);
+    Route::post('/timetable-imports/{import}/discard', [TimetableImportController::class, 'discard']);
 });
