@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\OwnedExists;
 use Illuminate\Foundation\Http\FormRequest;
 
 class MaterialRequest extends FormRequest
@@ -19,7 +20,7 @@ class MaterialRequest extends FormRequest
         $required = $this->isMethod('POST') ? 'required' : 'sometimes';
 
         return [
-            'course_id' => [$required, 'integer', 'exists:courses,id'],
+            'course_id' => [$required, 'integer', OwnedExists::make('courses', 'id')],
             'type' => [$required, 'string', 'in:slide,pdf,reading,recording,link'],
             'title' => [$required, 'string', 'max:255'],
             'week' => ['nullable', 'integer', 'min:1', 'max:52'],
@@ -46,7 +47,7 @@ class MaterialRequest extends FormRequest
             ],
             'url' => ['nullable', 'string', 'max:2048', $this->isMethod('POST') ? 'required_without:file' : 'prohibited'],
             'assessment_ids' => ['sometimes', 'array'],
-            'assessment_ids.*' => ['integer', 'exists:assessments,id'],
+            'assessment_ids.*' => ['integer', OwnedExists::make('assessments', 'id')],
         ];
     }
 }

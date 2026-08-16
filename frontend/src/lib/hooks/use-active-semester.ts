@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, logApiError } from "@/lib/api";
 import { resolveActiveSemester } from "@/lib/semester";
 import type { Semester } from "@/lib/types";
 
@@ -24,7 +24,7 @@ export function useActiveSemester() {
   const [semesters, setSemesters] = useState<Semester[] | null>(null);
 
   useEffect(() => {
-    apiFetch<Semester[]>("/api/semesters").then(setSemesters);
+    apiFetch<Semester[]>("/api/semesters").then(setSemesters).catch(logApiError);
   }, []);
 
   const paramId = searchParams.get(PARAM);

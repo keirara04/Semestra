@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useEffect, useState, type FormEvent } from "react";
-import { apiFetch, ApiError } from "@/lib/api";
+import { apiFetch, ApiError, logApiError } from "@/lib/api";
 import type { Assessment, AssessmentStatus, ExamReadiness, Milestone, Topic } from "@/lib/types";
 import { formatMinutes } from "@/lib/format";
 import { ConfidenceBar } from "@/components/Confidence";
@@ -20,10 +20,28 @@ export default function AssessmentDetailPage({
   const { id } = use(params);
   const [assessment, setAssessment] = useState<Assessment | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
-    apiFetch<Assessment>(`/api/assessments/${id}`).then(setAssessment);
+    apiFetch<Assessment>(`/api/assessments/${id}`)
+      .then(setAssessment)
+      .catch((err) => {
+        setLoadError(true);
+        logApiError(err);
+      });
   }, [id]);
+
+  if (loadError) {
+    return (
+      <main className="bg-[var(--fn-paper)] flex min-h-dvh w-full flex-col items-center justify-center gap-2 px-8 py-10 text-center">
+        <p className="fn-eyebrow">Assessment</p>
+        <h1 className="text-xl font-semibold">Couldn&apos;t load this assessment</h1>
+        <p className="max-w-sm text-sm text-[var(--fn-muted)]">
+          Something went wrong reaching the server. Try refreshing the page.
+        </p>
+      </main>
+    );
+  }
 
   if (!assessment) return null;
 
@@ -203,10 +221,10 @@ function ExamMode({ assessmentId, courseId }: { assessmentId: number; courseId: 
   const [courseTopics, setCourseTopics] = useState<Topic[]>([]);
 
   function load() {
-    apiFetch<ExamReadiness>(`/api/assessments/${assessmentId}/readiness`).then(setReadiness);
-    apiFetch<Topic[]>("/api/topics").then((list) =>
-      setCourseTopics(list.filter((topic) => topic.course_id === courseId)),
-    );
+    apiFetch<ExamReadiness>(`/api/assessments/${assessmentId}/readiness`).then(setReadiness).catch(logApiError);
+    apiFetch<Topic[]>("/api/topics")
+      .then((list) => setCourseTopics(list.filter((topic) => topic.course_id === courseId)))
+      .catch(logApiError);
   }
 
   useEffect(load, [assessmentId, courseId]);

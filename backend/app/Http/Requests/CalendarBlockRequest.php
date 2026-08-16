@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\OwnedExists;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CalendarBlockRequest extends FormRequest
@@ -19,7 +20,7 @@ class CalendarBlockRequest extends FormRequest
         $required = $this->isMethod('POST') ? 'required' : 'sometimes';
 
         return [
-            'task_id' => ['nullable', 'integer', 'exists:tasks,id'],
+            'task_id' => ['nullable', 'integer', OwnedExists::make('tasks', 'id')],
             'type' => ['sometimes', 'string', 'in:lecture,commitment,study'],
             // "suggested" is a planner-only status; the API never lets a
             // student set it directly, only PlanningRunController writes

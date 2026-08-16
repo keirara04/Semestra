@@ -1,6 +1,9 @@
 # macOS
 .DS_Store
 
+# Playwright MCP session output (screenshots, console/page dumps)
+.playwright-mcp/
+
 # Frontend (Next.js)
 frontend/node_modules/
 frontend/.next/

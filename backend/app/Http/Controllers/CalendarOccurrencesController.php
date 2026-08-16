@@ -23,9 +23,24 @@ class CalendarOccurrencesController extends Controller
 {
     public function __invoke(Request $request): JsonResponse
     {
+        // Occurrences are expanded day-by-day below with no pagination —
+        // an unbounded range (e.g. from=1900-01-01&to=2200-01-01) turns
+        // one request into hundreds of thousands of loop iterations.
+        // A year comfortably covers every legitimate caller (the calendar
+        // UI only ever requests a month/week/day at a time).
         $validated = $request->validate([
             'from' => ['required', 'date'],
-            'to' => ['required', 'date'],
+            'to' => [
+                'required', 'date', 'after_or_equal:from',
+                function (string $attribute, mixed $value, \Closure $fail) use ($request) {
+                    if (! $request->filled('from')) {
+                        return;
+                    }
+                    if (Carbon::parse($request->input('from'))->diffInDays(Carbon::parse($value)) > 366) {
+                        $fail('The date range cannot exceed one year.');
+                    }
+                },
+            ],
         ]);
 
         $from = Carbon::parse($validated['from'])->startOfDay();

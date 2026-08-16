@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\OwnedExists;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ClassSessionExceptionRequest extends FormRequest
@@ -19,7 +20,7 @@ class ClassSessionExceptionRequest extends FormRequest
         $required = $this->isMethod('POST') ? 'required' : 'sometimes';
 
         return [
-            'class_session_id' => [$required, 'integer', 'exists:class_sessions,id'],
+            'class_session_id' => [$required, 'integer', OwnedExists::make('class_sessions', 'id')],
             'date' => [$required, 'date'],
             'type' => [$required, 'string', 'in:cancelled,moved'],
             'new_start_time' => ['nullable', 'date_format:H:i', 'required_if:type,moved'],

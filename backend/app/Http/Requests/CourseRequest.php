@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\OwnedExists;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CourseRequest extends FormRequest
@@ -19,7 +20,7 @@ class CourseRequest extends FormRequest
         $required = $this->isMethod('POST') ? 'required' : 'sometimes';
 
         return [
-            'semester_id' => [$required, 'integer', 'exists:semesters,id'],
+            'semester_id' => [$required, 'integer', OwnedExists::make('semesters', 'id')],
             'title' => [$required, 'string', 'max:255'],
             'code' => ['nullable', 'string', 'max:50'],
             'colour' => [$required, 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],

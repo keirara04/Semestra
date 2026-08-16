@@ -4,6 +4,7 @@ use App\Http\Controllers\AcademicCalendarExceptionController;
 use App\Http\Controllers\AiSettingsController;
 use App\Http\Controllers\AnnotationSyncController;
 use App\Http\Controllers\AssessmentController;
+use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\CalendarBlockController;
 use App\Http\Controllers\CalendarCapacityController;
 use App\Http\Controllers\CalendarOccurrencesController;
@@ -12,7 +13,6 @@ use App\Http\Controllers\ClassSessionExceptionController;
 use App\Http\Controllers\CommitmentController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\CourseGradesController;
-use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\ExamReadinessController;
 use App\Http\Controllers\GoogleCalendarCallbackController;
 use App\Http\Controllers\GoogleCalendarConnectController;
@@ -42,7 +42,9 @@ use App\Http\Controllers\TimetableImportController;
 use App\Http\Controllers\TodayController;
 use App\Http\Controllers\TopicController;
 use App\Http\Controllers\WeeklyReviewController;
+use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Http\Request;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
 
 // Everything mounted under /api, served from api.<domain> per the
@@ -79,8 +81,8 @@ Route::get('/email/verify/{user}/{hash}', [EmailVerificationController::class, '
 // just wrote to.
 Route::get('/google-calendar/callback', GoogleCalendarCallbackController::class)
     ->middleware([
-        \Illuminate\Cookie\Middleware\EncryptCookies::class,
-        \Illuminate\Session\Middleware\StartSession::class,
+        EncryptCookies::class,
+        StartSession::class,
     ]);
 
 Route::middleware('auth:sanctum')->group(function () {

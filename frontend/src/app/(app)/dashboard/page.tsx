@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { Bell, CheckCircle2, Clock, TrendingUp, X } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, logApiError } from "@/lib/api";
 import type { CalendarBlock, DayCapacity, Today, WeeklyReview } from "@/lib/types";
 import { WEEK_STATE_LABEL, weekState, type WeekState } from "@/components/WeekState";
 import { useNotifications } from "@/lib/notifications";
@@ -133,6 +133,7 @@ export default function DashboardPage() {
 function DashboardPageInner() {
   const { user } = useAuth();
   const [today, setToday] = useState<Today | null>(null);
+  const [todayError, setTodayError] = useState(false);
   const [expandedTaskId, setExpandedTaskId] = useState<number | null>(null);
   const [pendingReview, setPendingReview] = useState<WeeklyReview | null>(null);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -145,22 +146,43 @@ function DashboardPageInner() {
   const { notifications, unreadCount, markRead } = useNotifications();
 
   useEffect(() => {
-    apiFetch<Today>("/api/today").then(setToday);
-    apiFetch<WeeklyReview | null>("/api/weekly-reviews/latest").then((review) => {
-      const dismissedId = window.localStorage.getItem(REVIEW_DISMISSED_KEY);
-      if (review && String(review.id) !== dismissedId) {
-        setPendingReview(review);
-      }
-    });
+    apiFetch<Today>("/api/today")
+      .then(setToday)
+      .catch((error) => {
+        setTodayError(true);
+        logApiError(error);
+      });
+    apiFetch<WeeklyReview | null>("/api/weekly-reviews/latest")
+      .then((review) => {
+        const dismissedId = window.localStorage.getItem(REVIEW_DISMISSED_KEY);
+        if (review && String(review.id) !== dismissedId) {
+          setPendingReview(review);
+        }
+      })
+      .catch(logApiError);
 
     const weekStart = startOfWeek(new Date());
     const weekEnd = new Date(weekStart);
     weekEnd.setDate(weekStart.getDate() + 6);
     apiFetch<DayCapacity[]>(
       `/api/calendar/capacity?from=${toDateParam(weekStart)}&to=${toDateParam(weekEnd)}`,
-    ).then(setWeekDays);
-    apiFetch<CalendarBlock[]>("/api/calendar-blocks").then(setWeekBlocks);
+    )
+      .then(setWeekDays)
+      .catch(logApiError);
+    apiFetch<CalendarBlock[]>("/api/calendar-blocks").then(setWeekBlocks).catch(logApiError);
   }, []);
+
+  if (todayError) {
+    return (
+      <main className="bg-[var(--fn-paper)] flex min-h-dvh w-full flex-col items-center justify-center gap-2 px-8 py-10 text-center">
+        <p className="fn-eyebrow">Dashboard</p>
+        <h1 className="text-xl font-semibold">Couldn&apos;t load today</h1>
+        <p className="max-w-sm text-sm text-[var(--fn-muted)]">
+          Something went wrong reaching the server. Try refreshing the page.
+        </p>
+      </main>
+    );
+  }
 
   if (!today) return null;
 
@@ -246,7 +268,7 @@ function DashboardPageInner() {
             {/* Same one-line verdict the aside's Workload card shows in
                 full, surfaced here too on mobile so it's not buried below
                 the corkboard and Upcoming strip. */}
-            <p className="fn-mono mt-1.5 text-xs md:hidden" style={{ color: STATE_RING_COLOUR[state] }}>
+            <p className="fn-mono mt-1.5 text-xs lg:hidden" style={{ color: STATE_RING_COLOUR[state] }}>
               Workload: {WEEK_STATE_LABEL[state]} · {formatMinutes(today.planned_minutes_today)} planned
             </p>
           </div>
@@ -264,7 +286,7 @@ function DashboardPageInner() {
         </button>
       </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-8 md:grid-cols-[1fr_260px]">
+      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_260px]">
         <div className="min-w-0">
           {/* Today's board — pinned index cards, corkboard */}
           <section>
@@ -391,9 +413,9 @@ function DashboardPageInner() {
             pattern as the corkboard/Upcoming strips) so three full-width
             stacked boxes never appear on tablet/narrow-desktop; a plain
             vertical stack from md up. */}
-        <aside className="fn-scroll-fade flex snap-x snap-mandatory gap-4 overflow-x-auto pb-1 md:flex-col md:overflow-visible md:pb-0 md:[mask-image:none]">
+        <aside className="fn-scroll-fade flex snap-x snap-mandatory gap-4 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0 lg:[mask-image:none]">
           <div
-            className="flex w-64 shrink-0 snap-start flex-col items-center gap-2 rounded-sm border border-t-[3px] border-[var(--fn-rule)] p-4 md:w-auto"
+            className="flex w-64 shrink-0 snap-start flex-col items-center gap-2 rounded-sm border border-t-[3px] border-[var(--fn-rule)] p-4 lg:w-auto"
             style={{ borderTopColor: "var(--fn-cobalt)" }}
           >
             <p className="fn-eyebrow self-start">Workload</p>
@@ -413,7 +435,7 @@ function DashboardPageInner() {
           {nextDue && (
             <Link
               href={`/assessments/${nextDue.id}`}
-              className="block w-64 shrink-0 snap-start rounded-sm p-4 hover:brightness-95 md:w-auto"
+              className="block w-64 shrink-0 snap-start rounded-sm p-4 hover:brightness-95 lg:w-auto"
               style={{
                 backgroundColor: `color-mix(in srgb, ${nextDue.course_colour} 10%, var(--fn-paper))`,
                 borderTop: `3px solid ${nextDue.course_colour}`,
@@ -428,7 +450,7 @@ function DashboardPageInner() {
             </Link>
           )}
 
-          <div className="w-64 shrink-0 snap-start rounded-sm border border-[var(--fn-rule)] p-4 md:w-auto">
+          <div className="w-64 shrink-0 snap-start rounded-sm border border-[var(--fn-rule)] p-4 lg:w-auto">
             <p className="fn-eyebrow">This week</p>
             <div className="mt-3 flex justify-between">
               {weekDayStats.map(({ day, state: dayState }, index) => {

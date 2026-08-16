@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="360" viewBox="0 0 1600 360" role="img" aria-labelledby="title desc">
+  <title id="title">Semestra Course Balance promotional banner</title>
+  <desc id="desc">A dark academic dashboard banner comparing coursework balance across courses.</desc>
+  <defs>
+    <pattern id="dots" width="22" height="4" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.25" fill="#34393F"/></pattern>
+    <style>
+      .mono{font-family:Courier New,Courier,monospace;letter-spacing:2px}.label{font-size:12px;fill:#8A94A1}.small{font-size:11px;fill:#8A94A1}.copy{font-family:Arial,sans-serif;font-size:18px;fill:#E7E4DC}.heading{font-family:Arial,sans-serif;font-size:34px;font-weight:600;fill:#E7E4DC}.cream{fill:#E7E4DC}.coral{fill:#D17056}.rule{stroke:#34393F;stroke-width:1}
+    </style>
+  </defs>
+  <rect width="1600" height="360" fill="#111315"/>
+  <rect x="0" y="4" width="1600" height="4" fill="url(#dots)"/>
+  <rect x="0" y="352" width="1600" height="4" fill="url(#dots)"/>
+  <g stroke="#34393F" stroke-width="1.4"><path d="M28 28h18m-9-9v18M1554 28h18m-9-9v18M28 332h18m-9-9v18M1554 332h18m-9-9v18"/></g>
+  <g transform="translate(78 72)">
+    <text class="mono label coral">SEMESTRA · STUDENT COPILOT</text>
+    <text y="55" class="heading">See the whole load.</text>
+    <rect y="78" width="62" height="3" fill="#D17056"/>
+    <text y="115" class="copy">A steadier semester starts with balance.</text>
+    <g transform="translate(0 163)" class="mono">
+      <text class="label" x="0" y="0">04</text><text class="cream" x="68" y="0" font-size="14">ACTIVE COURSES</text><text class="coral" x="465" y="0" font-size="13">VISIBLE</text>
+      <line class="rule" x1="0" y1="20" x2="522" y2="20"/>
+      <text class="label" x="0" y="47">12</text><text class="cream" x="68" y="47" font-size="14">HOURS PLANNED</text><text class="coral" x="447" y="47" font-size="13">THIS WEEK</text>
+      <line class="rule" x1="0" y1="67" x2="522" y2="67"/>
+      <text class="label" x="0" y="94">01</text><text class="cream" x="68" y="94" font-size="14">LOAD TO ADJUST</text><text class="coral" x="451" y="94" font-size="13">FLAGGED</text>
+    </g>
+    <text class="mono small" y="266">PLAN EARLY. MISS NOTHING.</text><text class="mono small" x="428" y="266">SMST · REG</text>
+  </g>
+  <g transform="translate(812 54)">
+    <rect width="704" height="252" rx="8" fill="#1B1F23" stroke="#34393F"/>
+    <text x="28" y="31" class="mono label">SEMESTER · COURSE BALANCE</text><text x="590" y="31" class="mono small coral">WEEK 07</text>
+    <line class="rule" x1="0" y1="49" x2="704" y2="49"/>
+    <text x="28" y="78" class="mono small">COURSE</text><text x="386" y="78" class="mono small">LOAD</text><text x="598" y="78" class="mono small">STATE</text>
+    <line class="rule" x1="28" y1="91" x2="676" y2="91"/>
+    <text x="28" y="122" class="mono cream" font-size="14">ECON 201</text><rect x="228" y="108" width="220" height="12" fill="#34393F"/><rect x="228" y="108" width="136" height="12" fill="#D17056"/><text x="468" y="122" class="mono small">04H</text><text x="598" y="122" class="mono small coral">ON TRACK</text>
+    <line class="rule" x1="28" y1="140" x2="676" y2="140"/>
+    <text x="28" y="171" class="mono cream" font-size="14">HIST 204</text><rect x="228" y="157" width="220" height="12" fill="#34393F"/><rect x="228" y="157" width="180" height="12" fill="#D17056"/><text x="468" y="171" class="mono small">05H</text><text x="598" y="171" class="mono small coral">REVIEW</text>
+    <line class="rule" x1="28" y1="189" x2="676" y2="189"/>
+    <text x="28" y="220" class="mono cream" font-size="14">DESN 110</text><rect x="228" y="206" width="220" height="12" fill="#34393F"/><rect x="228" y="206" width="94" height="12" fill="#D17056"/><text x="468" y="220" class="mono small">03H</text><text x="598" y="220" class="mono small coral">CLEAR</text>
+  </g>
+</svg>

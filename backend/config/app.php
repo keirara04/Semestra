@@ -54,6 +54,11 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    // Read via config(), not env(), from anywhere outside a config/*.php
+    // file — bare env() calls return null once `php artisan config:cache`
+    // has run in production, since the .env file is no longer consulted.
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:3000'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

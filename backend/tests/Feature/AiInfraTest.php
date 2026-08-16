@@ -73,10 +73,14 @@ class AiInfraTest extends TestCase
         Auth::setUser($user);
         $budget = app(AiBudgetService::class);
 
+        // ensureWithinBudget() reserves the slot itself (see
+        // AiBudgetService docblock — this is what makes the check
+        // atomic), so it's what drives requests_count here, not
+        // recordUsage(), which only ever adds to tokens_used.
         $this->assertSame(2, $budget->remaining($user));
-        $budget->recordUsage($user, 100);
+        $budget->ensureWithinBudget($user);
         $this->assertSame(1, $budget->remaining($user));
-        $budget->recordUsage($user, 100);
+        $budget->ensureWithinBudget($user);
         $this->assertSame(0, $budget->remaining($user));
 
         $this->expectException(AiBudgetExceededException::class);
@@ -92,9 +96,24 @@ class AiInfraTest extends TestCase
         $budget = app(AiBudgetService::class);
 
         Auth::setUser($userA);
-        $budget->recordUsage($userA, 50);
+        $budget->ensureWithinBudget($userA);
 
         Auth::setUser($userB);
         $this->assertSame(5, $budget->remaining($userB));
+    }
+
+    public function test_releasing_a_reservation_gives_the_slot_back(): void
+    {
+        config(['services.openrouter.daily_request_limit' => 5]);
+
+        $user = User::factory()->create(['timezone' => 'UTC']);
+        Auth::setUser($user);
+        $budget = app(AiBudgetService::class);
+
+        $budget->ensureWithinBudget($user);
+        $this->assertSame(4, $budget->remaining($user));
+
+        $budget->release($user);
+        $this->assertSame(5, $budget->remaining($user));
     }
 }

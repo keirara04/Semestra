@@ -2,10 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\SendNotificationEmail;
 use App\Jobs\SendVerificationEmail;
+use App\Models\Notification;
 use App\Models\User;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\URL;
@@ -186,7 +189,7 @@ class EmailVerificationTest extends TestCase
         // The `array` cache store (see phpunit.xml) persists for the
         // whole PHPUnit process, not per-test — flush it so an earlier
         // test's throttle hits on this same route can't leak in here.
-        \Illuminate\Support\Facades\Cache::flush();
+        Cache::flush();
         $user = User::factory()->unverified()->create();
 
         for ($i = 0; $i < 6; $i++) {
@@ -205,14 +208,14 @@ class EmailVerificationTest extends TestCase
         // sets it from Auth::user() at creation time, hence forceCreate
         // with an explicit user_id rather than the (unauthenticated)
         // mass-assignment path.
-        $notification = \App\Models\Notification::forceCreate([
+        $notification = Notification::forceCreate([
             'user_id' => $user->id,
             'type' => 'tomorrow_overloaded',
             'idempotency_key' => 'test-key-'.uniqid(),
             'message' => 'Tomorrow has 8h planned.',
         ]);
 
-        (new \App\Jobs\SendNotificationEmail($notification->id))->handle();
+        (new SendNotificationEmail($notification->id))->handle();
 
         $this->assertSame('skipped', $notification->fresh()->status);
         Mail::assertNothingSent();

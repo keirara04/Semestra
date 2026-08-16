@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, logApiError } from "@/lib/api";
 import type {
   CalendarBlock,
   StudySession,
@@ -37,9 +37,9 @@ export default function FocusPage() {
   const [stuck, setStuck] = useState(false);
 
   useEffect(() => {
-    apiFetch<Task[]>("/api/tasks").then((list) =>
-      setTasks(list.filter((task) => task.status === "open")),
-    );
+    apiFetch<Task[]>("/api/tasks")
+      .then((list) => setTasks(list.filter((task) => task.status === "open")))
+      .catch(logApiError);
   }, []);
 
   if (session && !ended) {

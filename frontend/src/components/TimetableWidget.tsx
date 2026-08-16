@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Plus } from "lucide-react";
-import { apiFetch, ApiError } from "@/lib/api";
+import { apiFetch, ApiError, logApiError } from "@/lib/api";
 import type { ClassSession, ClassSessionType, Course } from "@/lib/types";
 import { useActiveSemester } from "@/lib/hooks/use-active-semester";
 import { HOUR_HEIGHT_PX, hourLabel, timelineHours, timelineMinutesFromTime } from "@/lib/timeline";
@@ -68,12 +68,12 @@ export function TimetableWidget() {
   const todayIndex = new Date().getDay();
 
   useEffect(() => {
-    apiFetch<Course[]>("/api/courses").then(setCourses);
+    apiFetch<Course[]>("/api/courses").then(setCourses).catch(logApiError);
     refreshSessions();
   }, []);
 
   function refreshSessions() {
-    apiFetch<ClassSession[]>("/api/class-sessions").then(setSessions);
+    apiFetch<ClassSession[]>("/api/class-sessions").then(setSessions).catch(logApiError);
   }
 
   const semesterCourses = useMemo(
@@ -426,7 +426,7 @@ export function TimetableWidget() {
           onImported={() => {
             setImportOpen(false);
             refreshSessions();
-            apiFetch<Course[]>("/api/courses").then(setCourses);
+            apiFetch<Course[]>("/api/courses").then(setCourses).catch(logApiError);
           }}
         />
       )}

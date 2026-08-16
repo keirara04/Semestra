@@ -41,6 +41,7 @@ use Illuminate\Support\Facades\Http;
 class EverytimeImportService
 {
     private const FRIEND_API_URL = 'https://api.everytime.kr/find/timetable/table/friend';
+
     private const MINUTES_PER_UNIT = 5;
 
     /**
@@ -152,12 +153,14 @@ class EverytimeImportService
     private function unitsToTime(int $units): string
     {
         $minutes = max(0, $units) * self::MINUTES_PER_UNIT;
+
         return sprintf('%02d:%02d', intdiv($minutes, 60) % 24, $minutes % 60);
     }
 
     private function normalizeLocation(string $place): ?string
     {
         $trimmed = trim($place);
+
         return $trimmed !== '' && $trimmed !== '없음' ? $trimmed : null;
     }
 }

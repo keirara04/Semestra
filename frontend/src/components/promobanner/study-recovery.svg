@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="360" viewBox="0 0 1600 360" role="img" aria-labelledby="title desc">
+  <title id="title">Semestra Study Recovery</title>
+  <desc id="desc">A dark promotional banner featuring Study Recovery copy and a dashboard illustration with a recovery plan and momentum chart.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#151713"/><stop offset=".58" stop-color="#1D201A"/><stop offset="1" stop-color="#10120F"/></linearGradient>
+    <linearGradient id="violet" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#C69B58"/><stop offset="1" stop-color="#D47745"/></linearGradient>
+    <linearGradient id="aqua" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#B9BDAF"/><stop offset="1" stop-color="#78997A"/></linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#02040A" flood-opacity=".55"/></filter>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="18"/></filter>
+    <clipPath id="clip"><rect x="872" y="32" width="650" height="296" rx="22"/></clipPath>
+  </defs>
+  <rect width="1600" height="360" fill="url(#bg)"/>
+  <circle cx="1160" cy="95" r="190" fill="#C69B58" opacity=".07" filter="url(#glow)"/>
+  <circle cx="1490" cy="294" r="150" fill="#78997A" opacity=".08" filter="url(#glow)"/>
+  <path d="M0 285C210 243 434 317 672 272S1057 197 1600 268V360H0Z" fill="#0D0E0B" opacity=".42"/>
+  <g font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif">
+    <g transform="translate(78 70)">
+      <rect width="143" height="30" rx="15" fill="#D47745" fill-opacity=".12" stroke="#D47745" stroke-opacity=".32"/>
+      <circle cx="18" cy="15" r="4" fill="#D47745"/>
+      <text x="31" y="19" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" font-weight="700" letter-spacing="1.1" fill="#E6C3AA">STUDY RECOVERY</text>
+      <text x="0" y="94" font-family="Georgia, 'Times New Roman', serif" font-size="43" font-weight="700" letter-spacing="-.9" fill="#F4ECDA">Find your way back.</text>
+      <text x="0" y="126" font-size="17" fill="#B9BDAF">A missed week doesn’t have to become a lost semester.</text>
+      <text x="0" y="151" font-size="17" fill="#B9BDAF">Semestra turns pressure into a clear next step.</text>
+      <g transform="translate(0 186)">
+        <rect width="159" height="40" rx="12" fill="#22251E" stroke="#454A3C"/>
+        <path d="M17 26l5-5 4 3 7-9" fill="none" stroke="#78997A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="44" y="25" font-size="13" font-weight="650" fill="#E2DDCF">Reset your plan</text>
+        <rect x="171" width="151" height="40" rx="12" fill="#22251E" stroke="#454A3C"/>
+        <circle cx="190" cy="20" r="8" fill="none" stroke="#C69B58" stroke-width="2"/><path d="M190 16v5l3 2" fill="none" stroke="#C69B58" stroke-width="1.7" stroke-linecap="round"/>
+        <text x="207" y="25" font-size="13" font-weight="650" fill="#E2DDCF">Protect momentum</text>
+      </g>
+    </g>
+    <g filter="url(#shadow)">
+      <rect x="872" y="32" width="650" height="296" rx="22" fill="#1D201A" stroke="#454A3C"/>
+      <g clip-path="url(#clip)">
+        <path d="M1320 18c100 38 188 112 234 216l-9 159h-218c11-116-38-205-130-261Z" fill="#C69B58" opacity=".07"/>
+        <rect x="872" y="32" width="650" height="46" fill="#25291F"/>
+        <circle cx="900" cy="55" r="5" fill="#F47D88"/><circle cx="917" cy="55" r="5" fill="#F2C36A"/><circle cx="934" cy="55" r="5" fill="#62D7B6"/>
+        <text x="968" y="60" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" font-weight="650" fill="#B9BDAF">YOUR RECOVERY PLAN</text>
+        <rect x="1402" y="47" width="92" height="17" rx="8.5" fill="#78997A" fill-opacity=".15"/>
+        <text x="1415" y="59" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="9" font-weight="700" fill="#B7D1B6">ON TRACK</text>
+        <g transform="translate(900 98)">
+          <text y="13" font-size="12" font-weight="700" fill="#F4ECDA">Reset your next 3 days</text>
+          <text y="33" font-size="11" fill="#A9AD9E">Small wins first. Let the plan breathe.</text>
+          <g transform="translate(0 53)">
+            <rect width="316" height="52" rx="12" fill="#25291F" stroke="#454A3C"/>
+            <rect x="13" y="12" width="28" height="28" rx="9" fill="#C69B58" fill-opacity=".16"/>
+            <path d="M21 26l4 4 8-9" fill="none" stroke="#D8B879" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <text x="53" y="23" font-size="12" font-weight="700" fill="#E8E2D5">Reprioritize coursework</text><text x="53" y="39" font-size="10" fill="#A9AD9E">2 tasks moved • 45 min</text>
+            <text x="279" y="31" font-size="12" font-weight="700" fill="#D6B878">01</text>
+            <rect y="62" width="316" height="52" rx="12" fill="#25291F" stroke="#454A3C"/>
+            <rect x="13" y="74" width="28" height="28" rx="9" fill="#78997A" fill-opacity=".16"/>
+            <path d="M21 88h12M27 82v12" stroke="#A6C4A5" stroke-width="2" stroke-linecap="round"/>
+            <text x="53" y="85" font-size="12" font-weight="700" fill="#E8E2D5">Create a catch-up window</text><text x="53" y="101" font-size="10" fill="#A9AD9E">Tomorrow • 2:00–3:30 PM</text>
+            <text x="279" y="93" font-size="12" font-weight="700" fill="#A6C4A5">02</text>
+          </g>
+        </g>
+        <g transform="translate(1241 99)">
+          <rect width="252" height="179" rx="15" fill="#25291F" stroke="#454A3C"/>
+          <text x="20" y="28" font-size="11" font-weight="700" fill="#E8E2D5">Momentum forecast</text>
+          <text x="20" y="47" font-size="10" fill="#A9AD9E">Your pace is rebuilding</text>
+          <path d="M21 142H228M21 111H228M21 80H228" stroke="#4A5041" stroke-width="1" stroke-dasharray="3 5"/>
+          <path d="M22 145C52 141 67 123 89 126S122 98 145 109s33-39 57-34 22-20 31-33" fill="none" stroke="url(#violet)" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M22 145C52 141 67 123 89 126S122 98 145 109s33-39 57-34 22-20 31-33V159H22Z" fill="#C69B58" opacity=".11"/>
+          <circle cx="233" cy="42" r="5" fill="#78997A"/><text x="20" y="165" font-size="10" fill="#A9AD9E">Mon</text><text x="83" y="165" font-size="10" fill="#A9AD9E">Wed</text><text x="148" y="165" font-size="10" fill="#A9AD9E">Fri</text><text x="211" y="165" font-size="10" fill="#A9AD9E">Sun</text>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

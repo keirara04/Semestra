@@ -3,7 +3,7 @@
 import { use, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, logApiError } from "@/lib/api";
 import type { Annotation, Material } from "@/lib/types";
 import { PDFViewer } from "@/components/notestra/PDFViewer";
 import { AnnotationLayer, type NotestraTool } from "@/components/notestra/AnnotationLayer";
@@ -57,9 +57,19 @@ export default function NotestraPage({
   });
 
   useEffect(() => {
-    apiFetch<Material>(`/api/materials/${id}`).then(setMaterial);
-    apiFetch<{ url: string }>(`/api/materials/${id}/view-url`).then((res) => setViewerUrl(res.url));
-    apiFetch<Annotation[]>(`/api/materials/${id}/annotations`).then(sync.setInitial);
+    apiFetch<Material>(`/api/materials/${id}`)
+      .then(setMaterial)
+      .catch((error) => {
+        setLoadError("Couldn't load this material.");
+        logApiError(error);
+      });
+    apiFetch<{ url: string }>(`/api/materials/${id}/view-url`)
+      .then((res) => setViewerUrl(res.url))
+      .catch((error) => {
+        setLoadError("Couldn't load the viewer for this material.");
+        logApiError(error);
+      });
+    apiFetch<Annotation[]>(`/api/materials/${id}/annotations`).then(sync.setInitial).catch(logApiError);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 

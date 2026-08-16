@@ -2,8 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\SendVerificationEmail;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class ProfileTest extends TestCase
@@ -103,8 +106,8 @@ class ProfileTest extends TestCase
 
         $response->assertOk();
         $user->refresh();
-        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('NewPassword456!', $user->password));
-        $this->assertFalse(\Illuminate\Support\Facades\Hash::check('OldPassword123!', $user->password));
+        $this->assertTrue(Hash::check('NewPassword456!', $user->password));
+        $this->assertFalse(Hash::check('OldPassword123!', $user->password));
         $this->assertNotSame('stale-token', $user->remember_token);
     }
 
@@ -156,7 +159,7 @@ class ProfileTest extends TestCase
         // with the right target address — is what's actually checkable
         // here. SendVerificationEmail's own delivery is covered directly
         // in EmailVerificationTest.
-        \Illuminate\Support\Facades\Queue::fake();
+        Queue::fake();
         $user = User::factory()->create(['email' => 'old@example.com', 'password' => 'correct-password']);
 
         $response = $this->actingAs($user, 'sanctum')->patchJson('/api/user/email', [
@@ -169,8 +172,8 @@ class ProfileTest extends TestCase
         $user->refresh();
         $this->assertSame('old@example.com', $user->email);
         $this->assertSame('new@example.com', $user->pending_email);
-        \Illuminate\Support\Facades\Queue::assertPushed(
-            \App\Jobs\SendVerificationEmail::class,
+        Queue::assertPushed(
+            SendVerificationEmail::class,
             fn ($job) => $job->targetEmail === 'new@example.com',
         );
     }

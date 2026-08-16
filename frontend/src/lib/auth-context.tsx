@@ -8,8 +8,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { ApiError, apiFetch, getCsrfCookie } from "@/lib/api";
-import type { User } from "@/lib/types";
+import { ApiError, apiFetch, getCsrfCookie, onUnauthorized } from "@/lib/api";
+import { UserSchema, type User } from "@/lib/types";
 
 interface RegisterInput {
   name: string;
@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // effect hasn't been cleaned up (e.g. AuthProvider unmounted mid-request).
     let ignore = false;
 
-    apiFetch<User>("/api/user")
+    apiFetch<User>("/api/user", {}, UserSchema)
       .then((current) => {
         if (!ignore) {
           setUser(current);
@@ -75,21 +75,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // A session that expires mid-use (cookie timeout, logout in another
+  // tab) surfaces as a 401 on whatever request happens to run next, not
+  // necessarily the initial /api/user check above — this catches that
+  // case wherever it occurs and clears `user` so RequireAuth's existing
+  // redirect-to-/login effect fires, instead of the page sitting on
+  // stale data throwing uncaught 401s forever.
+  useEffect(() => {
+    return onUnauthorized(() => setUser(null));
+  }, []);
+
   const register = useCallback(async (input: RegisterInput) => {
     await getCsrfCookie();
-    const created = await apiFetch<User>("/register", {
-      method: "POST",
-      body: JSON.stringify(input),
-    });
+    const created = await apiFetch<User>(
+      "/register",
+      { method: "POST", body: JSON.stringify(input) },
+      UserSchema,
+    );
     setUser(created);
   }, []);
 
   const login = useCallback(async (input: LoginInput) => {
     await getCsrfCookie();
-    const authenticated = await apiFetch<User>("/login", {
-      method: "POST",
-      body: JSON.stringify(input),
-    });
+    const authenticated = await apiFetch<User>(
+      "/login",
+      { method: "POST", body: JSON.stringify(input) },
+      UserSchema,
+    );
     setUser(authenticated);
   }, []);
 
@@ -99,10 +111,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const updateProfile = useCallback(async (input: Partial<User>) => {
-    const updated = await apiFetch<User>("/api/user", {
-      method: "PATCH",
-      body: JSON.stringify(input),
-    });
+    const updated = await apiFetch<User>(
+      "/api/user",
+      { method: "PATCH", body: JSON.stringify(input) },
+      UserSchema,
+    );
     setUser(updated);
   }, []);
 
@@ -126,28 +139,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // link mailed to the new address is clicked, so this never logs the
   // current session out or changes what /api/user returns for `email`.
   const updateEmail = useCallback(async (email: string, currentPassword: string) => {
-    const updated = await apiFetch<User>("/api/user/email", {
-      method: "PATCH",
-      body: JSON.stringify({ email, current_password: currentPassword }),
-    });
+    const updated = await apiFetch<User>(
+      "/api/user/email",
+      { method: "PATCH", body: JSON.stringify({ email, current_password: currentPassword }) },
+      UserSchema,
+    );
     setUser(updated);
   }, []);
 
   const cancelPendingEmail = useCallback(async () => {
-    const updated = await apiFetch<User>("/api/user/email", { method: "DELETE" });
+    const updated = await apiFetch<User>("/api/user/email", { method: "DELETE" }, UserSchema);
     setUser(updated);
   }, []);
 
   const updatePassword = useCallback(
     async (currentPassword: string, password: string, passwordConfirmation: string) => {
-      const updated = await apiFetch<User>("/api/user/password", {
-        method: "PATCH",
-        body: JSON.stringify({
-          current_password: currentPassword,
-          password,
-          password_confirmation: passwordConfirmation,
-        }),
-      });
+      const updated = await apiFetch<User>(
+        "/api/user/password",
+        {
+          method: "PATCH",
+          body: JSON.stringify({
+            current_password: currentPassword,
+            password,
+            password_confirmation: passwordConfirmation,
+          }),
+        },
+        UserSchema,
+      );
       setUser(updated);
     },
     [],

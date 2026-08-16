@@ -11,4 +11,6 @@ Rules (see `mdfile/semester-command-center.md`, "Technical direction"):
 - Every class here should be fixture-testable in isolation, see
   `tests/Unit/Engine/fixtures`.
 
-Nothing implemented yet, skeleton only.
+Implemented: Capacity, Exam, Grade, Placement, Planning, Ranking, and
+Revision — each fixture-tested independently under
+`tests/Unit/Engine/<Package>CalculatorTest.php`.

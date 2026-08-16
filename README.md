@@ -2,7 +2,7 @@
 
 Monorepo layout — see `mdfile/semester-command-center.md` for the full product
 plan, `mdfile/DESIGN.md` for the design system, and `mdfile/*.html` for
-diagrams. Both apps below are skeletons only — no domain logic yet.
+diagrams.
 
 ```text
 frontend/   Next.js 16, TypeScript, Tailwind CSS 4 — consumes the API below,
@@ -45,7 +45,7 @@ Requires your own running PostgreSQL and Redis instance — nothing is bundled.
 ## CI/CD
 
 - **CI**: `.github/workflows/ci.yml` — lint/typecheck/vitest/build for the frontend, Pint + migrate + `php artisan test` (including the `app/Engine/` fixture suite) against a real Postgres service container for the backend. Runs on every PR and push to `main`.
-- **CD**: `.do/app.yaml` — DigitalOcean App Platform spec. Auto-deploys `main` after CI passes (branch protection gates this); migrations run as a `PRE_DEPLOY` job before traffic shifts to the new release, never inline in the app boot. First-time setup: `doctl apps create --spec .do/app.yaml`, then fill in the `SECRET`-typed env vars (APP_KEY, DO Spaces keys, OpenAI key) via the DO dashboard or `doctl apps update` — never in the spec file itself.
+- **CD**: `.do/app.yaml` — DigitalOcean App Platform spec. Auto-deploys `main` after CI passes (branch protection gates this); migrations run as a `PRE_DEPLOY` job before traffic shifts to the new release, never inline in the app boot. First-time setup: `doctl apps create --spec .do/app.yaml`, then fill in the `SECRET`-typed env vars (APP_KEY, DO Spaces keys, OpenRouter key, mail credentials, SESSION_DOMAIN) via the DO dashboard or `doctl apps update` — never in the spec file itself.
 
 ## Notes
 
@@ -56,6 +56,11 @@ Requires your own running PostgreSQL and Redis instance — nothing is bundled.
   Eloquent/DB access, fixture-tested from `backend/tests/Unit/Engine/`. See
   its README for the boundary rule.
 - File storage: DigitalOcean Spaces (`spaces` disk in
-  `backend/config/filesystems.php`), replacing Supabase Storage.
-- Nothing beyond this skeleton has been implemented — no models, migrations,
-  routes, or UI beyond framework defaults.
+  `backend/config/filesystems.php`), replacing Supabase Storage. Set both
+  `FILESYSTEM_DISK` and `MATERIALS_DISK` to `spaces` outside local dev —
+  they're read independently, and the latter defaults to the world-readable
+  local `public` disk if left unset.
+- A `scheduler` component in `.do/app.yaml` runs `php artisan schedule:work`
+  in production, dispatching the commands registered in
+  `backend/routes/console.php` (nightly planning, notification generation,
+  weekly reviews, Google Calendar sync) at their configured times.

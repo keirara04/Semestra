@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\OwnedExists;
 use Illuminate\Contracts\Validation\Validator as ValidatorContract;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -24,7 +25,7 @@ class TimetableImportConfirmRequest extends FormRequest
             'subjects.*.start_time' => ['required', 'date_format:H:i'],
             'subjects.*.end_time' => ['required', 'date_format:H:i', 'after:subjects.*.start_time'],
             'subjects.*.location' => ['nullable', 'string', 'max:255'],
-            'subjects.*.course_id' => ['nullable', 'integer', 'exists:courses,id'],
+            'subjects.*.course_id' => ['nullable', 'integer', OwnedExists::make('courses', 'id')],
             'subjects.*.new_course' => ['nullable', 'array'],
             'subjects.*.new_course.title' => ['required_with:subjects.*.new_course', 'string', 'max:255'],
             'subjects.*.new_course.colour' => ['required_with:subjects.*.new_course', 'string', 'max:20'],

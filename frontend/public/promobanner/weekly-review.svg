@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="360" viewBox="0 0 1600 360" role="img" aria-labelledby="title desc">
+  <title id="title">Semestra weekly review banner</title>
+  <desc id="desc">A dark interface banner for reviewing academic progress each week.</desc>
+  <rect width="1600" height="360" fill="#111315"/>
+  <path d="M0 12H1600M0 348H1600" stroke="#34393F" stroke-width="1" stroke-dasharray="1 18" stroke-linecap="round"/>
+  <g stroke="#34393F" stroke-width="1.5"><path d="M30 40h18m-9-9v18M1570 40h-18m9-9v18M30 320h18m-9 9v-18M1570 320h-18m9 9v18"/></g>
+  <g font-family="Courier New, Courier, monospace" letter-spacing="2.2" fill="#8A94A1" font-size="11">
+    <text x="88" y="63" fill="#D17056">SEMESTRA · STUDENT COPILOT</text>
+    <text x="88" y="332">ONE WEEK. CLEARER NEXT STEPS.</text>
+    <text x="672" y="332">SMST · REG</text>
+  </g>
+  <text x="88" y="130" font-family="Arial, Helvetica, sans-serif" font-size="38" font-weight="600" fill="#E7E4DC">Close the week clear.</text>
+  <rect x="88" y="151" width="62" height="3" fill="#D17056"/>
+  <text x="88" y="185" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#B9B9B4">Review what moved, what slipped, and</text>
+  <text x="88" y="209" font-family="Arial, Helvetica, sans-serif" font-size="17" fill="#B9B9B4">what deserves your attention next.</text>
+  <g font-family="Courier New, Courier, monospace" font-size="13" letter-spacing="1.3">
+    <text x="88" y="258" fill="#8A94A1">01</text><text x="132" y="258" fill="#E7E4DC">WEEKLY SIGNAL</text><text x="448" y="258" fill="#D17056">CHECKED</text>
+    <path d="M88 272H540" stroke="#34393F"/>
+    <text x="88" y="289" fill="#8A94A1">02</text><text x="132" y="289" fill="#E7E4DC">NEXT WEEK</text><text x="439" y="289" fill="#D17056">PREPARED</text>
+  </g>
+  <g transform="translate(890 58)">
+    <rect width="620" height="244" rx="8" fill="#1B1F23" stroke="#34393F" stroke-width="1.5"/>
+    <g font-family="Courier New, Courier, monospace" font-size="11" letter-spacing="1.7"><text x="28" y="31" fill="#8A94A1">WEEKLY REVIEW · 07</text><text x="493" y="31" fill="#D17056">COMPLETE</text></g>
+    <path d="M0 48H620M28 149H592M28 196H592" stroke="#34393F"/>
+    <g font-family="Courier New, Courier, monospace" font-size="11" letter-spacing="1.1" fill="#8A94A1"><text x="28" y="75">COURSE LOAD</text><text x="28" y="119">STUDY TIME</text></g>
+    <g fill="#34393F"><rect x="156" y="65" width="344" height="10" rx="2"/><rect x="156" y="109" width="344" height="10" rx="2"/></g>
+    <rect x="156" y="65" width="279" height="10" rx="2" fill="#D17056"/><rect x="156" y="109" width="234" height="10" rx="2" fill="#D17056"/>
+    <g font-family="Courier New, Courier, monospace" font-size="11" letter-spacing="1" fill="#E7E4DC"><text x="518" y="74">4 / 5</text><text x="518" y="118">8.5H</text></g>
+    <g font-family="Courier New, Courier, monospace" font-size="12" letter-spacing=".8"><text x="28" y="176" fill="#E7E4DC">3 TASKS MOVED FORWARD</text><text x="470" y="176" fill="#D17056">+03</text></g>
+    <text x="28" y="222" font-family="Courier New, Courier, monospace" font-size="10" letter-spacing="1.4" fill="#8A94A1">NEXT: BLOCK 2 FOCUS WINDOWS</text>
+    <text x="491" y="222" font-family="Courier New, Courier, monospace" font-size="10" letter-spacing="1.4" fill="#D17056">REVIEW →</text>
+  </g>
+</svg>

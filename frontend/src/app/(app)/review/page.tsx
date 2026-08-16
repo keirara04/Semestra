@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, logApiError } from "@/lib/api";
 import type { WeeklyReview } from "@/lib/types";
 import { WEEK_STATE_LABEL, WeekStateMarker } from "@/components/WeekState";
 import { formatMinutes } from "@/lib/format";
@@ -31,10 +31,28 @@ export default function ReviewPage() {
   const router = useRouter();
   const [review, setReview] = useState<WeeklyReview | null | undefined>(undefined);
   const [replanning, setReplanning] = useState(false);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
-    apiFetch<WeeklyReview | null>("/api/weekly-reviews/latest").then(setReview);
+    apiFetch<WeeklyReview | null>("/api/weekly-reviews/latest")
+      .then(setReview)
+      .catch((error) => {
+        setLoadError(true);
+        logApiError(error);
+      });
   }, []);
+
+  if (loadError) {
+    return (
+      <main className="bg-[var(--fn-paper)] flex min-h-dvh w-full flex-col items-center justify-center gap-2 px-8 py-10 text-center">
+        <p className="fn-eyebrow">Weekly review</p>
+        <h1 className="text-xl font-semibold">Couldn&apos;t load your review</h1>
+        <p className="max-w-sm text-sm text-[var(--fn-muted)]">
+          Something went wrong reaching the server. Try refreshing the page.
+        </p>
+      </main>
+    );
+  }
 
   if (review === undefined) return null;
 

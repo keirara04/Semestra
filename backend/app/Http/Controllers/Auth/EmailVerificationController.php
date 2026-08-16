@@ -21,7 +21,7 @@ class EmailVerificationController extends Controller
 {
     public function verify(Request $request, User $user, string $hash): RedirectResponse
     {
-        $frontendUrl = rtrim(env('FRONTEND_URL', 'http://localhost:3000'), '/');
+        $frontendUrl = rtrim(config('app.frontend_url'), '/');
 
         $target = $user->pending_email ?? $user->email;
 

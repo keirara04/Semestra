@@ -3,7 +3,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { use } from "react";
 import Link from "next/link";
-import { apiFetch, ApiError } from "@/lib/api";
+import { apiFetch, ApiError, logApiError } from "@/lib/api";
 import type {
   Assessment,
   AssessmentType,
@@ -37,11 +37,29 @@ export default function CourseWorkspacePage({
 }) {
   const { id } = use(params);
   const [course, setCourse] = useState<CourseWithSessions | null>(null);
+  const [courseError, setCourseError] = useState(false);
   const [tab, setTab] = useState<(typeof TABS)[number]>("Overview");
 
   useEffect(() => {
-    apiFetch<CourseWithSessions>(`/api/courses/${id}`).then(setCourse);
+    apiFetch<CourseWithSessions>(`/api/courses/${id}`)
+      .then(setCourse)
+      .catch((error) => {
+        setCourseError(true);
+        logApiError(error);
+      });
   }, [id]);
+
+  if (courseError) {
+    return (
+      <main className="bg-[var(--fn-paper)] flex min-h-dvh w-full flex-col items-center justify-center gap-2 px-8 py-10 text-center">
+        <p className="fn-eyebrow">Course</p>
+        <h1 className="text-xl font-semibold">Couldn&apos;t load this course</h1>
+        <p className="max-w-sm text-sm text-[var(--fn-muted)]">
+          Something went wrong reaching the server. Try refreshing the page.
+        </p>
+      </main>
+    );
+  }
 
   if (!course) return null;
 
@@ -81,7 +99,7 @@ export default function CourseWorkspacePage({
           .join(" · ") || "No details yet"}
       </p>
 
-      <nav className="mt-6 flex gap-1 overflow-x-auto border-b border-[var(--fn-rule)] text-sm">
+      <nav className="fn-scroll-fade mt-6 flex gap-1 overflow-x-auto border-b border-[var(--fn-rule)] text-sm">
         {TABS.map((name) => (
           <button
             key={name}
@@ -281,16 +299,12 @@ function Deliverables({ courseId }: { courseId: number }) {
   const [submitting, setSubmitting] = useState(false);
 
   function refresh() {
-    apiFetch<Assessment[]>("/api/assessments").then((list) =>
-      setAssessments(list.filter((item) => item.course_id === courseId)),
-    );
+    apiFetch<Assessment[]>("/api/assessments")
+      .then((list) => setAssessments(list.filter((item) => item.course_id === courseId)))
+      .catch(logApiError);
   }
 
-  useEffect(() => {
-    apiFetch<Assessment[]>("/api/assessments").then((list) =>
-      setAssessments(list.filter((item) => item.course_id === courseId)),
-    );
-  }, [courseId]);
+  useEffect(refresh, [courseId]);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -432,10 +446,12 @@ function Grades({ courseId }: { courseId: number }) {
     Promise.all([
       apiFetch<GradeReport>(`/api/courses/${courseId}/grades`),
       apiFetch<GradeItem[]>("/api/grade-items"),
-    ]).then(([reportData, itemsData]) => {
-      setReport(reportData);
-      setItems(itemsData.filter((item) => item.course_id === courseId));
-    });
+    ])
+      .then(([reportData, itemsData]) => {
+        setReport(reportData);
+        setItems(itemsData.filter((item) => item.course_id === courseId));
+      })
+      .catch(logApiError);
   }, [courseId]);
 
   async function handleSubmit(event: FormEvent) {
@@ -620,9 +636,9 @@ function Materials({ courseId }: { courseId: number }) {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    apiFetch<Material[]>("/api/materials").then((list) =>
-      setMaterials(list.filter((item) => item.course_id === courseId)),
-    );
+    apiFetch<Material[]>("/api/materials")
+      .then((list) => setMaterials(list.filter((item) => item.course_id === courseId)))
+      .catch(logApiError);
   }, [courseId]);
 
   async function handleSubmit(event: FormEvent) {
@@ -790,9 +806,9 @@ function Revision({ courseId }: { courseId: number }) {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    apiFetch<Topic[]>("/api/topics").then((list) =>
-      setTopics(list.filter((topic) => topic.course_id === courseId)),
-    );
+    apiFetch<Topic[]>("/api/topics")
+      .then((list) => setTopics(list.filter((topic) => topic.course_id === courseId)))
+      .catch(logApiError);
   }, [courseId]);
 
   async function handleSubmit(event: FormEvent) {

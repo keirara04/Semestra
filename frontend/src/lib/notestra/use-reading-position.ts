@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, logApiError } from "@/lib/api";
 import type { UserMaterialState } from "@/lib/types";
 import { useDebouncedCallback } from "@/lib/hooks/use-debounced-callback";
 
@@ -21,10 +21,12 @@ export function useReadingPosition(materialId: number, onRestore: (page: number,
 
   useEffect(() => {
     loadedRef.current = false;
-    apiFetch<UserMaterialState>(`/api/materials/${materialId}/state`).then((state) => {
-      onRestoreRef.current(state.last_page ?? 1, state.zoom ? Number(state.zoom) : 1);
-      loadedRef.current = true;
-    });
+    apiFetch<UserMaterialState>(`/api/materials/${materialId}/state`)
+      .then((state) => {
+        onRestoreRef.current(state.last_page ?? 1, state.zoom ? Number(state.zoom) : 1);
+        loadedRef.current = true;
+      })
+      .catch(logApiError);
   }, [materialId]);
 
   const debouncedSave = useDebouncedCallback((page: number, zoom: number) => {

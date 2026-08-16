@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\OwnedExists;
 use Illuminate\Foundation\Http\FormRequest;
 
 class TimetableImportRequest extends FormRequest
@@ -17,7 +18,7 @@ class TimetableImportRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'semester_id' => ['required', 'integer', 'exists:semesters,id'],
+            'semester_id' => ['required', 'integer', OwnedExists::make('semesters', 'id')],
             'url' => ['required', 'url', 'starts_with:https://everytime.kr/,https://www.everytime.kr/'],
         ];
     }

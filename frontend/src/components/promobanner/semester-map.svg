@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="360" viewBox="0 0 1600 360" role="img" aria-labelledby="title desc">
+  <title id="title">Semestra semester map promotional banner</title>
+  <desc id="desc">Dark academic banner showing a unified semester timeline and course milestones.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#151713"/>
+      <stop offset="1" stop-color="#0c0e0b"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#262a23"/>
+      <stop offset="1" stop-color="#191c17"/>
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-30%" width="140%" height="160%"><feGaussianBlur stdDeviation="20"/></filter>
+  </defs>
+  <rect width="1600" height="360" fill="url(#bg)"/>
+  <g stroke="#f3ecda" stroke-opacity=".05" stroke-width="1">
+    <path d="M0 45H1600M0 90H1600M0 135H1600M0 180H1600M0 225H1600M0 270H1600M0 315H1600"/>
+    <path d="M75 0V360M150 0V360M225 0V360M300 0V360M375 0V360M450 0V360M525 0V360M600 0V360M675 0V360M750 0V360M825 0V360M900 0V360M975 0V360M1050 0V360M1125 0V360M1200 0V360M1275 0V360M1350 0V360M1425 0V360M1500 0V360"/>
+  </g>
+  <circle cx="1200" cy="188" r="184" fill="#78997a" fill-opacity=".07" filter="url(#glow)"/>
+  <path d="M714 36V324" stroke="#d47745" stroke-opacity=".48"/>
+  <path d="M746 36V324" stroke="#f3ecdd" stroke-opacity=".12"/>
+
+  <text x="72" y="76" fill="#e58854" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" font-weight="700" letter-spacing="2">SEMESTRA / SEMESTER VIEW</text>
+  <text x="72" y="137" fill="#f4ecda" font-family="Georgia, Times New Roman, serif" font-size="46" font-weight="700">Your entire semester,</text>
+  <text x="72" y="185" fill="#f4ecda" font-family="Georgia, Times New Roman, serif" font-size="46" font-weight="700">in one clear view.</text>
+  <text x="72" y="231" fill="#b9bdaf" font-family="Arial, Helvetica, sans-serif" font-size="17">Courses, assessments, and key dates—</text>
+  <text x="72" y="255" fill="#b9bdaf" font-family="Arial, Helvetica, sans-serif" font-size="17">mapped together without the mental tabs.</text>
+  <g transform="translate(72 291)">
+    <rect width="188" height="34" rx="17" fill="#e48650"/>
+    <text x="18" y="22" fill="#141512" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" font-weight="800" letter-spacing="1.3">OPEN SEMESTER</text>
+    <path d="M162 12l8 5-8 5" fill="none" stroke="#141512" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <g transform="translate(805 38)">
+    <rect width="724" height="284" rx="18" fill="url(#panel)" stroke="#626956" stroke-opacity=".72"/>
+    <rect x="1" y="1" width="722" height="45" rx="17" fill="#2d3229" fill-opacity=".8"/>
+    <path d="M1 46H723" stroke="#676f5c" stroke-opacity=".6"/>
+    <text x="28" y="29" fill="#f1eadb" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" font-weight="700" letter-spacing="1.6">FALL 2026 / TERM MAP</text>
+    <text x="624" y="29" fill="#e8915e" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" font-weight="700" letter-spacing="1.1">WEEK 03</text>
+
+    <g transform="translate(28 67)">
+      <rect width="668" height="46" rx="8" fill="#1c201a" stroke="#505746"/>
+      <g fill="#939b8c" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700">
+        <text x="16" y="28">AUG 18</text><text x="123" y="28">SEP 01</text><text x="231" y="28">SEP 15</text><text x="339" y="28">SEP 29</text><text x="447" y="28">OCT 13</text><text x="555" y="28">OCT 27</text>
+      </g>
+      <path d="M62 23H613" stroke="#687061" stroke-width="2"/>
+      <circle cx="151" cy="23" r="7" fill="#e48650"/><circle cx="259" cy="23" r="5" fill="#78997a"/><circle cx="367" cy="23" r="5" fill="#6e8db7"/><circle cx="475" cy="23" r="5" fill="#c69b58"/><circle cx="583" cy="23" r="5" fill="#9a7599"/>
+      <path d="M151 8v30" stroke="#efa16e" stroke-width="1"/>
+    </g>
+    <text x="28" y="139" fill="#9fa79a" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700" letter-spacing="1.3">COURSE MILESTONES</text>
+    <g transform="translate(28 153)">
+      <g>
+        <rect width="311" height="38" rx="8" fill="#222720" stroke="#535c4e"/>
+        <rect width="4" height="38" rx="2" fill="#78997a"/>
+        <text x="17" y="16" fill="#f0eadb" font-family="Arial, Helvetica, sans-serif" font-size="12.5" font-weight="700">CS204 · Lab report</text>
+        <text x="17" y="30" fill="#9fa79a" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="9.5">SEP 03  /  3 DAYS</text>
+        <rect x="242" y="10" width="50" height="18" rx="9" fill="#3f563e"/>
+        <text x="253" y="22.5" fill="#b6d4ad" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="8.5" font-weight="700">NEXT</text>
+      </g>
+      <g transform="translate(0 47)">
+        <rect width="311" height="38" rx="8" fill="#222720" stroke="#535c4e"/>
+        <rect width="4" height="38" rx="2" fill="#6e8db7"/>
+        <text x="17" y="16" fill="#f0eadb" font-family="Arial, Helvetica, sans-serif" font-size="12.5" font-weight="700">MTH201 · Problem set 2</text>
+        <text x="17" y="30" fill="#9fa79a" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="9.5">SEP 10  /  10 DAYS</text>
+      </g>
+      <g transform="translate(0 94)">
+        <rect width="311" height="38" rx="8" fill="#222720" stroke="#535c4e"/>
+        <rect width="4" height="38" rx="2" fill="#c69b58"/>
+        <text x="17" y="16" fill="#f0eadb" font-family="Arial, Helvetica, sans-serif" font-size="12.5" font-weight="700">DES102 · Critique</text>
+        <text x="17" y="30" fill="#9fa79a" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="9.5">SEP 17  /  17 DAYS</text>
+      </g>
+      <g transform="translate(330 0)">
+        <rect width="338" height="132" rx="12" fill="#1c201a" stroke="#535c4e"/>
+        <text x="18" y="25" fill="#a3aa9d" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="9.5" font-weight="700" letter-spacing="1.2">SEMESTER PULSE</text>
+        <text x="18" y="57" fill="#f2ebdd" font-family="Georgia, Times New Roman, serif" font-size="28" font-weight="700">8</text>
+        <text x="51" y="56" fill="#b5baae" font-family="Arial, Helvetica, sans-serif" font-size="12">key dates ahead</text>
+        <path d="M19 81H313" stroke="#4f574a"/>
+        <g fill="#aeb5a6" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="9.5"><text x="18" y="108">4 COURSES</text><text x="129" y="108">12 TASKS</text><text x="233" y="108">2 EXAMS</text></g>
+      </g>
+    </g>
+  </g>
+</svg>

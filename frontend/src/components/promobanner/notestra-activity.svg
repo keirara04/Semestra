@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="360" viewBox="0 0 1600 360" role="img" aria-labelledby="title desc">
+  <title id="title">Semestra Notestra Activity</title>
+  <desc id="desc">A dark academic promotional banner showing Notestra study activity and linked notes.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#151713"/><stop offset="1" stop-color="#1d201a"/></linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#292b24"/><stop offset="1" stop-color="#1d201a"/></linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#d47745"/><stop offset="1" stop-color="#c69b58"/></linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="16" stdDeviation="16" flood-color="#03060A" flood-opacity=".55"/></filter>
+    <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1" fill="#b9bdaf" fill-opacity=".12"/></pattern>
+  </defs>
+  <rect width="1600" height="360" rx="24" fill="url(#bg)"/>
+  <rect width="1600" height="360" rx="24" fill="url(#dots)"/>
+  <path d="M1120-30c174 12 236 100 468 29v361H942c156-111 59-215 178-390Z" fill="#78997a" opacity=".07"/>
+  <circle cx="1510" cy="74" r="142" fill="#c69b58" opacity=".055"/>
+  <g transform="translate(76 61)" font-family="Georgia, 'Times New Roman', serif">
+    <rect width="164" height="30" rx="15" fill="#d47745" fill-opacity=".12" stroke="#d47745" stroke-opacity=".42"/>
+    <path d="M17 10h8v10h-8zM19 7h4M19 23h4" fill="none" stroke="#d47745" stroke-width="1.5" stroke-linecap="round"/><text x="37" y="19" font-family="'Courier New', monospace" font-size="12" font-weight="700" fill="#f4ecda" letter-spacing="1.05">NOTESTRA INSIGHT</text>
+    <text x="0" y="91" font-size="43" font-weight="750" letter-spacing="-1.6" fill="#f4ecda">Make every note</text><text x="0" y="124" font-size="43" font-weight="750" letter-spacing="-1.6" fill="#f4ecda">part of the picture.</text>
+    <text x="0" y="169" font-size="16" fill="#b9bdaf">See what you’re building, revisiting, and connecting</text><text x="0" y="193" font-size="16" fill="#b9bdaf">across every course in Notestra.</text>
+    <g transform="translate(0 221)"><rect width="170" height="43" rx="12" fill="url(#accent)"/><text x="18" y="27" font-size="14" font-weight="700" fill="#151713">View activity</text><path d="M139 17l7 5-7 5M146 22h-17" fill="none" stroke="#151713" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></g>
+  </g>
+  <g transform="translate(891 35)" font-family="Georgia, 'Times New Roman', serif" filter="url(#shadow)">
+    <rect width="625" height="290" rx="20" fill="#1d201a" stroke="#697060" stroke-opacity=".56"/>
+    <rect x="1" y="1" width="623" height="43" rx="19" fill="#292b24"/><path d="M1 43h623" stroke="#697060" stroke-opacity=".45"/>
+    <circle cx="25" cy="22" r="5" fill="#d47745"/><circle cx="43" cy="22" r="5" fill="#c69b58"/><circle cx="61" cy="22" r="5" fill="#78997a"/><text x="91" y="27" font-family="'Courier New', monospace" font-size="12" font-weight="700" fill="#f4ecda">NOTESTRA ACTIVITY</text>
+    <g transform="translate(28 66)"><rect width="362" height="193" rx="14" fill="url(#panel)" stroke="#697060" stroke-opacity=".48"/><text x="20" y="28" font-size="12" font-weight="700" fill="#f4ecda">Your study trail</text><text x="20" y="47" font-size="11" fill="#b9bdaf">Last 7 days</text>
+      <g transform="translate(21 69)"><path d="M0 89H319M0 59H319M0 29H319M0 0H319" stroke="#697060" stroke-opacity=".33"/><path d="M0 76C24 69 31 81 51 59s27 3 47-17 42 21 67-4 28-41 47-23 24 23 42-1 34 9 65-14" fill="none" stroke="#78997a" stroke-width="3" stroke-linecap="round"/><path d="M0 76C24 69 31 81 51 59s27 3 47-17 42 21 67-4 28-41 47-23 24 23 42-1 34 9 65-14V89H0Z" fill="#78997a" opacity=".12"/>
+      <g fill="#c69b58"><circle cx="51" cy="59" r="4"/><circle cx="165" cy="38" r="4"/><circle cx="254" cy="14" r="4"/><circle cx="319" cy="0" r="5"/></g></g>
+      <g font-family="'Courier New', monospace" font-size="10" fill="#b9bdaf"><text x="20" y="178">MON</text><text x="73" y="178">TUE</text><text x="125" y="178">WED</text><text x="177" y="178">THU</text><text x="230" y="178">FRI</text><text x="281" y="178">SAT</text><text x="328" y="178">SUN</text></g>
+    </g>
+    <g transform="translate(411 66)"><rect width="186" height="90" rx="14" fill="#292b24" stroke="#697060" stroke-opacity=".48"/><text x="18" y="27" font-size="11" font-weight="700" fill="#f4ecda">Notes created</text><text x="18" y="62" font-size="31" font-weight="750" fill="#f4ecda">18</text><text x="64" y="59" font-size="11" font-weight="700" fill="#78997a">+6 this week</text><path d="M18 73h150" stroke="#4e5448" stroke-opacity=".7"/></g>
+    <g transform="translate(411 169)"><rect width="186" height="90" rx="14" fill="#292b24" stroke="#697060" stroke-opacity=".48"/><text x="18" y="27" font-size="11" font-weight="700" fill="#f4ecda">Most active</text><rect x="18" y="40" width="28" height="28" rx="8" fill="#6e8db7" fill-opacity=".3"/><path d="M27 48h11M27 53h8M27 58h10" stroke="#c9d8e8" stroke-width="1.5" stroke-linecap="round"/><text x="57" y="52" font-size="11" font-weight="700" fill="#f4ecda">Cognitive Science</text><text x="57" y="68" font-size="10" fill="#b9bdaf">7 notes edited</text></g>
+    <g transform="translate(28 272)"><circle cx="8" cy="8" r="8" fill="#78997a"/><path d="M5 8l2 2 4-5" fill="none" stroke="#151713" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><text x="24" y="12" font-size="11" fill="#b9bdaf">Notestra kept <tspan font-weight="700" fill="#f4ecda">4 topics connected</tspan> this week.</text></g>
+  </g>
+</svg>

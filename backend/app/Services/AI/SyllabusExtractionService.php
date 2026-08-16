@@ -55,6 +55,7 @@ class SyllabusExtractionService
                 AiModelTier::Important,
             );
         } catch (AIProviderException $e) {
+            $this->budget->release($user);
             $this->logInteraction($user, 'failed', 0, null);
             throw $e;
         }

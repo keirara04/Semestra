@@ -63,6 +63,17 @@ services:
         value: https://${frontend.DOMAIN}
       - key: SANCTUM_STATEFUL_DOMAINS
         value: ${frontend.DOMAIN}
+      - key: SESSION_SECURE_COOKIE
+        value: "true"
+      - key: SESSION_SAME_SITE
+        value: lax
+      # No App Platform bindable gives the bare parent domain (only
+      # subdomain-scoped ${_self.DOMAIN} / ${frontend.DOMAIN}) — fill in
+      # via the dashboard at first-time setup, same as the DO_SPACES_*
+      # secrets below. Must be ".<domain>" (leading dot) to be shared
+      # between app. and api.
+      - key: SESSION_DOMAIN
+        type: SECRET
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_HOST

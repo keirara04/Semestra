@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { apiFetch, ApiError } from "@/lib/api";
+import { apiFetch, ApiError, logApiError } from "@/lib/api";
 import type { MaterialNote, NoteType } from "@/lib/types";
 
 const NOTE_TYPES: NoteType[] = ["general", "exam", "concept", "question", "formula"];
@@ -25,7 +25,7 @@ export function NotesPanel({ materialId, currentPage }: NotesPanelProps) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    apiFetch<MaterialNote[]>(`/api/materials/${materialId}/notes`).then(setNotes);
+    apiFetch<MaterialNote[]>(`/api/materials/${materialId}/notes`).then(setNotes).catch(logApiError);
   }, [materialId]);
 
   async function handleCreate(event: FormEvent) {

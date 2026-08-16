@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\OwnedExists;
 use Illuminate\Foundation\Http\FormRequest;
 
 class SubmissionRequest extends FormRequest
@@ -19,7 +20,7 @@ class SubmissionRequest extends FormRequest
         $required = $this->isMethod('POST') ? 'required' : 'sometimes';
 
         return [
-            'assessment_id' => [$required, 'integer', 'exists:assessments,id'],
+            'assessment_id' => [$required, 'integer', OwnedExists::make('assessments', 'id')],
             'submitted_at' => ['nullable', 'date'],
             'url' => ['nullable', 'string', 'max:2048'],
             'notes' => ['nullable', 'string'],

@@ -32,7 +32,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div>
+    <div className="fn-board-page-in">
       <div className="mb-10 flex flex-col items-center text-center lg:hidden">
         <SplitFlapText
           words={["        ", "SEMESTRA", "PLAN", "FOCUS", "TRACK"]}
@@ -119,13 +119,13 @@ export default function LoginPage() {
         </label>
 
         {error && (
-          <p role="alert" className="text-sm text-[var(--board-signal)]">
+          <p key={error} role="alert" className="fn-board-error-in text-sm text-[var(--board-signal)]">
             {error}
           </p>
         )}
 
-        <button type="submit" disabled={submitting} className="fn-board-btn-primary">
-          {submitting ? "Signing in…" : "Sign in"}
+        <button type="submit" disabled={submitting} className="fn-board-btn-primary fn-board-btn-label">
+          <span key={submitting ? "loading" : "idle"}>{submitting ? "Signing in…" : "Sign in"}</span>
         </button>
       </form>
 

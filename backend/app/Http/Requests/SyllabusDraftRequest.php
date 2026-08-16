@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\OwnedExists;
 use Illuminate\Contracts\Validation\Validator as ValidatorContract;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -18,7 +19,7 @@ class SyllabusDraftRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'material_id' => ['nullable', 'integer', 'exists:materials,id'],
+            'material_id' => ['nullable', 'integer', OwnedExists::make('materials', 'id')],
             'pasted_text' => ['nullable', 'string'],
         ];
     }

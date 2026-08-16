@@ -956,6 +956,109 @@ body:has(.fn-board) {
   }
 }
 
+/* Route entrance for the right-hand form panel — a single clack-in on
+   mount, echoing fn-board-row-in. No exit transition: Next unmounts the
+   previous page before this one mounts, so there's nothing to cross-fade
+   against. */
+.fn-board-page-in {
+  animation: fn-board-page-in 420ms ease-out both;
+}
+
+@keyframes fn-board-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* Submit button label swap — the two states stack in the same cell so
+   the button never changes size, and each swap gets its own clack. */
+.fn-board-btn-label {
+  display: grid;
+  grid-template-areas: "stack";
+  place-items: center;
+}
+
+.fn-board-btn-label > span {
+  grid-area: stack;
+  animation: fn-board-label-flap 220ms ease-out both;
+}
+
+@keyframes fn-board-label-flap {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* Error line clacks onto the board instead of popping in — keyed by
+   message text in the component so a new error restarts the animation. */
+.fn-board-error-in {
+  animation: fn-board-row-in 260ms ease-out both;
+}
+
+/* Gate-style step progress for the register wizard. */
+.fn-board-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.fn-board-step {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.fn-board-step-track {
+  height: 2px;
+  background: var(--board-hairline);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.fn-board-step-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--board-maroon);
+  transition: width 320ms ease-out;
+}
+
+.fn-board-step[data-state="complete"] .fn-board-step-fill,
+.fn-board-step[data-state="current"] .fn-board-step-fill {
+  width: 100%;
+}
+
+.fn-board-step[data-state="upcoming"] .fn-board-step-fill {
+  width: 0%;
+}
+
+.fn-board-step-label {
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--board-steel-dim);
+  transition: color 200ms ease-out;
+}
+
+.fn-board-step[data-state="current"] .fn-board-step-label,
+.fn-board-step[data-state="complete"] .fn-board-step-label {
+  color: var(--board-maroon);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .fn-board-row {
     animation: none;
@@ -964,6 +1067,17 @@ body:has(.fn-board) {
   .fn-board-oauth-btn,
   .fn-board-btn-primary,
   .fn-board-input {
+    transition: none;
+  }
+
+  .fn-board-page-in,
+  .fn-board-btn-label > span,
+  .fn-board-error-in {
+    animation: none;
+  }
+
+  .fn-board-step-fill,
+  .fn-board-step-label {
     transition: none;
   }
 }

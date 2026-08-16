@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="360" viewBox="0 0 1600 360" role="img" aria-labelledby="title desc">
+  <title id="title">Semestra Focus Windows promotional banner</title>
+  <desc id="desc">A dark academic dashboard banner showing protected focus periods.</desc>
+  <defs>
+    <pattern id="dots" width="22" height="4" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.25" fill="#34393F"/></pattern>
+    <style>
+      .mono{font-family:Courier New,Courier,monospace;letter-spacing:2px}.label{font-size:12px;fill:#8A94A1}.small{font-size:11px;fill:#8A94A1}.copy{font-family:Arial,sans-serif;font-size:18px;fill:#E7E4DC}.heading{font-family:Arial,sans-serif;font-size:34px;font-weight:600;fill:#E7E4DC}.cream{fill:#E7E4DC}.coral{fill:#D17056}.rule{stroke:#34393F;stroke-width:1}
+    </style>
+  </defs>
+  <rect width="1600" height="360" fill="#111315"/>
+  <rect x="0" y="4" width="1600" height="4" fill="url(#dots)"/>
+  <rect x="0" y="352" width="1600" height="4" fill="url(#dots)"/>
+  <g stroke="#34393F" stroke-width="1.4"><path d="M28 28h18m-9-9v18M1554 28h18m-9-9v18M28 332h18m-9-9v18M1554 332h18m-9-9v18"/></g>
+  <g transform="translate(78 72)">
+    <text class="mono label coral">SEMESTRA · STUDENT COPILOT</text>
+    <text y="55" class="heading">Protect your focus.</text>
+    <rect y="78" width="62" height="3" fill="#D17056"/>
+    <text y="115" class="copy">Shape the day around the work that matters.</text>
+    <g transform="translate(0 163)" class="mono">
+      <text class="label" x="0" y="0">01</text><text class="cream" x="68" y="0" font-size="14">DEEP WORK</text><text class="coral" x="430" y="0" font-size="13">RESERVED</text>
+      <line class="rule" x1="0" y1="20" x2="522" y2="20"/>
+      <text class="label" x="0" y="42">02</text><text class="cream" x="68" y="42" font-size="14">LECTURE PREP</text><text class="coral" x="444" y="42" font-size="13">SET</text>
+      <line class="rule" x1="0" y1="63" x2="522" y2="63"/>
+      <text class="label" x="0" y="85">03</text><text class="cream" x="68" y="85" font-size="14">REVIEW BLOCK</text><text class="coral" x="420" y="85" font-size="13">READY</text>
+    </g>
+    <text class="mono small" y="271">PLAN EARLY. MISS NOTHING.</text><text class="mono small" x="428" y="271">SMST · REG</text>
+  </g>
+  <g transform="translate(812 54)">
+    <rect width="704" height="252" rx="8" fill="#1B1F23" stroke="#34393F"/>
+    <text x="28" y="31" class="mono label">TODAY · FOCUS WINDOWS</text><text x="594" y="31" class="mono small coral">03 ACTIVE</text>
+    <line class="rule" x1="0" y1="49" x2="704" y2="49"/>
+    <text x="28" y="78" class="mono small">TIME</text><text x="114" y="78" class="mono small">WINDOW</text><text x="598" y="78" class="mono small">STATUS</text>
+    <line class="rule" x1="28" y1="91" x2="676" y2="91"/>
+    <text x="28" y="122" class="mono small">09:00</text><text x="114" y="122" class="mono cream" font-size="14">ECONOMICS — ESSAY DRAFT</text><rect x="442" y="108" width="108" height="12" fill="#D17056"/><rect x="552" y="108" width="24" height="12" fill="#34393F"/><text x="598" y="122" class="mono small coral">LOCKED</text>
+    <line class="rule" x1="28" y1="140" x2="676" y2="140"/>
+    <text x="28" y="171" class="mono small">13:30</text><text x="114" y="171" class="mono cream" font-size="14">HIST 204 — READINGS</text><rect x="442" y="157" width="72" height="12" fill="#D17056"/><rect x="516" y="157" width="60" height="12" fill="#34393F"/><text x="598" y="171" class="mono small coral">NEXT</text>
+    <line class="rule" x1="28" y1="189" x2="676" y2="189"/>
+    <text x="28" y="220" class="mono small">19:00</text><text x="114" y="220" class="mono cream" font-size="14">WEEKLY REVIEW</text><rect x="442" y="206" width="42" height="12" fill="#D17056"/><rect x="486" y="206" width="90" height="12" fill="#34393F"/><text x="598" y="220" class="mono small">QUEUED</text>
+  </g>
+</svg>

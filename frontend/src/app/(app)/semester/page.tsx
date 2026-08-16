@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { apiFetch, ApiError } from "@/lib/api";
+import { apiFetch, ApiError, logApiError } from "@/lib/api";
 import type {
   AcademicCalendarException,
   Assessment,
@@ -562,6 +562,7 @@ function HoverBar({
 
 function SemesterMap({ semester }: { semester: Semester }) {
   const [courses, setCourses] = useState<Course[] | null>(null);
+  const [loadError, setLoadError] = useState(false);
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [gradeItems, setGradeItems] = useState<GradeItem[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -590,8 +591,23 @@ function SemesterMap({ semester }: { semester: Semester }) {
       setDays(capacityDays);
       setBlocks(allBlocks);
       setExceptions(allExceptions.filter((e) => e.semester_id === semester.id));
+    }).catch((error) => {
+      setLoadError(true);
+      logApiError(error);
     });
   }, [semester.id, semester.start_date, semester.end_date]);
+
+  if (loadError) {
+    return (
+      <main className="bg-[var(--fn-paper)] flex min-h-dvh w-full flex-col items-center justify-center gap-2 px-8 py-10 text-center">
+        <p className="fn-eyebrow">Semester</p>
+        <h1 className="text-xl font-semibold">Couldn&apos;t load this semester</h1>
+        <p className="max-w-sm text-sm text-[var(--fn-muted)]">
+          Something went wrong reaching the server. Try refreshing the page.
+        </p>
+      </main>
+    );
+  }
 
   if (!courses) return null;
 
@@ -744,7 +760,7 @@ function SemesterMap({ semester }: { semester: Semester }) {
 
       <div className="mt-3">
       {/* Week axis: one shared column grid drives the header, the lanes below, and the workload strip, so nothing needs its own separate week labels. */}
-      <div className="fn-mono relative min-w-full overflow-x-auto text-[13px]">
+      <div className="fn-mono fn-scroll-fade relative min-w-full overflow-x-auto text-[13px]">
         {breakBands.map((band) => (
           <div
             key={band.label + band.leftPercent}

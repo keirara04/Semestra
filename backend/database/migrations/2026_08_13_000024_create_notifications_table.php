@@ -22,7 +22,7 @@ return new class extends Migration
             $table->unsignedBigInteger('subject_id')->nullable();
             $table->string('idempotency_key')->unique();
             $table->string('channel')->default('email');
-            $table->string('status')->default('pending'); // pending|sent|failed
+            $table->string('status')->default('pending'); // pending|sent|failed|skipped
             $table->text('message');
             $table->json('payload')->nullable();
             $table->timestampTz('sent_at')->nullable();

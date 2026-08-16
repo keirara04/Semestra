@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import { apiFetch, ApiError } from "@/lib/api";
+import { apiFetch, ApiError, logApiError } from "@/lib/api";
 import type { Assessment, AssessmentType, Course } from "@/lib/types";
 import { useActiveSemester } from "@/lib/hooks/use-active-semester";
 import { daysUntil } from "@/lib/format";
@@ -68,8 +68,18 @@ function CoursesPageInner() {
   const [assessmentSubmitting, setAssessmentSubmitting] = useState(false);
 
   useEffect(() => {
-    apiFetch<Course[]>("/api/courses").then(setCourses);
-    apiFetch<Assessment[]>("/api/assessments").then(setAssessments);
+    apiFetch<Course[]>("/api/courses")
+      .then(setCourses)
+      .catch((error) => {
+        setCourses([]);
+        logApiError(error);
+      });
+    apiFetch<Assessment[]>("/api/assessments")
+      .then(setAssessments)
+      .catch((error) => {
+        setAssessments([]);
+        logApiError(error);
+      });
   }, []);
 
   function openForm() {

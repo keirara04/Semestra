@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\OwnedExists;
 use Illuminate\Foundation\Http\FormRequest;
 
 class GradeItemRequest extends FormRequest
@@ -19,8 +20,8 @@ class GradeItemRequest extends FormRequest
         $required = $this->isMethod('POST') ? 'required' : 'sometimes';
 
         return [
-            'course_id' => [$required, 'integer', 'exists:courses,id'],
-            'grade_category_id' => ['nullable', 'integer', 'exists:grade_categories,id'],
+            'course_id' => [$required, 'integer', OwnedExists::make('courses', 'id')],
+            'grade_category_id' => ['nullable', 'integer', OwnedExists::make('grade_categories', 'id')],
             'name' => [$required, 'string', 'max:255'],
             'weighting' => [$required, 'numeric', 'min:0', 'max:100'],
             'max_score' => ['nullable', 'numeric', 'min:0'],

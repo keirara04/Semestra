@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="360" viewBox="0 0 1600 360" role="img" aria-labelledby="title desc">
+  <title id="title">Semestra Focus Windows promotional banner</title>
+  <desc id="desc">A dark editorial banner with left-aligned focus copy and a right-side time-block dashboard.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#151713"/><stop offset=".58" stop-color="#1D201A"/><stop offset="1" stop-color="#151713"/></linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#C69B58" stop-opacity=".16"/><stop offset="1" stop-color="#C69B58" stop-opacity="0"/></linearGradient>
+    <filter id="shadow" x="-25%" y="-30%" width="150%" height="170%"><feDropShadow dx="0" dy="14" stdDeviation="15" flood-color="#090B08" flood-opacity=".55"/></filter>
+    <style>
+      .sans{font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.serif{font-family:Georgia,"Times New Roman",serif}.tiny{font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;font-size:12px;letter-spacing:1.5px}.label{font-size:13px;letter-spacing:.35px}.num{font-size:13px;font-weight:650}.muted{fill:#B9BDAF}.ink{fill:#F4ECDA}
+    </style>
+  </defs>
+  <rect width="1600" height="360" fill="url(#bg)"/>
+  <path d="M0 312C233 240 322 383 602 310s332-98 560-26 307 35 438-34v110H0Z" fill="#30352A" opacity=".46"/>
+  <circle cx="1370" cy="26" r="272" fill="url(#glow)"/>
+  <g opacity=".28" stroke="#B9BDAF" stroke-width="1"><path d="M60 43h85M60 47h52"/><path d="M60 302h105M60 306h65"/></g>
+  <g class="sans">
+    <text x="60" y="84" class="tiny" fill="#C69B58">SEMESTRA / DEEP WORK</text>
+    <text x="60" y="143" class="serif ink" font-size="44" font-weight="700">Find your focus</text>
+    <text x="60" y="192" class="serif ink" font-size="44" font-weight="700">window.</text>
+    <text x="60" y="229" class="label muted">Protect the hours that move your semester forward.</text>
+    <g transform="translate(60 261)">
+      <rect width="170" height="39" rx="19.5" fill="#C69B58"/>
+      <text x="19" y="25" font-size="13" font-weight="700" fill="#151713">PLAN MY WEEK</text>
+      <path d="M139 16h12m-5-5 5 5-5 5" fill="none" stroke="#151713" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <text x="247" y="286" class="tiny" fill="#B9BDAF">02 / 08</text>
+  </g>
+  <g transform="translate(821 39)" filter="url(#shadow)" class="sans">
+    <rect width="700" height="281" rx="18" fill="#22251E" stroke="#4A5040"/>
+    <rect x="0" y="0" width="700" height="48" rx="18" fill="#2B3027"/>
+    <path d="M0 48h700" stroke="#4A5040"/>
+    <circle cx="25" cy="24" r="5" fill="#D47745"/><circle cx="43" cy="24" r="5" fill="#C69B58"/><circle cx="61" cy="24" r="5" fill="#78997A"/>
+    <text x="91" y="29" font-size="13" font-weight="650" fill="#F4ECDA">Focus windows</text>
+    <text x="629" y="29" class="tiny" fill="#B9BDAF">WEEK 07</text>
+    <g transform="translate(26 72)">
+      <text y="13" class="tiny" fill="#B9BDAF">MON</text><text x="91" y="13" class="tiny" fill="#B9BDAF">TUE</text><text x="182" y="13" class="tiny" fill="#B9BDAF">WED</text><text x="273" y="13" class="tiny" fill="#B9BDAF">THU</text><text x="364" y="13" class="tiny" fill="#B9BDAF">FRI</text>
+      <g stroke="#46503F" stroke-width="1"><path d="M0 31h489M0 73h489M0 115h489M0 157h489"/><path d="M0 31v167M91 31v167M182 31v167M273 31v167M364 31v167M455 31v167"/></g>
+      <g fill="#78997A"><rect x="8" y="40" width="75" height="24" rx="6"/><rect x="99" y="82" width="75" height="24" rx="6"/><rect x="190" y="40" width="75" height="24" rx="6"/></g>
+      <g fill="#C69B58"><rect x="281" y="124" width="75" height="24" rx="6"/><rect x="372" y="82" width="75" height="24" rx="6"/></g>
+      <g fill="#151713" font-size="10" font-weight="700"><text x="16" y="56">ESSAY</text><text x="107" y="98">READ</text><text x="198" y="56">LAB</text></g>
+      <g fill="#151713" font-size="10" font-weight="700"><text x="289" y="140">REVIEW</text><text x="380" y="98">PLAN</text></g>
+      <path d="M244 25v178" stroke="#D47745" stroke-width="2"/><circle cx="244" cy="25" r="4" fill="#D47745"/>
+    </g>
+    <g transform="translate(544 79)">
+      <text class="tiny" fill="#B9BDAF">THIS WEEK</text>
+      <text y="44" class="serif" font-size="34" font-weight="700" fill="#F4ECDA">14.5h</text>
+      <text y="66" font-size="12" fill="#B9BDAF">protected time</text>
+      <rect y="91" width="128" height="1" fill="#4A5040"/>
+      <circle cy="120" r="5" fill="#78997A"/><text x="13" y="124" font-size="12" fill="#D9D8C9">5 sessions</text>
+      <circle cy="151" r="5" fill="#C69B58"/><text x="13" y="155" font-size="12" fill="#D9D8C9">2 priorities</text>
+    </g>
+  </g>
+</svg>

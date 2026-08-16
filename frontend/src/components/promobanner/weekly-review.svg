@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="360" viewBox="0 0 1600 360" role="img" aria-labelledby="title desc">
+  <title id="title">Semestra Weekly Review</title>
+  <desc id="desc">A dark promotional banner featuring Weekly Review copy and a dashboard illustration that summarizes study time, course balance, and completed goals.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#151713"/><stop offset=".55" stop-color="#1D201A"/><stop offset="1" stop-color="#10120F"/></linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#8FA8C9"/><stop offset="1" stop-color="#6E8DB7"/></linearGradient>
+    <linearGradient id="mint" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#A7C1A5"/><stop offset="1" stop-color="#78997A"/></linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#02040A" flood-opacity=".58"/></filter>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="20"/></filter>
+    <clipPath id="clip"><rect x="872" y="32" width="650" height="296" rx="22"/></clipPath>
+  </defs>
+  <rect width="1600" height="360" fill="url(#bg)"/>
+  <circle cx="1300" cy="50" r="180" fill="#6E8DB7" opacity=".08" filter="url(#glow)"/><circle cx="1000" cy="340" r="175" fill="#78997A" opacity=".07" filter="url(#glow)"/>
+  <path d="M0 310C260 257 464 300 714 267s490-90 886 4v89H0Z" fill="#0D0E0B" opacity=".45"/>
+  <g font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif">
+    <g transform="translate(78 70)">
+      <rect width="137" height="30" rx="15" fill="#D47745" fill-opacity=".12" stroke="#D47745" stroke-opacity=".32"/>
+      <path d="M17 19c1-7 8-8 10-3 1 4-3 7-7 8" fill="none" stroke="#D9A17E" stroke-width="1.8" stroke-linecap="round"/><text x="37" y="19" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" font-weight="700" letter-spacing="1.1" fill="#E6C3AA">WEEKLY REVIEW</text>
+      <text x="0" y="94" font-family="Georgia, 'Times New Roman', serif" font-size="43" font-weight="700" letter-spacing="-.9" fill="#F4ECDA">Close the week with clarity.</text>
+      <text x="0" y="126" font-size="17" fill="#B9BDAF">See what moved, what slipped, and where your</text><text x="0" y="151" font-size="17" fill="#B9BDAF">attention will make the biggest difference next.</text>
+      <g transform="translate(0 186)"><rect width="163" height="40" rx="12" fill="#22251E" stroke="#454A3C"/><path d="M17 21h15M17 27h10" stroke="#78997A" stroke-width="2" stroke-linecap="round"/><text x="45" y="25" font-size="13" font-weight="650" fill="#E2DDCF">Spot the signal</text><rect x="175" width="156" height="40" rx="12" fill="#22251E" stroke="#454A3C"/><path d="M192 27l5-5 4 3 8-10" fill="none" stroke="#C69B58" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><text x="214" y="25" font-size="13" font-weight="650" fill="#E2DDCF">Plan the next week</text></g>
+    </g>
+    <g filter="url(#shadow)"><rect x="872" y="32" width="650" height="296" rx="22" fill="#1D201A" stroke="#454A3C"/>
+      <g clip-path="url(#clip)">
+        <rect x="872" y="32" width="650" height="46" fill="#25291F"/><circle cx="900" cy="55" r="5" fill="#D47745"/><circle cx="917" cy="55" r="5" fill="#C69B58"/><circle cx="934" cy="55" r="5" fill="#78997A"/>
+        <text x="968" y="60" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="650" fill="#B9BDAF">WEEKLY REVIEW · AUG 10–16</text><rect x="1400" y="47" width="95" height="17" rx="8.5" fill="#78997A" fill-opacity=".15"/><text x="1412" y="59" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="9" font-weight="700" fill="#B7D1B6">REFLECTED</text>
+        <g transform="translate(900 99)">
+          <text y="14" font-size="12" font-weight="700" fill="#F4ECDA">Your week, at a glance</text><text y="34" font-size="11" fill="#A9AD9E">A balanced finish with one place to reset.</text>
+          <g transform="translate(0 55)"><rect width="170" height="117" rx="14" fill="#25291F" stroke="#454A3C"/><text x="18" y="24" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="9" font-weight="700" fill="#B9BDAF">FOCUS TIME</text><text x="18" y="55" font-family="Georgia, 'Times New Roman', serif" font-size="29" font-weight="700" fill="#F4ECDA">8h 40m</text><text x="18" y="77" font-size="10" fill="#A6C4A5">↑ 1h 20m from last week</text><path d="M18 99h132" stroke="#4A5041"/><path d="M18 99c17-4 24-25 39-18s19-2 30-11 23 9 35-7 16-5 28-23" fill="none" stroke="url(#mint)" stroke-width="2.6" stroke-linecap="round"/>
+            <rect x="184" width="160" height="117" rx="14" fill="#25291F" stroke="#454A3C"/><text x="202" y="24" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="9" font-weight="700" fill="#B9BDAF">TASKS CLOSED</text><text x="202" y="55" font-family="Georgia, 'Times New Roman', serif" font-size="29" font-weight="700" fill="#F4ECDA">14 <tspan font-family="Inter, ui-sans-serif, sans-serif" font-size="15" fill="#A9AD9E">/ 17</tspan></text><rect x="202" y="71" width="124" height="8" rx="4" fill="#42483C"/><rect x="202" y="71" width="102" height="8" rx="4" fill="url(#blue)"/><text x="202" y="101" font-size="10" fill="#A9AD9E">3 tasks carried forward</text></g>
+          <g transform="translate(0 186)"><rect width="344" height="53" rx="13" fill="#25291F" stroke="#454A3C"/><circle cx="25" cy="26" r="13" fill="#C69B58" fill-opacity=".14" stroke="#C69B58" stroke-opacity=".35"/><path d="M20 26l4 4 7-8" fill="none" stroke="#D7B67A" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/><text x="51" y="23" font-size="11" font-weight="700" fill="#E8E2D5">Win of the week</text><text x="51" y="39" font-size="10" fill="#A9AD9E">Finished your Cognitive Science reading sprint.</text></g>
+        </g>
+        <g transform="translate(1270 99)"><rect width="223" height="239" rx="15" fill="#25291F" stroke="#454A3C"/><text x="20" y="29" font-size="11" font-weight="700" fill="#E8E2D5">Course balance</text><text x="20" y="47" font-size="10" fill="#A9AD9E">Time given to each course</text>
+          <g transform="translate(111 110)"><circle r="56" fill="none" stroke="#42483C" stroke-width="16"/><circle r="56" fill="none" stroke="#78997A" stroke-width="16" stroke-linecap="round" stroke-dasharray="117 352" transform="rotate(-90)"/><circle r="56" fill="none" stroke="#6E8DB7" stroke-width="16" stroke-linecap="round" stroke-dasharray="78 352" stroke-dashoffset="-130" transform="rotate(-90)"/><circle r="56" fill="none" stroke="#C69B58" stroke-width="16" stroke-linecap="round" stroke-dasharray="54 352" stroke-dashoffset="-220" transform="rotate(-90)"/><text text-anchor="middle" y="-3" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="9" fill="#B9BDAF">3 COURSES</text><text text-anchor="middle" y="16" font-family="Georgia, 'Times New Roman', serif" font-size="17" font-weight="700" fill="#F4ECDA">Balanced</text></g>
+          <g font-size="10" fill="#B9BDAF"><circle cx="22" cy="197" r="4" fill="#78997A"/><text x="32" y="201">Psychology</text><circle cx="112" cy="197" r="4" fill="#6E8DB7"/><text x="122" y="201">Biology</text><circle cx="22" cy="218" r="4" fill="#C69B58"/><text x="32" y="222">Economics</text></g>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

@@ -6,6 +6,7 @@ use App\Engine\Capacity\CapacityCalculator;
 use App\Engine\Placement\PlacementCalculator;
 use App\Engine\Placement\PlacementConstants;
 use App\Engine\Placement\TaskPlacementInput;
+use App\Engine\Placement\TaskPlacementResult;
 use App\Engine\Planning\FeasibilityCalculator;
 use App\Engine\Planning\TaskDemandInput;
 use App\Engine\Ranking\RankingCalculator;
@@ -19,6 +20,7 @@ use App\Models\User;
 use DateTimeImmutable;
 use DateTimeZone;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -111,11 +113,11 @@ class PlanningRunner
      *                                    on-demand placement.
      * @return array{
      *     timezone: DateTimeZone,
-     *     tasksById: \Illuminate\Support\Collection<int, Task>,
+     *     tasksById: Collection<int, Task>,
      *     feasibility: array,
      *     ranking: array,
      *     placement: array,
-     *     placementObjects: \App\Engine\Placement\TaskPlacementResult[],
+     *     placementObjects: TaskPlacementResult[],
      * }
      */
     public function computePlan(User $user, ?int $maxHorizonDays = null): array

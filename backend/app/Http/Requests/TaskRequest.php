@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Task;
+use App\Rules\OwnedExists;
 use Illuminate\Contracts\Validation\Validator as ValidatorContract;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -21,11 +22,11 @@ class TaskRequest extends FormRequest
         $required = $this->isMethod('POST') ? 'required' : 'sometimes';
 
         return [
-            'course_id' => [$required, 'integer', 'exists:courses,id'],
-            'assessment_id' => ['nullable', 'integer', 'exists:assessments,id'],
-            'milestone_id' => ['nullable', 'integer', 'exists:milestones,id'],
+            'course_id' => [$required, 'integer', OwnedExists::make('courses', 'id')],
+            'assessment_id' => ['nullable', 'integer', OwnedExists::make('assessments', 'id')],
+            'milestone_id' => ['nullable', 'integer', OwnedExists::make('milestones', 'id')],
             'topic_id' => ['nullable', 'integer'],
-            'depends_on_task_id' => ['nullable', 'integer', 'exists:tasks,id'],
+            'depends_on_task_id' => ['nullable', 'integer', OwnedExists::make('tasks', 'id')],
             'title' => [$required, 'string', 'max:255'],
             'estimated_minutes' => ['nullable', 'integer', 'min:0'],
             'remaining_estimate_minutes' => ['nullable', 'integer', 'min:0'],

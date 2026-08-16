@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\OwnedExists;
 use Illuminate\Foundation\Http\FormRequest;
 
 class MilestoneRequest extends FormRequest
@@ -19,7 +20,7 @@ class MilestoneRequest extends FormRequest
         $required = $this->isMethod('POST') ? 'required' : 'sometimes';
 
         return [
-            'assessment_id' => [$required, 'integer', 'exists:assessments,id'],
+            'assessment_id' => [$required, 'integer', OwnedExists::make('assessments', 'id')],
             'title' => [$required, 'string', 'max:255'],
             'estimate_minutes' => ['nullable', 'integer', 'min:0'],
             'done' => ['sometimes', 'boolean'],

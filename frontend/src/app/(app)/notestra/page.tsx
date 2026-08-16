@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Folder, FolderOpen } from "lucide-react";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, logApiError } from "@/lib/api";
 import type { Course, Material, Semester } from "@/lib/types";
 import { MaterialThumbnail } from "@/components/notestra/MaterialThumbnail";
 import { MaterialQuickLook } from "@/components/notestra/MaterialQuickLook";
@@ -22,9 +22,11 @@ export default function NotestraLandingPage() {
   const [previewMaterial, setPreviewMaterial] = useState<Material | null>(null);
 
   useEffect(() => {
-    apiFetch<Material[]>("/api/materials").then((list) => setMaterials(list.filter((m) => m.type === "pdf")));
-    apiFetch<Course[]>("/api/courses").then(setCourses);
-    apiFetch<Semester[]>("/api/semesters").then(setSemesters);
+    apiFetch<Material[]>("/api/materials")
+      .then((list) => setMaterials(list.filter((m) => m.type === "pdf")))
+      .catch(logApiError);
+    apiFetch<Course[]>("/api/courses").then(setCourses).catch(logApiError);
+    apiFetch<Semester[]>("/api/semesters").then(setSemesters).catch(logApiError);
   }, []);
 
   function toggle(set: Set<number>, setSet: (next: Set<number>) => void, id: number) {

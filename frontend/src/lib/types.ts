@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 export interface DeepWorkWindow {
   start: string; // "HH:MM"
   end: string; // "HH:MM"
@@ -8,19 +10,38 @@ export interface QuietHours {
   end: string; // "HH:MM"
 }
 
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  pending_email: string | null;
-  email_verified_at: string | null;
-  timezone: string;
-  max_study_hours_per_day: number;
-  deep_work_windows: DeepWorkWindow[] | null;
-  quiet_hours: QuietHours | null;
-  grade_scale: string;
-  ai_syllabus_extraction_consent_at: string | null;
-}
+// Runtime-checked, unlike every other type in this file — User backs
+// every RequireAuth-gated page (see auth-context.tsx) and drifted
+// silently from the backend's actual shape once already (missing
+// pending_email/email_verified_at/ai_syllabus_extraction_consent_at all
+// went unnoticed until an unrelated type-check pass caught them), so
+// apiFetch validates it at the API boundary rather than trusting the
+// compile-time type alone.
+export const DeepWorkWindowSchema = z.object({
+  start: z.string(),
+  end: z.string(),
+});
+
+export const QuietHoursSchema = z.object({
+  start: z.string(),
+  end: z.string(),
+});
+
+export const UserSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+  email: z.string(),
+  pending_email: z.string().nullable(),
+  email_verified_at: z.string().nullable(),
+  timezone: z.string(),
+  max_study_hours_per_day: z.number(),
+  deep_work_windows: z.array(DeepWorkWindowSchema).nullable(),
+  quiet_hours: QuietHoursSchema.nullable(),
+  grade_scale: z.string(),
+  ai_syllabus_extraction_consent_at: z.string().nullable(),
+});
+
+export type User = z.infer<typeof UserSchema>;
 
 export interface Semester {
   id: number;

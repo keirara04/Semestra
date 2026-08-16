@@ -76,4 +76,41 @@ class OwnershipScopingTest extends TestCase
 
         $this->assertDatabaseHas('courses', ['id' => $course->id, 'title' => $course->title]);
     }
+
+    /**
+     * Regression test for OwnedExists (app/Rules/OwnedExists.php): a plain
+     * `exists:table,column` rule runs on the raw query builder and would
+     * happily accept another user's course_id here — Task would then be
+     * created pointing at a resource the caller doesn't own.
+     */
+    public function test_a_user_cannot_attach_a_task_to_another_users_course(): void
+    {
+        $owner = User::factory()->create();
+        $intruder = User::factory()->create();
+        $semester = Semester::factory()->for($owner)->create();
+        $course = Course::factory()->for($owner)->for($semester)->create();
+
+        $response = $this->actingAs($intruder, 'sanctum')->postJson('/api/tasks', [
+            'course_id' => $course->id,
+            'title' => 'Hijacked task',
+        ]);
+
+        $response->assertStatus(422);
+        $this->assertDatabaseMissing('tasks', ['course_id' => $course->id]);
+    }
+
+    public function test_a_user_can_still_attach_a_task_to_their_own_course(): void
+    {
+        $owner = User::factory()->create();
+        $semester = Semester::factory()->for($owner)->create();
+        $course = Course::factory()->for($owner)->for($semester)->create();
+
+        $response = $this->actingAs($owner, 'sanctum')->postJson('/api/tasks', [
+            'course_id' => $course->id,
+            'title' => 'My task',
+        ]);
+
+        $response->assertCreated();
+        $this->assertDatabaseHas('tasks', ['course_id' => $course->id, 'title' => 'My task']);
+    }
 }

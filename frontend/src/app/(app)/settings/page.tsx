@@ -1,10 +1,11 @@
 "use client";
 
 import { Suspense, useEffect, useState, type FormEvent, type ReactNode } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Bell, Bot, CalendarDays, Clock, GraduationCap, KeyRound, TriangleAlert, UserRound } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { ApiError, apiFetch, API_URL } from "@/lib/api";
+import { ApiError, apiFetch, API_URL, logApiError } from "@/lib/api";
 import type { DeepWorkWindow, User } from "@/lib/types";
 
 // Each preference group reads as its own ledger card (border + faint
@@ -38,6 +39,82 @@ function SettingsSection({
       </p>
       {children}
     </section>
+  );
+}
+
+interface PromoSlide {
+  src: string;
+  label: string;
+  href: string;
+}
+
+// Sourced from src/components/promobanner/ (pre-made asset pack, see its
+// README) — only the ones with a real, built, reachable destination in
+// this app made the cut. Dropped: exam-readiness and workload-forecast
+// (no standalone page — both live inside /semester already, so either
+// would just duplicate the semester-map slide's link) and course-balance
+// (its natural destination, /insights, is a literal "not built yet"
+// stub — linking there would be a dead promise).
+const PROMO_SLIDES: PromoSlide[] = [
+  { src: "/promobanner/semester-map.svg", label: "Open the semester map", href: "/semester" },
+  { src: "/promobanner/deadline-radar.svg", label: "See deadlines across courses", href: "/courses" },
+  { src: "/promobanner/focus-windows.svg", label: "Start a focus session", href: "/focus" },
+  { src: "/promobanner/weekly-review.svg", label: "Open your weekly review", href: "/review" },
+  { src: "/promobanner/notestra-activity.svg", label: "Open Notestra", href: "/notestra" },
+];
+
+const PROMO_INTERVAL_MS = 6000;
+
+// Full-width strip anchoring the bottom of the page, auto-rotating
+// through the real asset pack above. Each slide is a Link, not a
+// decorative image with a fake-looking CTA baked into the artwork — the
+// button drawn in the SVG only reads as real if clicking it actually
+// goes somewhere.
+function PromoBanner() {
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    if (paused) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const id = setInterval(() => setIndex((current) => (current + 1) % PROMO_SLIDES.length), PROMO_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [paused]);
+
+  const slide = PROMO_SLIDES[index];
+
+  return (
+    <div
+      className="mx-auto mt-8 w-full max-w-5xl"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      role="region"
+      aria-label="About Semestra"
+    >
+      <Link
+        href={slide.href}
+        className="block overflow-hidden rounded-xl border border-[var(--fn-rule)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--fn-cobalt)]"
+      >
+        {/* Each SVG is a self-contained 1600x360 designed slide (bg,
+            headline, CTA pill, illustration) — plain img, not next/image,
+            since it's vector and needs no optimisation. */}
+        <img src={slide.src} alt={slide.label} width={1600} height={360} className="h-auto w-full" />
+      </Link>
+      <div className="mt-3 flex items-center justify-center gap-1.5">
+        {PROMO_SLIDES.map((item, i) => (
+          <button
+            key={item.href}
+            type="button"
+            onClick={() => setIndex(i)}
+            aria-label={`Show slide ${i + 1}: ${item.label}`}
+            aria-current={i === index}
+            className={`h-1.5 rounded-full transition-all duration-200 ${
+              i === index ? "w-5 bg-[var(--fn-ink)]" : "w-1.5 bg-[var(--fn-rule)] hover:bg-[var(--fn-muted)]"
+            }`}
+          />
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -99,7 +176,7 @@ function SettingsForm({
 
   useEffect(() => {
     if (user.ai_syllabus_extraction_consent_at) {
-      apiFetch<{ remaining: number; limit: number }>("/api/ai/usage").then(setAiBudget);
+      apiFetch<{ remaining: number; limit: number }>("/api/ai/usage").then(setAiBudget).catch(logApiError);
     }
   }, [user.ai_syllabus_extraction_consent_at]);
 
@@ -162,11 +239,19 @@ function SettingsForm({
   }
 
   return (
-    <main className="bg-[var(--fn-paper)] min-h-dvh w-full px-8 py-10 md:px-12">
+    <main className="bg-[var(--fn-canvas)] min-h-dvh w-full px-4 py-10 sm:px-8 md:px-12">
+      {/* Card reads as a floating panel (border + shadow + rounded,
+          centered against a slightly recessed canvas background) rather
+          than the previous full-bleed left-aligned page — "modal" in
+          treatment, not an overlay dialog, since this is still its own
+          route, not something opened on top of another page. */}
+      <div className="mx-auto w-full max-w-5xl rounded-xl border border-[var(--fn-rule)] bg-[var(--fn-paper)] px-6 py-8 shadow-sm sm:px-10">
       <p className="fn-eyebrow">Settings</p>
       <h1 className="mt-1 text-2xl font-semibold">Preferences</h1>
 
-      <form onSubmit={handleSave} className="mt-8 flex max-w-2xl flex-col gap-6">
+      <form onSubmit={handleSave} className="mt-8 flex flex-col gap-6">
+        <div className="grid gap-6 lg:grid-cols-2 lg:gap-x-10">
+        <div className="flex flex-col gap-6">
         <SettingsSection icon={UserRound} title="Account">
           <label className="flex flex-col gap-1.5">
             <span className="fn-label">Name</span>
@@ -240,7 +325,9 @@ function SettingsForm({
             </button>
           </div>
         </SettingsSection>
+        </div>
 
+        <div className="flex flex-col gap-6">
         <SettingsSection icon={GraduationCap} title="Academic">
           <label className="flex flex-col gap-1.5">
             <span className="fn-label">Timezone</span>
@@ -287,6 +374,8 @@ function SettingsForm({
             Reminder emails are delayed until quiet hours end.
           </p>
         </SettingsSection>
+        </div>
+        </div>
 
         {error && (
           <p role="alert" className="text-sm text-[var(--fn-oxide)]">
@@ -304,7 +393,8 @@ function SettingsForm({
         </div>
       </form>
 
-      <div className="mt-6 flex max-w-2xl flex-col gap-6">
+      <div className="mt-6 grid gap-6 lg:grid-cols-2 lg:gap-x-10">
+      <div className="flex flex-col gap-6">
       <Suspense fallback={null}>
         <SecuritySection user={user} />
       </Suspense>
@@ -330,7 +420,9 @@ function SettingsForm({
           </p>
         )}
       </SettingsSection>
+      </div>
 
+      <div className="flex flex-col gap-6">
       <Suspense fallback={null}>
         <GoogleCalendarSection />
       </Suspense>
@@ -389,6 +481,10 @@ function SettingsForm({
         )}
       </SettingsSection>
       </div>
+      </div>
+      </div>
+
+      <PromoBanner />
     </main>
   );
 }
@@ -719,10 +815,12 @@ function GoogleCalendarSection() {
   const [callbackResult] = useState(() => searchParams.get("google_calendar"));
 
   function loadStatus() {
-    apiFetch<{ connected: boolean; lastSyncedAt: string | null }>("/api/google-calendar/status").then((result) => {
-      setConnected(result.connected);
-      setLastSyncedAt(result.lastSyncedAt);
-    });
+    apiFetch<{ connected: boolean; lastSyncedAt: string | null }>("/api/google-calendar/status")
+      .then((result) => {
+        setConnected(result.connected);
+        setLastSyncedAt(result.lastSyncedAt);
+      })
+      .catch(logApiError);
   }
 
   useEffect(loadStatus, []);

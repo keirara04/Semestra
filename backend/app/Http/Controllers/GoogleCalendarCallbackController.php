@@ -21,7 +21,7 @@ class GoogleCalendarCallbackController extends Controller
 {
     public function __invoke(Request $request): RedirectResponse
     {
-        $frontendUrl = rtrim(env('FRONTEND_URL', 'http://localhost:3000'), '/');
+        $frontendUrl = rtrim(config('app.frontend_url'), '/');
 
         $userId = $request->session()->pull('google_calendar_connect_user_id');
 

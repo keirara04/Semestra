@@ -6,660 +6,66 @@ import {
   useMemo,
   useRef,
   useState,
-  type CSSProperties,
   type FormEvent,
   type MouseEvent as ReactMouseEvent,
-  type ReactNode,
 } from "react";
 import {
   DndContext,
   PointerSensor,
-  useDraggable,
-  useDroppable,
   useSensor,
   useSensors,
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { Check, ChevronLeft, ChevronRight, PenLine, Plus, RefreshCw, Search, X } from "lucide-react";
-import { apiFetch, ApiError } from "@/lib/api";
+import { apiFetch, ApiError, logApiError } from "@/lib/api";
 import type { CalendarBlock, ClassSession, DayCapacity, Task } from "@/lib/types";
 import { WeekStateMarker, weekState } from "@/components/WeekState";
 import { useActiveSemester } from "@/lib/hooks/use-active-semester";
 import { formatMinutes } from "@/lib/format";
 import {
   TIMELINE_START_HOUR,
-  TIMELINE_END_HOUR,
   HOUR_HEIGHT_PX,
   timelineHours,
   hourLabel,
   occurrenceStyle,
   occurrenceTimelinePosition,
-  type TimelinePosition,
   type CalendarOccurrence,
 } from "@/lib/timeline";
-
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-// Presets are offsets from the block's current start_at, picked at
-// selection time and stored as an absolute remind_at — moving the block
-// afterward does not recompute it. null = no reminder.
-const REMINDER_PRESETS: { label: string; minutes: number | null }[] = [
-  { label: "None", minutes: null },
-  { label: "At start time", minutes: 0 },
-  { label: "5 minutes before", minutes: 5 },
-  { label: "15 minutes before", minutes: 15 },
-  { label: "30 minutes before", minutes: 30 },
-  { label: "1 hour before", minutes: 60 },
-  { label: "1 day before", minutes: 1440 },
-];
-
-function startOfWeek(date: Date): Date {
-  const day = date.getDay();
-  const start = new Date(date);
-  start.setDate(date.getDate() - day);
-  start.setHours(0, 0, 0, 0);
-  return start;
-}
-
-function startOfMonth(date: Date): Date {
-  const start = new Date(date.getFullYear(), date.getMonth(), 1);
-  start.setHours(0, 0, 0, 0);
-  return start;
-}
-
-function endOfMonth(date: Date): Date {
-  const end = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-  end.setHours(0, 0, 0, 0);
-  return end;
-}
-
-function addDays(date: Date, amount: number): Date {
-  const next = new Date(date);
-  next.setDate(date.getDate() + amount);
-  return next;
-}
-
-// Grid always covers full weeks (Sun–Sat) so the month renders as a clean rectangle.
-function monthGridDays(monthAnchor: Date): Date[] {
-  const gridStart = startOfWeek(startOfMonth(monthAnchor));
-  const gridEnd = startOfWeek(endOfMonth(monthAnchor));
-  const days: Date[] = [];
-  for (let d = gridStart; d <= addDays(gridEnd, 6); d = addDays(d, 1)) {
-    days.push(d);
-  }
-  return days;
-}
-
-// Local Y-m-d, not toISOString().slice(0, 10) — toISOString() converts to
-// UTC first, so for any timezone ahead of UTC (Korea, +9, among others) a
-// local midnight rolls back to the previous UTC day, silently shifting
-// every date-keyed lookup (occurrences, blocks, capacity) back by one day.
-function toDateParam(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function isToday(dateString: string): boolean {
-  return dateString === toDateParam(new Date());
-}
-
-// timeZone is display-only (Phase 1's timezone switcher changes how times
-// of day are *shown*, not which calendar day an instant belongs to) — see
-// "Timezone switcher" scoping note in the calendar roadmap plan.
-function formatTime(iso: string, timeZone?: string): string {
-  return new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit", timeZone });
-}
-
-type CalendarView = "month" | "week" | "day";
-
-function monthLabel(anchorDate: Date): string {
-  return anchorDate.toLocaleDateString(undefined, { month: "long", year: "numeric" });
-}
-
-function weekLabel(weekStart: Date): string {
-  const weekEnd = addDays(weekStart, 6);
-  const sameMonth = weekStart.getMonth() === weekEnd.getMonth();
-  const startLabel = weekStart.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-  const endLabel = weekEnd.toLocaleDateString(undefined, sameMonth ? { day: "numeric" } : { month: "short", day: "numeric" });
-  return `${startLabel} – ${endLabel}, ${weekEnd.getFullYear()}`;
-}
-
-function dayLabel(anchorDate: Date): string {
-  return anchorDate.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
-}
-
-function viewLabel(view: CalendarView, anchorDate: Date): string {
-  if (view === "week") return weekLabel(startOfWeek(anchorDate));
-  if (view === "day") return dayLabel(anchorDate);
-  return monthLabel(anchorDate);
-}
-
-// Common commuting-student timezones plus whatever the browser reports —
-// a curated shortlist, not the full ~400-zone IANA database: this is a
-// quick display switch (Notion's "compare a friend's time"), not the
-// account-level timezone setting already in Settings.
-const TIMEZONE_OPTIONS = [
-  "America/New_York",
-  "America/Chicago",
-  "America/Denver",
-  "America/Los_Angeles",
-  "America/Sao_Paulo",
-  "Europe/London",
-  "Europe/Berlin",
-  "Asia/Jakarta",
-  "Asia/Singapore",
-  "Asia/Tokyo",
-  "Australia/Sydney",
-];
-
-function systemTimezone(): string {
-  try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone;
-  } catch {
-    return "UTC";
-  }
-}
-
-// Direction-aware morph on month change: Prev/Next slide from the side
-// they travel toward (matching the page-turn nav arrows), Today just
-// fades — no implied direction for a jump back to now.
-function monthMorphClass(direction: 1 | -1 | 0): string {
-  if (direction === -1) return "fn-month-in-left";
-  if (direction === 1) return "fn-month-in-right";
-  return "fn-month-in-fade";
-}
-
-function weekChunks<T>(items: T[]): T[][] {
-  const weeks: T[][] = [];
-  for (let i = 0; i < items.length; i += 7) weeks.push(items.slice(i, i + 7));
-  return weeks;
-}
-
-// A pen-circled date, not a UI selection ring: today gets marked the way a
-// student actually marks today on a paper planner, not highlighted the way
-// a web app highlights a selected cell. Two overlapping, slightly
-// mismatched arcs read as one imperfect hand-drawn loop, not a UI element.
-function TodayMark() {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 44 30"
-      className="pointer-events-none absolute -inset-x-2.5 -inset-y-1.5 h-[calc(100%+0.75rem)] w-[calc(100%+1.25rem)] -rotate-2 text-[var(--fn-oxide)]"
-    >
-      {/* Two overlapping, mismatched loops — a quick double-circle, the
-          way a pen actually marks "today" on a paper planner, not one
-          clean vector ellipse. */}
-      <path
-        d="M7 16C5 8 13 3 23 2.5C34 2 40 7 38.5 14C37 21 29 26 20 26.5C11 27 5 23 7.5 17"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        opacity="0.9"
-      />
-      <path
-        d="M9 14C8 9 15 4.5 24 5C32 5.5 38 10 37 15.5C36 20.5 28 24.5 19 24C13 23.7 8 20 8.5 15"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.3"
-        strokeLinecap="round"
-        opacity="0.55"
-      />
-    </svg>
-  );
-}
-
-// Suggested blocks get a dashed outline, committed (accepted/moved/done)
-// blocks a solid one: the distinction between "the plan suggested this"
-// and "you committed to this" is load-bearing for trust, per "Calendar
-// view" in mdfile/DESIGN.md. Pulled-from-Google blocks get their own
-// color (sage, same token the read-only ClassSession/Commitment
-// occurrences use) — "synced in from elsewhere," not a Semestra-owned
-// suggestion or commitment, regardless of status.
-function blockStyle(block: CalendarBlock): string {
-  if (block.type === "external") {
-    return "border border-[var(--fn-sage)] bg-[var(--fn-sage)]/10 text-[var(--fn-sage)]";
-  }
-  if (block.status === "suggested") {
-    return "border border-dashed border-[var(--fn-cobalt)] text-[var(--fn-cobalt)]";
-  }
-  if (block.status === "skipped") {
-    return "border border-[var(--fn-rule)] text-[var(--fn-muted)] line-through";
-  }
-  return "border border-[var(--fn-cobalt)] bg-[var(--fn-cobalt)]/10 text-[var(--fn-cobalt)]";
-}
-
-// Shared by the hover preview and the details popup so the two never
-// drift on how a block's type/status gets labeled — they used to, before
-// this: the hover preview never learned about type: "external" when the
-// details popup did.
-function blockTypeLabel(block: CalendarBlock): string {
-  if (block.type === "lecture") return "Lecture";
-  if (block.type === "external") return "From Google Calendar";
-  if (block.status === "suggested") return "Suggested";
-  return "Block";
-}
-
-// Lecture blocks come from the class timetable, external ones from a
-// connected Google Calendar — neither is something a student drags
-// around day to day or edits here; the details popup hides Edit/Delete
-// for both the same way.
-function isBlockDraggable(block: CalendarBlock): boolean {
-  return block.type !== "lecture" && block.type !== "external";
-}
-
-// Shared by the details popup and the Add/Edit form's footer — they used
-// to diverge (details popup offered This/Following/All for a recurring
-// block, the edit form silently deleted just "this" with no indication
-// the block was part of a series at all).
-function DeleteBlockControls({
-  block,
-  onDelete,
-}: {
-  block: CalendarBlock;
-  onDelete: (scope: "this" | "following" | "all") => void;
-}) {
-  if (block.recurrence_group_id === null) {
-    return (
-      <button type="button" onClick={() => onDelete("this")} className="text-sm text-[var(--fn-oxide)] underline underline-offset-2">
-        Delete
-      </button>
-    );
-  }
-
-  return (
-    <div className="flex items-center gap-3 text-sm">
-      <span className="text-[var(--fn-muted)]">Delete:</span>
-      <button type="button" onClick={() => onDelete("this")} className="text-[var(--fn-oxide)] underline underline-offset-2">
-        This
-      </button>
-      <button type="button" onClick={() => onDelete("following")} className="text-[var(--fn-oxide)] underline underline-offset-2">
-        Following
-      </button>
-      <button type="button" onClick={() => onDelete("all")} className="text-[var(--fn-oxide)] underline underline-offset-2">
-        All
-      </button>
-    </div>
-  );
-}
-
-// dnd-kit requires each draggable to call useDraggable itself (hooks
-// can't run inside a .map() body), so the block button is its own small
-// component rather than inline JSX in the grid/timeline render.
-function DraggableBlock({
-  block,
-  onClick,
-  className,
-  style,
-  displayTimezone,
-  children,
-}: {
-  block: CalendarBlock;
-  onClick: () => void;
-  className: string;
-  style?: CSSProperties;
-  displayTimezone: string;
-  children: ReactNode;
-}) {
-  const draggable = isBlockDraggable(block);
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-    id: `block:${block.id}`,
-    data: { block },
-    disabled: !draggable,
-  });
-
-  return (
-    <button
-      ref={setNodeRef}
-      type="button"
-      data-block-drag="true"
-      onClick={onClick}
-      style={{
-        ...style,
-        // Follow the pointer directly via CSS transform — no state
-        // update, no re-render per pixel moved, which is what was
-        // reading as a multi-second "stuck" drag before this fix: the
-        // block sat frozen in place until drop because nothing was ever
-        // translating it mid-drag.
-        transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
-        zIndex: isDragging ? 50 : undefined,
-        boxShadow: isDragging ? "0 6px 16px rgba(0,0,0,0.18)" : undefined,
-      }}
-      className={`group/block ${className}`}
-      {...(draggable ? { ...listeners, ...attributes } : {})}
-    >
-      {children}
-      {!isDragging && <BlockHoverPreview block={block} displayTimezone={displayTimezone} />}
-    </button>
-  );
-}
-
-// Hover preview: pure CSS (group-hover + a transition-delay), not a JS
-// timer/mouseenter state machine — cheaper, and immune to getting stuck
-// mid-drag since there's no separate hover state to desync. The
-// `(hover: hover)` media guard is what keeps this off touch devices: no
-// real hover state there, so a tap goes straight to the onClick details
-// popup, exactly as before this phase.
-function BlockHoverPreview({ block, displayTimezone }: { block: CalendarBlock; displayTimezone: string }) {
-  return (
-    <div
-      role="tooltip"
-      className="fn-block-preview pointer-events-none absolute left-1/2 top-full z-50 mt-1.5 hidden w-56 -translate-x-1/2 text-left opacity-0 transition-opacity delay-300 duration-150 [@media(hover:hover)]:block [@media(hover:hover)]:group-hover/block:opacity-100"
-    >
-      <p className="fn-eyebrow text-[10px]">{blockTypeLabel(block)}</p>
-      <p className="mt-0.5 truncate text-sm font-semibold text-[var(--fn-ink)]">{block.title ?? "Study"}</p>
-      <p className="fn-mono mt-1 text-xs text-[var(--fn-muted)]">
-        {formatTime(block.start_at, displayTimezone)}–{formatTime(block.end_at, displayTimezone)}
-      </p>
-      {block.location && <p className="mt-1 truncate text-xs text-[var(--fn-muted)]">{block.location}</p>}
-      {block.description && <p className="mt-1 line-clamp-2 text-xs text-[var(--fn-ink)]">{block.description}</p>}
-    </div>
-  );
-}
-
-// Drop target: a whole day cell (month view) or a single hour slot (week/
-// day view) — same component either way, id encodes which.
-function DroppableZone({
-  id,
-  className,
-  style,
-  children,
-}: {
-  id: string;
-  className?: string;
-  style?: CSSProperties;
-  children?: ReactNode;
-}) {
-  const { setNodeRef, isOver } = useDroppable({ id });
-  return (
-    <div ref={setNodeRef} style={style} className={`${className ?? ""} ${isOver ? "fn-drop-target" : ""}`}>
-      {children}
-    </div>
-  );
-}
-
-// Minutes since TIMELINE_START_HOUR:00, clamped to the visible window —
-// the geometry input shared by both the pixel-position calc and the
-// column-packing algorithm below.
-function timelineMinutes(iso: string): number {
-  const date = new Date(iso);
-  const minutes = date.getHours() * 60 + date.getMinutes();
-  const startMinutes = TIMELINE_START_HOUR * 60;
-  const endMinutes = TIMELINE_END_HOUR * 60;
-  return Math.min(Math.max(minutes, startMinutes), endMinutes) - startMinutes;
-}
-
-function timelineBlockPosition(block: CalendarBlock): TimelinePosition {
-  const top = (timelineMinutes(block.start_at) / 60) * HOUR_HEIGHT_PX;
-  const rawEnd = timelineMinutes(block.end_at);
-  const rawStart = timelineMinutes(block.start_at);
-  const height = Math.max(((rawEnd - rawStart) / 60) * HOUR_HEIGHT_PX, 18);
-  return { top, height };
-}
-
-// Pixel offset within a timeline column -> minutes-since-midnight,
-// snapped to a quarter hour and clamped to the visible window. Shared by
-// click-drag create (the pointer's raw offset) and its preview overlay.
-function minutesFromTimelineOffset(offsetY: number): number {
-  const raw = TIMELINE_START_HOUR * 60 + (offsetY / HOUR_HEIGHT_PX) * 60;
-  const snapped = Math.round(raw / 15) * 15;
-  return Math.min(Math.max(snapped, TIMELINE_START_HOUR * 60), TIMELINE_END_HOUR * 60);
-}
-
-function minutesToTime(minutes: number): string {
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-  return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
-}
-
-interface LaidOutBlock {
-  block: CalendarBlock;
-  column: number;
-  columns: number;
-}
-
-// Simple greedy interval-column packing (same idea Google/Notion Calendar
-// use for overlapping events): sort by start time, place each block in
-// the first column whose previous occupant has already ended, otherwise
-// open a new column. Columns are shared across the whole day rather than
-// per overlap-cluster — slightly wider than optimal when two unrelated
-// overlaps happen the same day, but far simpler, and that's a rare case
-// for a solo study calendar.
-function layoutDayBlocks(dayBlocks: CalendarBlock[]): LaidOutBlock[] {
-  const sorted = [...dayBlocks].sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime());
-  const columnEnds: number[] = [];
-  const placed: { block: CalendarBlock; column: number }[] = [];
-
-  for (const block of sorted) {
-    const start = new Date(block.start_at).getTime();
-    const end = new Date(block.end_at).getTime();
-    let column = columnEnds.findIndex((endTime) => endTime <= start);
-    if (column === -1) {
-      column = columnEnds.length;
-      columnEnds.push(end);
-    } else {
-      columnEnds[column] = end;
-    }
-    placed.push({ block, column });
-  }
-
-  const columns = Math.max(columnEnds.length, 1);
-  return placed.map(({ block, column }) => ({ block, column, columns }));
-}
-
-// CalendarOccurrence, occurrenceStyle, timelineMinutesFromTime, and
-// occurrenceTimelinePosition now live in @/lib/timeline (shared with the
-// Dashboard TimetableWidget). Occurrences are read-only on this grid:
-// managed from Settings/Courses, not editable here (see Phase 4a scoping
-// in the calendar roadmap plan).
-
-interface PlanSuggestionItem {
-  taskId: number;
-  title: string;
-  courseId: number | null;
-  courseTitle: string | null;
-  minutes: number;
-  startTime: string;
-  endTime: string;
-}
-
-interface PlanSuggestionDay {
-  date: string;
-  totalMinutes: number;
-  items: PlanSuggestionItem[];
-}
-
-interface BlockFormValues {
-  title: string;
-  type: "study" | "commitment";
-  date: string;
-  start_time: string;
-  end_time: string;
-  location: string;
-  description: string;
-  task_id: string;
-  // Create-only ("repeat weekly until"): empty = one-off. Ignored by the
-  // backend on an edit (CalendarBlockController strips it), so there's no
-  // need to clear it when opening an existing block for editing.
-  repeat_until: string;
-}
-
-const EMPTY_BLOCK_FORM: BlockFormValues = {
-  title: "",
-  type: "study",
-  date: "",
-  start_time: "09:00",
-  end_time: "10:00",
-  location: "",
-  description: "",
-  task_id: "",
-  repeat_until: "",
-};
-
-function BlockForm({
-  form,
-  setForm,
-  error,
-  submitting,
-  openTasks,
-  isEditing,
-  isRecurring,
-  onSubmit,
-  onCancel,
-  deleteControls,
-}: {
-  form: BlockFormValues;
-  setForm: (form: BlockFormValues) => void;
-  error: string | null;
-  submitting: boolean;
-  openTasks: Task[];
-  isEditing: boolean;
-  isRecurring?: boolean;
-  onSubmit: (event: FormEvent) => void;
-  onCancel: () => void;
-  deleteControls?: ReactNode;
-}) {
-  return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4">
-      {isEditing && form.date && (
-        <p className="fn-eyebrow">
-          Editing block on {new Date(`${form.date}T00:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
-          {isRecurring && " · repeats weekly"}
-        </p>
-      )}
-      {/* What */}
-      <label className="flex flex-col gap-1.5">
-        <span className="fn-label">What</span>
-        <input
-          autoFocus
-          value={form.title}
-          onChange={(event) => setForm({ ...form, title: event.target.value })}
-          className="fn-input"
-          placeholder="Study session"
-        />
-      </label>
-      <label className="flex flex-col gap-1.5">
-        <span className="fn-label">Type</span>
-        <select
-          value={form.type}
-          onChange={(event) => setForm({ ...form, type: event.target.value as BlockFormValues["type"] })}
-          className="fn-input"
-        >
-          <option value="study">Study</option>
-          <option value="commitment">Commitment</option>
-        </select>
-      </label>
-
-      {/* When */}
-      <label className="flex flex-col gap-1.5">
-        <span className="fn-label">When</span>
-        <input
-          type="date"
-          value={form.date}
-          onChange={(event) => setForm({ ...form, date: event.target.value })}
-          required
-          className="fn-input"
-        />
-      </label>
-      <div className="flex gap-3">
-        <label className="flex flex-1 flex-col gap-1.5">
-          <span className="fn-label">Start time</span>
-          <input
-            type="time"
-            value={form.start_time}
-            onChange={(event) => setForm({ ...form, start_time: event.target.value })}
-            required
-            className="fn-input"
-          />
-        </label>
-        <label className="flex flex-1 flex-col gap-1.5">
-          <span className="fn-label">End time</span>
-          <input
-            type="time"
-            value={form.end_time}
-            onChange={(event) => setForm({ ...form, end_time: event.target.value })}
-            required
-            className="fn-input"
-          />
-        </label>
-      </div>
-
-      {!isEditing && (
-        <label className="flex flex-col gap-1.5">
-          <span className="fn-label">Repeat weekly until (optional)</span>
-          <input
-            type="date"
-            value={form.repeat_until}
-            min={form.date || undefined}
-            onChange={(event) => setForm({ ...form, repeat_until: event.target.value })}
-            className="fn-input"
-          />
-        </label>
-      )}
-
-      {/* Where */}
-      <label className="flex flex-col gap-1.5">
-        <span className="fn-label">Where (optional)</span>
-        <input
-          value={form.location}
-          onChange={(event) => setForm({ ...form, location: event.target.value })}
-          className="fn-input"
-          placeholder="Library, room 204…"
-        />
-      </label>
-
-      {/* Description */}
-      <label className="flex flex-col gap-1.5">
-        <span className="fn-label">Description (optional)</span>
-        <textarea
-          value={form.description}
-          onChange={(event) => setForm({ ...form, description: event.target.value })}
-          className="fn-input"
-          rows={3}
-          placeholder="What you're planning to work on…"
-        />
-      </label>
-
-      <label className="flex flex-col gap-1.5">
-        <span className="fn-label">Task (optional)</span>
-        <select
-          value={form.task_id}
-          onChange={(event) => setForm({ ...form, task_id: event.target.value })}
-          className="fn-input"
-        >
-          <option value="">No task</option>
-          {openTasks.map((task) => (
-            <option key={task.id} value={task.id}>
-              {task.title}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      {error && (
-        <p role="alert" className="text-sm text-[var(--fn-oxide)]">
-          {error}
-        </p>
-      )}
-
-      <div className="flex items-center gap-2">
-        <button type="submit" disabled={submitting} className="fn-btn-primary !w-fit px-4">
-          {submitting ? "Saving…" : isEditing ? "Save" : "Add block"}
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-md border border-[var(--fn-rule)] px-4 text-sm hover:bg-[var(--fn-canvas)]"
-        >
-          Cancel
-        </button>
-        {isEditing && deleteControls && <div className="ml-auto">{deleteControls}</div>}
-      </div>
-    </form>
-  );
-}
+import {
+  DAYS,
+  REMINDER_PRESETS,
+  TIMEZONE_OPTIONS,
+  startOfWeek,
+  startOfMonth,
+  addDays,
+  monthGridDays,
+  toDateParam,
+  isToday,
+  formatTime,
+  viewLabel,
+  systemTimezone,
+  monthMorphClass,
+  weekChunks,
+  blockStyle,
+  blockTypeLabel,
+  isBlockDraggable,
+  timelineBlockPosition,
+  minutesFromTimelineOffset,
+  minutesToTime,
+  layoutDayBlocks,
+  type CalendarView,
+  type PlanSuggestionDay,
+  type PlanSuggestionItem,
+} from "@/lib/calendar";
+import {
+  TodayMark,
+  DeleteBlockControls,
+  DraggableBlock,
+  DroppableZone,
+  BlockForm,
+  EMPTY_BLOCK_FORM,
+  type BlockFormValues,
+} from "@/components/calendar/CalendarPieces";
 
 // Calendar month grid, see "Calendar view" in mdfile/DESIGN.md.
 export default function CalendarPage() {
@@ -831,14 +237,18 @@ function CalendarPageInner() {
 
     apiFetch<DayCapacity[]>(
       `/api/calendar/capacity?from=${toDateParam(rangeStart)}&to=${toDateParam(rangeEnd)}`,
-    ).then(setDays);
+    )
+      .then(setDays)
+      .catch(logApiError);
     // Not range-scoped server-side (CalendarBlockController::index returns
     // everything the user owns) — filtered client-side per view below, and
     // reused as-is by search, which needs blocks outside the visible range.
-    apiFetch<CalendarBlock[]>("/api/calendar-blocks").then(setBlocks);
+    apiFetch<CalendarBlock[]>("/api/calendar-blocks").then(setBlocks).catch(logApiError);
     apiFetch<CalendarOccurrence[]>(
       `/api/calendar/occurrences?from=${toDateParam(rangeStart)}&to=${toDateParam(rangeEnd)}`,
-    ).then(setOccurrences);
+    )
+      .then(setOccurrences)
+      .catch(logApiError);
   }
 
   useEffect(load, [capacityRange]);
@@ -854,7 +264,9 @@ function CalendarPageInner() {
 
 
   useEffect(() => {
-    apiFetch<Task[]>("/api/tasks").then((list) => setOpenTasks(list.filter((t) => t.status === "open")));
+    apiFetch<Task[]>("/api/tasks")
+      .then((list) => setOpenTasks(list.filter((t) => t.status === "open")))
+      .catch(logApiError);
   }, []);
 
   async function showPlanSuggestions() {
@@ -1512,8 +924,8 @@ function CalendarPageInner() {
       )}
 
       {(view === "week" || view === "day") && (
-        <div className="mt-8 overflow-x-auto">
-          <div className="flex min-w-[640px]">
+        <div className={`mt-8 overflow-x-auto ${view === "week" ? "fn-scroll-fade" : ""}`}>
+          <div className={`flex ${view === "week" ? "min-w-[640px]" : ""}`}>
             {/* Time gutter — one label per hour, vertically centered on
                 its hour line via a negative top offset. */}
             <div className="fn-mono w-14 shrink-0 pr-2 text-right text-[10px] text-[var(--fn-muted)]">
