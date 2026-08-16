@@ -30,6 +30,11 @@ class CalendarBlockRequest extends FormRequest
             'description' => ['nullable', 'string', 'max:2000'],
             'start_at' => [$required, 'date'],
             'end_at' => [$required, 'date', 'after:start_at'],
+            // Create-only ("repeat weekly until"): CalendarBlockController
+            // strips this before the update path ever sees it, so sending
+            // it on a PUT is silently ignored rather than resurrecting
+            // recurrence generation on an edit.
+            'recurrence_until' => ['nullable', 'date', 'after_or_equal:start_at'],
         ];
     }
 }

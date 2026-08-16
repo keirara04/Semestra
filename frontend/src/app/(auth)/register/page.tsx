@@ -41,9 +41,10 @@ export default function RegisterPage() {
   return (
     <div>
       <p className="fn-board-eyebrow">Create your semester</p>
-      <div className="fn-board-divider mt-2" />
+      <p className="fn-board-tagline mt-1">Set up in a couple of minutes.</p>
+      <div className="fn-board-divider mt-3" />
 
-      <div className="mt-8 flex flex-col gap-3">
+      <div className="mt-5 flex flex-col gap-3">
         <button type="button" className="fn-board-oauth-btn">
           <GoogleIcon className="h-5 w-5" />
           Continue with Google

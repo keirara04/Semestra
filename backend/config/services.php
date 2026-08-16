@@ -49,4 +49,14 @@ return [
         'daily_request_limit' => env('AI_DAILY_REQUEST_LIMIT', 20),
     ],
 
+    // Calendar roadmap Phase 5: Google Calendar two-way sync. Socialite's
+    // "google" driver, scoped to calendar.events (not the broader
+    // "calendar" scope) — enough to read/write events without also
+    // touching calendar list settings.
+    'google' => [
+        'client_id' => env('GOOGLE_CALENDAR_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CALENDAR_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_CALENDAR_REDIRECT_URI'),
+    ],
+
 ];

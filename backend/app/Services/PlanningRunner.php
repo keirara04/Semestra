@@ -42,6 +42,84 @@ class PlanningRunner
 
     public function run(User $user, string $trigger = 'on_demand'): array
     {
+        $computed = $this->computePlan($user);
+
+        if ($computed['tasksById']->isEmpty()) {
+            return ['feasibility' => [], 'ranking' => [], 'placement' => [], 'created_blocks' => 0];
+        }
+
+        $timezone = $computed['timezone'];
+        $tasksById = $computed['tasksById'];
+        $placement = $computed['placementObjects'];
+        $feasibilityArray = $computed['feasibility'];
+        $rankingArray = $computed['ranking'];
+        $placementArray = $computed['placement'];
+
+        $createdCount = DB::transaction(function () use ($placement, $tasksById, $timezone, $trigger, $feasibilityArray, $rankingArray, $placementArray) {
+            $plan = StudyPlan::create([
+                'run_at' => now(),
+                'trigger' => $trigger,
+                'explanation_snapshot' => [
+                    'feasibility' => $feasibilityArray,
+                    'ranking' => $rankingArray,
+                    'placement' => $placementArray,
+                ],
+            ]);
+
+            CalendarBlock::where('status', 'suggested')->delete();
+
+            $count = 0;
+            foreach ($placement as $result) {
+                $task = $tasksById[$result->taskId];
+                foreach ($result->blocks as $block) {
+                    CalendarBlock::create([
+                        'study_plan_id' => $plan->id,
+                        'task_id' => $task->id,
+                        'type' => 'study',
+                        'status' => 'suggested',
+                        'title' => $task->title,
+                        'start_at' => Carbon::parse("{$block->date} {$block->startTime}", $timezone),
+                        'end_at' => Carbon::parse("{$block->date} {$block->endTime}", $timezone),
+                    ]);
+                    $count++;
+                }
+            }
+
+            return $count;
+        });
+
+        return [
+            'feasibility' => $feasibilityArray,
+            'ranking' => $rankingArray,
+            'placement' => $placementArray,
+            'created_blocks' => $createdCount,
+        ];
+    }
+
+    /**
+     * Capacity → feasibility → ranking → placement, with no persistence.
+     * Shared by run() (which persists the result as CalendarBlocks) and
+     * PlanningSuggestController (which reads it for the "Plan Suggestions"
+     * popup and writes nothing).
+     *
+     * @param  int|null  $maxHorizonDays  Caps how far past today the plan
+     *                                    looks, regardless of task due dates
+     *                                    (e.g. the suggestions popup only
+     *                                    wants a week out). Null = the full
+     *                                    horizon out to the furthest due date,
+     *                                    what run() uses for the real nightly/
+     *                                    on-demand placement.
+     * @return array{
+     *     timezone: DateTimeZone,
+     *     tasksById: \Illuminate\Support\Collection<int, Task>,
+     *     feasibility: array,
+     *     ranking: array,
+     *     placement: array,
+     *     placementObjects: \App\Engine\Placement\TaskPlacementResult[],
+     * }
+     */
+    public function computePlan(User $user, ?int $maxHorizonDays = null): array
+    {
         $timezone = new DateTimeZone($user->timezone);
         $today = Carbon::now($timezone)->format('Y-m-d');
 
@@ -50,18 +128,32 @@ class PlanningRunner
         // assessment tasks, not a separate silo."
         app(RevisionPlanner::class)->plan($user, app(RevisionScheduler::class));
 
-        $openTasks = Task::with(['assessment.gradeItem', 'dependsOnTask', 'topic'])
+        $openTasks = Task::with(['assessment.gradeItem', 'course', 'dependsOnTask', 'topic'])
             ->where('status', 'open')
             ->get();
 
         if ($openTasks->isEmpty()) {
-            return ['feasibility' => [], 'ranking' => [], 'placement' => [], 'created_blocks' => 0];
+            return [
+                'timezone' => $timezone,
+                'tasksById' => $openTasks->keyBy('id'),
+                'feasibility' => [],
+                'ranking' => [],
+                'placement' => [],
+                'placementObjects' => [],
+            ];
         }
 
         $effectiveDueDate = fn (Task $task) => $task->due_at?->format('Y-m-d') ?? $task->assessment?->due_at?->format('Y-m-d');
 
         $dueDates = $openTasks->map($effectiveDueDate)->filter()->values();
         $horizon = $dueDates->isEmpty() ? $today : $dueDates->max();
+
+        if ($maxHorizonDays !== null) {
+            $cappedHorizon = Carbon::parse($today, $timezone)->addDays($maxHorizonDays)->format('Y-m-d');
+            if ($cappedHorizon < $horizon) {
+                $horizon = $cappedHorizon;
+            }
+        }
 
         $days = app(CapacityCalculator::class)->calculate(
             $this->classSessionInputs(),
@@ -126,48 +218,13 @@ class PlanningRunner
         $dayStartTime = $this->deepWorkStartTime($user->deep_work_windows);
         $placement = app(PlacementCalculator::class)->place($placementInputs, $capacityByDate, $dayStartTime);
 
-        $feasibilityArray = $feasibility->toArray();
-        $rankingArray = array_map(fn ($result) => $result->toArray(), $ranking);
-        $placementArray = array_map(fn ($result) => $result->toArray(), $placement);
-
-        $createdCount = DB::transaction(function () use ($placement, $tasksById, $timezone, $trigger, $feasibilityArray, $rankingArray, $placementArray) {
-            $plan = StudyPlan::create([
-                'run_at' => now(),
-                'trigger' => $trigger,
-                'explanation_snapshot' => [
-                    'feasibility' => $feasibilityArray,
-                    'ranking' => $rankingArray,
-                    'placement' => $placementArray,
-                ],
-            ]);
-
-            CalendarBlock::where('status', 'suggested')->delete();
-
-            $count = 0;
-            foreach ($placement as $result) {
-                $task = $tasksById[$result->taskId];
-                foreach ($result->blocks as $block) {
-                    CalendarBlock::create([
-                        'study_plan_id' => $plan->id,
-                        'task_id' => $task->id,
-                        'type' => 'study',
-                        'status' => 'suggested',
-                        'title' => $task->title,
-                        'start_at' => Carbon::parse("{$block->date} {$block->startTime}", $timezone),
-                        'end_at' => Carbon::parse("{$block->date} {$block->endTime}", $timezone),
-                    ]);
-                    $count++;
-                }
-            }
-
-            return $count;
-        });
-
         return [
-            'feasibility' => $feasibilityArray,
-            'ranking' => $rankingArray,
-            'placement' => $placementArray,
-            'created_blocks' => $createdCount,
+            'timezone' => $timezone,
+            'tasksById' => $tasksById,
+            'feasibility' => $feasibility->toArray(),
+            'ranking' => array_map(fn ($result) => $result->toArray(), $ranking),
+            'placement' => array_map(fn ($result) => $result->toArray(), $placement),
+            'placementObjects' => $placement,
         ];
     }
 

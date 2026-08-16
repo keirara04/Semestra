@@ -9,7 +9,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['study_plan_id', 'task_id', 'type', 'status', 'title', 'location', 'description', 'start_at', 'end_at'])]
+#[Fillable([
+    'study_plan_id', 'task_id', 'type', 'status', 'title', 'location', 'description', 'start_at', 'end_at',
+    'recurrence_group_id', 'recurrence_day_of_week', 'recurrence_until',
+    'source', 'external_id',
+])]
 class CalendarBlock extends Model
 {
     use BelongsToUser, HasFactory;
@@ -19,6 +23,8 @@ class CalendarBlock extends Model
         return [
             'start_at' => 'datetime',
             'end_at' => 'datetime',
+            'recurrence_day_of_week' => 'integer',
+            'recurrence_until' => 'date',
         ];
     }
 

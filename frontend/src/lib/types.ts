@@ -93,13 +93,18 @@ export type TaskStatus = "open" | "done" | "skipped";
 export interface CalendarBlock {
   id: number;
   task_id: number | null;
-  type: "lecture" | "commitment" | "study";
+  type: "lecture" | "commitment" | "study" | "external";
   status: "suggested" | "accepted" | "moved" | "skipped" | "done";
   title: string | null;
   location: string | null;
   description: string | null;
   start_at: string;
   end_at: string;
+  recurrence_group_id: number | null;
+  recurrence_day_of_week: number | null;
+  recurrence_until: string | null;
+  source: "google" | null;
+  external_id: string | null;
 }
 
 export type StudySessionStatus = "running" | "paused" | "ended";

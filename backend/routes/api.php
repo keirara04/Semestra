@@ -6,12 +6,18 @@ use App\Http\Controllers\AnnotationSyncController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\CalendarBlockController;
 use App\Http\Controllers\CalendarCapacityController;
+use App\Http\Controllers\CalendarOccurrencesController;
 use App\Http\Controllers\ClassSessionController;
 use App\Http\Controllers\ClassSessionExceptionController;
 use App\Http\Controllers\CommitmentController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\CourseGradesController;
 use App\Http\Controllers\ExamReadinessController;
+use App\Http\Controllers\GoogleCalendarCallbackController;
+use App\Http\Controllers\GoogleCalendarConnectController;
+use App\Http\Controllers\GoogleCalendarDisconnectController;
+use App\Http\Controllers\GoogleCalendarStatusController;
+use App\Http\Controllers\GoogleCalendarSyncController;
 use App\Http\Controllers\GradeCategoryController;
 use App\Http\Controllers\GradeItemController;
 use App\Http\Controllers\MaterialAnnotationController;
@@ -23,6 +29,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PlanningFeasibilityController;
 use App\Http\Controllers\PlanningRankingController;
 use App\Http\Controllers\PlanningRunController;
+use App\Http\Controllers\PlanningSuggestController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SemesterController;
 use App\Http\Controllers\StudyPlanController;
@@ -46,6 +53,25 @@ use Illuminate\Support\Facades\Route;
 Route::get('/materials/{material}/stream', [MaterialController::class, 'stream'])
     ->middleware('signed')
     ->name('materials.stream');
+
+// Google OAuth callback: outside auth:sanctum on purpose — see
+// GoogleCalendarConnectController's docblock. The redirect arrives from
+// accounts.google.com, so Sanctum's stateful-domain check would reject
+// it; the user is identified via a plain session value instead.
+//
+// EncryptCookies+StartSession are attached directly rather than relying
+// on Sanctum's statefulApi(): that middleware only starts a session at
+// all when it recognizes the request as "from the frontend" (the same
+// Referer/Origin check that rejects this route for auth), so without
+// this the session — and Socialite's own state-param verification,
+// which also reads the session — would never be available here even
+// though the browser is sending the exact same session cookie /connect
+// just wrote to.
+Route::get('/google-calendar/callback', GoogleCalendarCallbackController::class)
+    ->middleware([
+        \Illuminate\Cookie\Middleware\EncryptCookies::class,
+        \Illuminate\Session\Middleware\StartSession::class,
+    ]);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
@@ -84,8 +110,22 @@ Route::middleware('auth:sanctum')->group(function () {
     // App\Engine\Capacity (pure PHP, fixture-tested separately).
     Route::get('/calendar/capacity', CalendarCapacityController::class);
 
+    // Calendar roadmap Phase 4a: virtual ClassSession/Commitment
+    // occurrences for display — read-only, same recurrence rules the
+    // capacity engine already uses.
+    Route::get('/calendar/occurrences', CalendarOccurrencesController::class);
+
     // Foundation Phase 4: Focus sessions and work logs.
     Route::apiResource('calendar-blocks', CalendarBlockController::class);
+
+    // Calendar roadmap Phase 5: Google Calendar two-way sync. /connect is
+    // a plain browser navigation (not apiFetch), see its controller's
+    // docblock — /callback is registered above, outside this group.
+    Route::get('/google-calendar/connect', GoogleCalendarConnectController::class);
+    Route::get('/google-calendar/status', GoogleCalendarStatusController::class);
+    Route::post('/google-calendar/sync', GoogleCalendarSyncController::class);
+    Route::delete('/google-calendar/disconnect', GoogleCalendarDisconnectController::class);
+
     Route::post('/study-sessions/start', [StudySessionController::class, 'start']);
     Route::get('/study-sessions', [StudySessionController::class, 'index']);
     Route::get('/study-sessions/{studySession}', [StudySessionController::class, 'show']);
@@ -105,6 +145,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Planning Engine Phase D: Placement. Writes suggested CalendarBlocks.
     Route::post('/planning/run', PlanningRunController::class);
+
+    // Read-only planning preview for the "Plan Suggestions" popup. Same
+    // pipeline as /planning/run but writes nothing.
+    Route::get('/planning/suggest', PlanningSuggestController::class);
 
     // Planning Engine Phase E: Plan stability + runs.
     Route::get('/planning/plans/latest', [StudyPlanController::class, 'latest']);

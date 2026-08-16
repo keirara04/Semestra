@@ -223,6 +223,340 @@ body:has(.fn-board) {
   }
 }
 
+/* Calendar toolbar — month nav reads as a page-turn, not three identical
+   pill buttons: arrows are bare glyphs that nudge toward the direction
+   they travel, "Today" is the tab you'd flip back to. */
+.fn-nav-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 1.75rem;
+  width: 1.75rem;
+  border-radius: 999px;
+  color: var(--fn-muted);
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.fn-nav-arrow:hover {
+  color: var(--fn-cobalt);
+  transform: translateX(-2px);
+}
+
+.fn-nav-arrow--next:hover {
+  transform: translateX(2px);
+}
+
+.fn-nav-arrow:focus-visible {
+  outline: 2px solid var(--fn-cobalt);
+  outline-offset: 2px;
+}
+
+.fn-nav-today {
+  position: relative;
+  padding: 0.25rem 0.6rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fn-ink);
+}
+
+.fn-nav-today::after {
+  content: "";
+  position: absolute;
+  left: 0.6rem;
+  right: 0.6rem;
+  bottom: 0.05rem;
+  height: 1px;
+  background: var(--fn-oxide);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.18s ease;
+}
+
+.fn-nav-today:hover::after,
+.fn-nav-today:focus-visible::after {
+  transform: scaleX(1);
+}
+
+.fn-nav-today:focus-visible {
+  outline: 2px solid var(--fn-cobalt);
+  outline-offset: 2px;
+}
+
+/* View switcher (Month/Week/Day): the active option reads as "pinned
+   down" — same paper-tab language as .fn-nav-today — the other two stay
+   ghost text, not three equal-weight boxed tabs. */
+.fn-view-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  font-size: 0.72rem;
+}
+
+.fn-view-toggle-btn {
+  border-radius: 999px;
+  padding: 0.3rem 0.55rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--fn-muted);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.fn-view-toggle-btn:hover {
+  color: var(--fn-ink);
+}
+
+.fn-view-toggle-btn--active {
+  background: var(--fn-canvas);
+  color: var(--fn-ink);
+}
+
+.fn-view-toggle-btn:focus-visible {
+  outline: 2px solid var(--fn-cobalt);
+  outline-offset: 2px;
+}
+
+/* Drag-to-reschedule: the cell/slot under a dragged block picks up a
+   dashed cobalt ring — the same dashed vocabulary "suggested" already
+   uses, read here as "not committed yet, drop to place." */
+.fn-drop-target {
+  outline: 2px dashed var(--fn-cobalt);
+  outline-offset: -2px;
+  background: color-mix(in srgb, var(--fn-cobalt) 6%, transparent);
+}
+
+/* Click-drag create: the ghost block shown while dragging out a new
+   time range in week/day view, solid cobalt so it reads as "about to
+   commit" rather than borrowing the dashed "suggested" look. */
+.fn-drag-preview {
+  background: var(--fn-cobalt);
+  opacity: 0.85;
+}
+
+/* Hover preview: same paper-card language as the click-through details
+   popup (.fn-popup-card) — a lighter-weight version of the same thing,
+   not a different visual system for a "peek" vs. a "look." */
+.fn-block-preview {
+  border: 1px solid var(--fn-rule);
+  border-radius: 8px;
+  background: var(--fn-paper);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  padding: 0.65rem 0.75rem;
+}
+
+/* Add-block: the "+" itself rotates into an "×" rather than the two
+   glyphs cross-fading — one continuous move instead of a swap. */
+.fn-add-btn {
+  display: flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--fn-cobalt);
+  color: var(--fn-paper);
+  transition: transform 0.12s ease, opacity 0.15s ease;
+}
+
+.fn-add-btn:hover {
+  opacity: 0.92;
+}
+
+.fn-add-btn:active {
+  transform: scale(0.92);
+}
+
+.fn-add-btn:focus-visible {
+  outline: 2px solid var(--fn-cobalt);
+  outline-offset: 2px;
+}
+
+.fn-add-btn-icon {
+  transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Suggest study plan: dashed cobalt outline, no fill — the same mark
+   the calendar already uses for "suggested" blocks, so the button that
+   produces suggestions borrows the vocabulary of what it produces
+   instead of arriving as an unrelated solid CTA. */
+.fn-suggest-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 999px;
+  border: 1px dashed var(--fn-cobalt);
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+  color: var(--fn-cobalt);
+  background: transparent;
+  transition: background-color 0.15s ease, border-style 0.15s ease;
+}
+
+.fn-suggest-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--fn-cobalt) 8%, transparent);
+}
+
+.fn-suggest-btn:disabled {
+  border-style: solid;
+  opacity: 0.75;
+}
+
+.fn-suggest-btn:focus-visible {
+  outline: 2px solid var(--fn-cobalt);
+  outline-offset: 2px;
+}
+
+.fn-suggest-btn-icon {
+  flex-shrink: 0;
+}
+
+/* Sync Google Calendar: dashed sage outline (the sage vocabulary is
+   already "this is Google/timetable data" elsewhere on the page), spins
+   its own icon rather than the whole button — a spinning pill reads as
+   broken, a spinning glyph inside a still button reads as "working." */
+.fn-sync-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 999px;
+  border: 1px dashed var(--fn-sage);
+  padding: 0.45rem 0.9rem;
+  font-size: 0.85rem;
+  color: var(--fn-sage);
+  background: transparent;
+  transition: background-color 0.15s ease, border-style 0.15s ease, transform 0.15s ease;
+}
+
+.fn-sync-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--fn-sage) 8%, transparent);
+}
+
+.fn-sync-btn:disabled {
+  border-style: solid;
+  opacity: 0.85;
+}
+
+.fn-sync-btn:focus-visible {
+  outline: 2px solid var(--fn-sage);
+  outline-offset: 2px;
+}
+
+/* The moment sync finishes: one quick confident pop, not a lingering
+   animation — it's reporting a completed fact, not asking for attention. */
+.fn-sync-btn--done {
+  border-style: solid;
+  animation: fn-sync-pop 320ms cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+}
+
+.fn-sync-btn-check {
+  animation: fn-sync-check-in 220ms cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+}
+
+@keyframes fn-sync-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.06);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes fn-sync-check-in {
+  from {
+    opacity: 0;
+    transform: scale(0.4) rotate(-20deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* Plan Suggestions popup: each item is a button (opens the same
+   Add/Edit block form as the rest of the calendar), styled to read as
+   tappable without looking like a boxed list row. */
+.fn-suggestion-item {
+  transition: background-color 0.12s ease;
+}
+
+.fn-suggestion-item:hover {
+  background: color-mix(in srgb, var(--fn-cobalt) 7%, transparent);
+}
+
+.fn-suggestion-item:focus-visible {
+  outline: 2px solid var(--fn-cobalt);
+  outline-offset: 1px;
+}
+
+@keyframes fn-scribble {
+  0%,
+  100% {
+    transform: rotate(-8deg);
+  }
+  50% {
+    transform: rotate(10deg);
+  }
+}
+
+/* Month change: grid + heading morph in from the direction they travel
+   (Prev from the left, Next from the right, matching the page-turn nav
+   arrows), or a plain fade for a Today jump with no implied direction.
+   Same 220ms cubic-bezier settle as the rest of the system's motion
+   (fn-popup-card-in), not a bespoke curve. */
+.fn-month-in-left,
+.fn-month-in-right,
+.fn-month-in-fade {
+  animation-duration: 220ms;
+  animation-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1);
+  animation-fill-mode: both;
+}
+
+.fn-month-in-left {
+  animation-name: fn-month-in-from-left;
+}
+
+.fn-month-in-right {
+  animation-name: fn-month-in-from-right;
+}
+
+.fn-month-in-fade {
+  animation-name: fn-month-fade;
+}
+
+@keyframes fn-month-in-from-left {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fn-month-in-from-right {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fn-month-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .fn-btn-primary {
     transition: none;
@@ -236,6 +570,45 @@ body:has(.fn-board) {
   .fn-popup-backdrop,
   .fn-popup-card {
     animation: none;
+  }
+
+  .fn-nav-arrow,
+  .fn-nav-today::after,
+  .fn-add-btn,
+  .fn-add-btn-icon,
+  .fn-suggest-btn {
+    transition: none;
+  }
+
+  .fn-nav-arrow:hover {
+    transform: none;
+  }
+
+  .fn-suggest-btn-icon {
+    animation: none !important;
+  }
+
+  .fn-block-preview {
+    transition: none;
+  }
+
+  .fn-month-in-left,
+  .fn-month-in-right,
+  .fn-month-in-fade {
+    animation: none;
+  }
+
+  .fn-sync-btn {
+    transition: none;
+  }
+
+  .fn-sync-btn--done,
+  .fn-sync-btn-check {
+    animation: none !important;
+  }
+
+  .animate-spin {
+    animation: none !important;
   }
 }
 
@@ -252,7 +625,9 @@ body:has(.fn-board) {
   --board-panel: #1d2126;
   --board-chalk: #f2efe6;
   --board-maroon: #ca7059;
-  --board-steel: #838c97;
+  --board-maroon-hover: #c06a55;
+  --board-steel: #9aa4af;
+  --board-steel-dim: #838c97;
   --board-signal: #e06a5e;
   --board-hairline: rgba(242, 239, 230, 0.1);
 
@@ -265,8 +640,44 @@ body:has(.fn-board) {
 
 .fn-board-fascia {
   position: relative;
-  background: var(--board-fascia);
+  background-color: var(--board-fascia);
+  /* Soft radial vignette — depth without a repeating pattern. */
+  background-image: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.25) 100%);
   box-shadow: inset 0 0 0 1px var(--board-hairline);
+}
+
+/* Print registration mark — a small crosshair, four to a panel, at the
+   fascia's corners. Borrowed from prepress/registrar forms, not decoration
+   repeated anywhere else. */
+.fn-board-regmark {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.fn-board-regmark::before,
+.fn-board-regmark::after {
+  content: "";
+  position: absolute;
+  background: var(--board-steel-dim);
+}
+
+.fn-board-regmark::before {
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  transform: translateY(-50%);
+}
+
+.fn-board-regmark::after {
+  left: 50%;
+  top: 0;
+  height: 100%;
+  width: 1px;
+  transform: translateX(-50%);
 }
 
 .fn-board-panel {
@@ -278,7 +689,7 @@ body:has(.fn-board) {
    fascia), not decoration repeated anywhere else on the page. */
 .fn-board-rivets {
   height: 5px;
-  background-image: radial-gradient(circle, var(--board-steel) 1.4px, transparent 1.5px);
+  background-image: radial-gradient(circle, var(--board-steel-dim) 1.4px, transparent 1.5px);
   background-size: 20px 5px;
   background-repeat: repeat-x;
   opacity: 0.4;
@@ -291,6 +702,20 @@ body:has(.fn-board) {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--board-steel);
+}
+
+.fn-board-eyebrow-accent {
+  color: var(--board-maroon);
+}
+
+/* The brand/form subhead — a full sentence, not a label, so it reads in
+   DM Sans at near-full brightness instead of the tracked mono kicker
+   style. Sits right under an .fn-board-eyebrow line. */
+.fn-board-tagline {
+  font-family: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.95rem;
+  color: var(--board-chalk);
+  opacity: 0.85;
 }
 
 .fn-board-divider {
@@ -317,7 +742,7 @@ body:has(.fn-board) {
 
 .fn-board-input {
   border: 1px solid var(--board-hairline);
-  border-radius: 4px;
+  border-radius: 7px;
   background: rgba(242, 239, 230, 0.04);
   padding: 0.7rem 0.9rem;
   font-size: 0.95rem;
@@ -344,7 +769,7 @@ body:has(.fn-board) {
   gap: 0.6rem;
   width: 100%;
   border: 1px solid var(--board-hairline);
-  border-radius: 4px;
+  border-radius: 7px;
   background: rgba(242, 239, 230, 0.03);
   padding: 0.75rem 1rem;
   font-size: 0.95rem;
@@ -365,21 +790,25 @@ body:has(.fn-board) {
 
 .fn-board-btn-primary {
   width: 100%;
-  border-radius: 4px;
+  border-radius: 7px;
   background: var(--board-maroon);
   padding: 0.8rem 1rem;
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--board-fascia);
-  transition: opacity 0.15s ease;
+  transition: background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .fn-board-btn-primary:hover {
-  opacity: 0.9;
+  background: var(--board-maroon-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.32);
 }
 
 .fn-board-btn-primary:disabled {
   opacity: 0.45;
+  transform: none;
+  box-shadow: none;
 }
 
 .fn-board-btn-primary:focus-visible {
@@ -449,7 +878,7 @@ body:has(.fn-board) {
 }
 
 .fn-board-gate {
-  color: var(--board-steel);
+  color: var(--board-steel-dim);
 }
 
 .fn-board-leg {

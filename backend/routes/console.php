@@ -19,3 +19,9 @@ Schedule::command('notifications:generate')->hourly();
 // "Weekly review" in mdfile/semester-command-center.md, runs once the
 // week is fully over.
 Schedule::command('reviews:generate-weekly')->weeklyOn(1, '03:00');
+
+// Calendar roadmap Phase 5: polling fallback for pulling Google Calendar
+// changes in, see SyncGoogleCalendar's docblock for why polling and not
+// a webhook. 15 minutes is a compromise between "timely enough" and not
+// hammering the Calendar API for every connected user.
+Schedule::command('google-calendar:sync')->everyFifteenMinutes();

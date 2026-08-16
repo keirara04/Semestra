@@ -160,6 +160,33 @@ export default function DashboardPage() {
     ? `${semester.name} · Week ${weekNumberSince(semester.start_date, startOfWeek(date))}`
     : null;
 
+  // Real numbers only — no invented "good day for deep work" judgment,
+  // just what's actually on today.tasks/today.capacity.
+  const estimateMinutesToday = today.tasks.reduce(
+    (sum, task) => sum + (task.remaining_estimate_minutes ?? task.estimated_minutes ?? 0),
+    0,
+  );
+  const openMinutesToday = Math.max(0, today.capacity.available_minutes - today.planned_minutes_today);
+
+  const upcomingSorted = [...today.assessments_due_soon].sort(
+    (a, b) => new Date(a.due_at).getTime() - new Date(b.due_at).getTime(),
+  );
+
+  // Per-day planned minutes/state, shared by the "This week" dot rail and
+  // the semester-pulse aggregate below it — one calculation, not two.
+  const weekDayStats = weekDays.map((day) => {
+    const plannedMinutes = weekBlocks
+      .filter((b) => b.start_at.slice(0, 10) === day.date && b.status !== "skipped" && b.status !== "suggested")
+      .reduce((sum, b) => sum + (new Date(b.end_at).getTime() - new Date(b.start_at).getTime()) / 60_000, 0);
+    return { day, plannedMinutes, state: weekState(plannedMinutes, day.recommended_study_minutes) };
+  });
+  const daysOnTrack = weekDayStats.filter(({ state }) => state === "comfortable" || state === "busy").length;
+  const doneBlocksThisWeek = weekBlocks.filter((b) => b.status === "done");
+  const studiedMinutesThisWeek = doneBlocksThisWeek.reduce(
+    (sum, b) => sum + (new Date(b.end_at).getTime() - new Date(b.start_at).getTime()) / 60_000,
+    0,
+  );
+
   return (
     <main className="bg-[var(--fn-paper)] min-h-dvh w-full px-6 py-8 md:px-12 md:py-10">
       {pendingReview && (
@@ -187,7 +214,16 @@ export default function DashboardPage() {
                 {nextClass.end_time.slice(0, 5)}
               </p>
             ) : (
-              <p className="mt-1 text-sm text-[var(--fn-muted)]">No classes today</p>
+              <p className="mt-1 text-sm text-[var(--fn-muted)]">
+                No classes today
+                {openMinutesToday > 0 && ` · ${formatMinutes(openMinutesToday)} open`}
+              </p>
+            )}
+            {today.tasks.length > 0 && (
+              <p className="fn-mono mt-1 text-xs text-[var(--fn-muted)]">
+                {today.tasks.length} {today.tasks.length === 1 ? "task" : "tasks"} planned
+                {estimateMinutesToday > 0 && ` · ${formatMinutes(estimateMinutesToday)} estimated`}
+              </p>
             )}
           </div>
         </div>
@@ -220,6 +256,7 @@ export default function DashboardPage() {
                   {visibleTasks.map((task, index) => {
                     const expanded = expandedTaskId === task.id;
                     const tilt = expanded ? 0 : index % 2 === 0 ? -1.5 : 1.5;
+                    const isPrimary = index === 0;
                     return (
                       <div
                         key={task.id}
@@ -238,8 +275,14 @@ export default function DashboardPage() {
                           style={{
                             backgroundColor: `color-mix(in srgb, ${task.course_colour} 10%, var(--fn-paper))`,
                             borderTop: `3px solid ${task.course_colour}`,
+                            boxShadow: isPrimary ? `0 0 0 1.5px ${task.course_colour}` : undefined,
                           }}
                         >
+                          {isPrimary && (
+                            <span className="fn-mono mb-1.5 block text-[9px] font-semibold tracking-widest text-[var(--fn-muted)] uppercase">
+                              Start here
+                            </span>
+                          )}
                           <CourseTag label={task.course_title} colour={task.course_colour} />
                           <p className="mt-2 text-sm leading-snug font-medium">{task.title}</p>
                           <div className="fn-mono mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-[var(--fn-muted)]">
@@ -273,11 +316,11 @@ export default function DashboardPage() {
           {/* Upcoming — index cards */}
           <section className="mt-8">
             <p className="fn-eyebrow">Upcoming</p>
-            {today.assessments_due_soon.length === 0 ? (
+            {upcomingSorted.length === 0 ? (
               <p className="mt-3 text-sm text-[var(--fn-muted)]">Nothing due in the next two weeks.</p>
             ) : (
               <ul className="mt-3 flex gap-3 overflow-x-auto pb-1">
-                {today.assessments_due_soon.map((assessment) => (
+                {upcomingSorted.map((assessment) => (
                   <li
                     key={assessment.id}
                     className="flex shrink-0 flex-col gap-1 rounded-md p-3"
@@ -294,6 +337,25 @@ export default function DashboardPage() {
               </ul>
             )}
           </section>
+
+          {/* Semester pulse — real week aggregates (done sessions, hours
+              studied, days on track), not a fabricated activity feed.
+              Fills the space Recent Notestra will take once that data
+              exists; swap this out rather than stack both. */}
+          {weekDayStats.length > 0 && (
+            <section className="fn-mono mt-8 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-md border border-[var(--fn-rule)] px-4 py-3 text-xs text-[var(--fn-muted)]">
+              <span>
+                {doneBlocksThisWeek.length} {doneBlocksThisWeek.length === 1 ? "session" : "sessions"} completed this
+                week
+              </span>
+              <span aria-hidden>·</span>
+              <span>{formatMinutes(studiedMinutesThisWeek)} studied</span>
+              <span aria-hidden>·</span>
+              <span>
+                {daysOnTrack}/{weekDayStats.length} days on track
+              </span>
+            </section>
+          )}
         </div>
 
         {/* At a glance rail */}
@@ -303,9 +365,14 @@ export default function DashboardPage() {
             <WorkloadRing percent={rawPercent} ringPercent={Math.min(100, rawPercent)} colour={STATE_RING_COLOUR[state]} />
             <p className="text-sm font-medium">{WEEK_STATE_LABEL[state]}</p>
             <p className="fn-mono text-center text-xs text-[var(--fn-muted)]">
-              {formatMinutes(today.planned_minutes_today)} planned ·{" "}
+              {formatMinutes(today.planned_minutes_today)} planned /{" "}
               {formatMinutes(today.capacity.recommended_study_minutes)} capacity
             </p>
+            {openMinutesToday > 0 && (
+              <p className="fn-mono text-center text-[11px] text-[var(--fn-sage)]">
+                +{formatMinutes(openMinutesToday)} open today
+              </p>
+            )}
           </div>
 
           {nextDue && (
@@ -329,11 +396,7 @@ export default function DashboardPage() {
           <div className="rounded-md border border-[var(--fn-rule)] p-4">
             <p className="fn-eyebrow">This week</p>
             <div className="mt-3 flex justify-between">
-              {weekDays.map((day, index) => {
-                const plannedMinutes = weekBlocks
-                  .filter((b) => b.start_at.slice(0, 10) === day.date && b.status !== "skipped" && b.status !== "suggested")
-                  .reduce((sum, b) => sum + (new Date(b.end_at).getTime() - new Date(b.start_at).getTime()) / 60_000, 0);
-                const dayState = weekState(plannedMinutes, day.recommended_study_minutes);
+              {weekDayStats.map(({ day, state: dayState }, index) => {
                 const isToday = day.date === today.date;
                 return (
                   <div key={day.date} className="flex flex-col items-center gap-1.5">
@@ -346,6 +409,11 @@ export default function DashboardPage() {
                 );
               })}
             </div>
+            {weekDayStats.length > 0 && (
+              <p className="fn-mono mt-3 text-xs text-[var(--fn-muted)]">
+                {doneBlocksThisWeek.length} done · {formatMinutes(studiedMinutesThisWeek)} studied
+              </p>
+            )}
           </div>
         </aside>
       </div>

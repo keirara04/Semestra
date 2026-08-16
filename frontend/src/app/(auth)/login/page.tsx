@@ -35,7 +35,7 @@ export default function LoginPage() {
     <div>
       <div className="mb-10 flex flex-col items-center text-center lg:hidden">
         <SplitFlapText
-          words={["        ", "SEMESTRA", "BOARDING", "ON TRACK", "ENROLLED"]}
+          words={["        ", "SEMESTRA", "PLAN", "FOCUS", "TRACK"]}
           flipDuration={0.12}
           stagger={0.05}
           cycleDelay={10000}
@@ -51,14 +51,15 @@ export default function LoginPage() {
           loopFrom={1}
           padTo={8}
         />
-        <p className="fn-board-eyebrow mt-3">Your semester, on schedule</p>
+        <p className="fn-board-tagline mt-2">Your semester, on schedule.</p>
         <div className="fn-board-divider mx-auto mt-4" />
       </div>
 
       <p className="fn-board-eyebrow">Welcome back</p>
-      <div className="fn-board-divider mt-2" />
+      <p className="fn-board-tagline mt-1">Continue your semester.</p>
+      <div className="fn-board-divider mt-3" />
 
-      <div className="mt-8 flex flex-col gap-3">
+      <div className="mt-5 flex flex-col gap-3">
         <button type="button" className="fn-board-oauth-btn">
           <GoogleIcon className="h-5 w-5" />
           Continue with Google

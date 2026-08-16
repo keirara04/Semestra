@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState, type FormEvent } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
-import { ApiError, apiFetch } from "@/lib/api";
+import { ApiError, apiFetch, API_URL } from "@/lib/api";
 import type { DeepWorkWindow, User } from "@/lib/types";
 
 // Settings, see "Settings" in mdfile/DESIGN.md. Only fields that exist
@@ -281,6 +281,10 @@ function SettingsForm({
         )}
       </section>
 
+      <Suspense fallback={null}>
+        <GoogleCalendarSection />
+      </Suspense>
+
       <section className="mt-10 flex flex-col gap-3 border-t border-[var(--fn-rule)] pt-6">
         <p className="fn-eyebrow">Data</p>
 
@@ -337,5 +341,115 @@ function SettingsForm({
         )}
       </section>
     </main>
+  );
+}
+
+// Calendar roadmap Phase 5: connect/disconnect Google Calendar two-way
+// sync. /connect is a plain link (full-page navigation into the OAuth
+// flow), not an apiFetch — see GoogleCalendarConnectController's docblock
+// on the backend for why. The ?google_calendar= query param is how the
+// callback reports back after the browser round-trips through Google.
+function GoogleCalendarSection() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const [connected, setConnected] = useState<boolean | null>(null);
+  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
+  // Captured once from the URL at mount (lazy initializer, not an effect
+  // setState) — the callback route only ever puts this param on the very
+  // first render after the OAuth round-trip, and it needs to survive the
+  // router.replace() below stripping it back out of the URL.
+  const [callbackResult] = useState(() => searchParams.get("google_calendar"));
+
+  function loadStatus() {
+    apiFetch<{ connected: boolean; lastSyncedAt: string | null }>("/api/google-calendar/status").then((result) => {
+      setConnected(result.connected);
+      setLastSyncedAt(result.lastSyncedAt);
+    });
+  }
+
+  useEffect(loadStatus, []);
+
+  useEffect(() => {
+    if (!callbackResult) return;
+    router.replace("/settings");
+    if (callbackResult === "connected") loadStatus();
+  }, [callbackResult, router]);
+
+  async function syncNow() {
+    setSyncing(true);
+    try {
+      await apiFetch("/api/google-calendar/sync", { method: "POST" });
+      loadStatus();
+    } finally {
+      setSyncing(false);
+    }
+  }
+
+  async function disconnect() {
+    if (!window.confirm("Disconnect Google Calendar? Events synced in from Google will be removed from this calendar.")) return;
+    setDisconnecting(true);
+    try {
+      await apiFetch("/api/google-calendar/disconnect", { method: "DELETE" });
+      setConnected(false);
+      setLastSyncedAt(null);
+    } finally {
+      setDisconnecting(false);
+    }
+  }
+
+  return (
+    <section className="mt-10 flex flex-col gap-3 border-t border-[var(--fn-rule)] pt-6">
+      <p className="fn-eyebrow">Google Calendar</p>
+      <p className="text-xs text-[var(--fn-muted)]">
+        Two-way sync with one Google Calendar: events from Google show up here, and study/commitment
+        blocks you accept here show up in Google.
+      </p>
+
+      {callbackResult === "denied" && (
+        <p className="text-sm text-[var(--fn-oxide)]">Connection cancelled — nothing changed.</p>
+      )}
+      {callbackResult === "no_refresh_token" && (
+        <p className="text-sm text-[var(--fn-oxide)]">
+          Google didn&apos;t grant lasting access — try connecting again.
+        </p>
+      )}
+      {callbackResult === "error" && (
+        <p className="text-sm text-[var(--fn-oxide)]">Something went wrong connecting — try again.</p>
+      )}
+      {callbackResult === "connected" && <p className="text-sm text-[var(--fn-sage)]">Connected.</p>}
+
+      {connected === null ? null : connected ? (
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="text-sm text-[var(--fn-muted)]">
+            {lastSyncedAt
+              ? `Last synced ${new Date(lastSyncedAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}`
+              : "Not synced yet"}
+          </span>
+          <button
+            type="button"
+            onClick={syncNow}
+            disabled={syncing}
+            className="rounded-md border border-[var(--fn-rule)] px-4 py-2 text-sm hover:bg-[var(--fn-canvas)]"
+          >
+            {syncing ? "Syncing…" : "Sync now"}
+          </button>
+          <button
+            type="button"
+            onClick={disconnect}
+            disabled={disconnecting}
+            className="text-sm text-[var(--fn-oxide)] underline underline-offset-2"
+          >
+            {disconnecting ? "Disconnecting…" : "Disconnect"}
+          </button>
+        </div>
+      ) : (
+        <a href={`${API_URL}/api/google-calendar/connect`} className="fn-btn-primary !w-fit px-4">
+          Connect Google Calendar
+        </a>
+      )}
+    </section>
   );
 }
