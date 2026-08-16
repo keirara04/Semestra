@@ -1,9 +1,11 @@
 "use client";
 
-import { Suspense, useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { Suspense, useState, type FormEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { apiFetch, ApiError, logApiError } from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
+import { apiFetch, ApiError } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import type {
   AcademicCalendarException,
   Assessment,
@@ -561,41 +563,55 @@ function HoverBar({
 }
 
 function SemesterMap({ semester }: { semester: Semester }) {
-  const [courses, setCourses] = useState<Course[] | null>(null);
-  const [loadError, setLoadError] = useState(false);
-  const [assessments, setAssessments] = useState<Assessment[]>([]);
-  const [gradeItems, setGradeItems] = useState<GradeItem[]>([]);
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [days, setDays] = useState<DayCapacity[]>([]);
-  const [blocks, setBlocks] = useState<CalendarBlock[]>([]);
-  const [exceptions, setExceptions] = useState<AcademicCalendarException[]>([]);
   const [selectedMonthKey, setSelectedMonthKey] = useState<string | null>(null);
   const [isolatedCourseId, setIsolatedCourseId] = useState<number | null>(null);
 
-  useEffect(() => {
-    Promise.all([
-      apiFetch<Course[]>("/api/courses"),
-      apiFetch<Assessment[]>("/api/assessments"),
-      apiFetch<GradeItem[]>("/api/grade-items"),
-      apiFetch<Task[]>("/api/tasks"),
-      apiFetch<DayCapacity[]>(
-        `/api/calendar/capacity?from=${semester.start_date}&to=${semester.end_date}`,
-      ),
-      apiFetch<CalendarBlock[]>("/api/calendar-blocks"),
-      apiFetch<AcademicCalendarException[]>("/api/academic-calendar-exceptions"),
-    ]).then(([allCourses, allAssessments, allGradeItems, allTasks, capacityDays, allBlocks, allExceptions]) => {
-      setCourses(allCourses.filter((c) => c.semester_id === semester.id));
-      setAssessments(allAssessments);
-      setGradeItems(allGradeItems);
-      setTasks(allTasks);
-      setDays(capacityDays);
-      setBlocks(allBlocks);
-      setExceptions(allExceptions.filter((e) => e.semester_id === semester.id));
-    }).catch((error) => {
-      setLoadError(true);
-      logApiError(error);
-    });
-  }, [semester.id, semester.start_date, semester.end_date]);
+  // Every one of these shares its query key with the page that "owns"
+  // that resource (Courses, the Courses/Deliverables list, Grades,
+  // Calendar) — this view is read-only and never the first to fetch any
+  // of them in normal use, so it almost always renders straight from
+  // cache instead of firing its own round trip.
+  const coursesQuery = useQuery({ queryKey: qk.courses.all, queryFn: () => apiFetch<Course[]>("/api/courses") });
+  const assessmentsQuery = useQuery({
+    queryKey: qk.assessments.all,
+    queryFn: () => apiFetch<Assessment[]>("/api/assessments"),
+  });
+  const gradeItemsQuery = useQuery({
+    queryKey: qk.gradeItems.all,
+    queryFn: () => apiFetch<GradeItem[]>("/api/grade-items"),
+  });
+  const tasksQuery = useQuery({ queryKey: qk.tasks.all, queryFn: () => apiFetch<Task[]>("/api/tasks") });
+  const capacityQuery = useQuery({
+    queryKey: qk.calendarCapacity(semester.start_date, semester.end_date),
+    queryFn: () =>
+      apiFetch<DayCapacity[]>(`/api/calendar/capacity?from=${semester.start_date}&to=${semester.end_date}`),
+  });
+  const blocksQuery = useQuery({
+    queryKey: qk.calendarBlocks.all,
+    queryFn: () => apiFetch<CalendarBlock[]>("/api/calendar-blocks"),
+  });
+  const exceptionsQuery = useQuery({
+    queryKey: qk.academicCalendarExceptions.all,
+    queryFn: () => apiFetch<AcademicCalendarException[]>("/api/academic-calendar-exceptions"),
+  });
+
+  const loadError = [
+    coursesQuery,
+    assessmentsQuery,
+    gradeItemsQuery,
+    tasksQuery,
+    capacityQuery,
+    blocksQuery,
+    exceptionsQuery,
+  ].some((query) => query.isError);
+
+  const courses = coursesQuery.data ? coursesQuery.data.filter((c) => c.semester_id === semester.id) : null;
+  const assessments = assessmentsQuery.data ?? [];
+  const gradeItems = gradeItemsQuery.data ?? [];
+  const tasks = tasksQuery.data ?? [];
+  const days = capacityQuery.data ?? [];
+  const blocks = blocksQuery.data ?? [];
+  const exceptions = exceptionsQuery.data?.filter((e) => e.semester_id === semester.id) ?? [];
 
   if (loadError) {
     return (

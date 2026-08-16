@@ -1,9 +1,11 @@
 "use client";
 
-import { Suspense, useEffect, useState, type FormEvent } from "react";
+import { Suspense, useState, type FormEvent } from "react";
 import Link from "next/link";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
-import { apiFetch, ApiError, logApiError } from "@/lib/api";
+import { apiFetch, ApiError } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import type { Assessment, AssessmentType, Course } from "@/lib/types";
 import { useActiveSemester } from "@/lib/hooks/use-active-semester";
 import { daysUntil } from "@/lib/format";
@@ -39,8 +41,12 @@ export default function CoursesPage() {
 }
 
 function CoursesPageInner() {
+  const queryClient = useQueryClient();
   const { semesters, activeSemester, setActiveSemester } = useActiveSemester();
-  const [courses, setCourses] = useState<Course[] | null>(null);
+  const { data: courses } = useQuery({
+    queryKey: qk.courses.all,
+    queryFn: () => apiFetch<Course[]>("/api/courses"),
+  });
   // "all" is its own local filter state, not part of the shared active-semester
   // param: it's a courses-list-only view, not something the calendar/semester
   // pages should ever pick up.
@@ -58,7 +64,10 @@ function CoursesPageInner() {
   // in here since Courses is where deliverables now live end to end (a
   // single course's own deliverables are on its /courses/[id] tab, this
   // is the "all of them at once" scope one level up).
-  const [assessments, setAssessments] = useState<Assessment[] | null>(null);
+  const { data: assessments } = useQuery({
+    queryKey: qk.assessments.all,
+    queryFn: () => apiFetch<Assessment[]>("/api/assessments"),
+  });
   const [assessmentFormOpen, setAssessmentFormOpen] = useState(false);
   const [assessmentCourseId, setAssessmentCourseId] = useState("");
   const [assessmentType, setAssessmentType] = useState<AssessmentType>("report");
@@ -66,21 +75,6 @@ function CoursesPageInner() {
   const [assessmentDueAt, setAssessmentDueAt] = useState("");
   const [assessmentError, setAssessmentError] = useState<string | null>(null);
   const [assessmentSubmitting, setAssessmentSubmitting] = useState(false);
-
-  useEffect(() => {
-    apiFetch<Course[]>("/api/courses")
-      .then(setCourses)
-      .catch((error) => {
-        setCourses([]);
-        logApiError(error);
-      });
-    apiFetch<Assessment[]>("/api/assessments")
-      .then(setAssessments)
-      .catch((error) => {
-        setAssessments([]);
-        logApiError(error);
-      });
-  }, []);
 
   function openForm() {
     setError(null);
@@ -111,7 +105,7 @@ function CoursesPageInner() {
           colour,
         }),
       });
-      setCourses((current) => [...(current ?? []), created]);
+      queryClient.setQueryData(qk.courses.all, (current: Course[] | undefined) => [...(current ?? []), created]);
       setTitle("");
       setCode("");
       setColour(DEFAULT_COLOUR);
@@ -157,7 +151,10 @@ function CoursesPageInner() {
           due_at: assessmentDueAt,
         }),
       });
-      setAssessments((current) => [...(current ?? []), created]);
+      queryClient.setQueryData(qk.assessments.all, (current: Assessment[] | undefined) => [
+        ...(current ?? []),
+        created,
+      ]);
       setAssessmentTitle("");
       setAssessmentDueAt("");
       setAssessmentFormOpen(false);
@@ -170,7 +167,9 @@ function CoursesPageInner() {
 
   async function handleAssessmentDelete(assessment: Assessment) {
     await apiFetch(`/api/assessments/${assessment.id}`, { method: "DELETE" });
-    setAssessments((current) => current?.filter((item) => item.id !== assessment.id) ?? null);
+    queryClient.setQueryData(qk.assessments.all, (current: Assessment[] | undefined) =>
+      (current ?? []).filter((item) => item.id !== assessment.id),
+    );
   }
 
   return (
@@ -253,14 +252,14 @@ function CoursesPageInner() {
               No courses yet. Add one to get started.
             </li>
           )}
-          {courses !== null && courses.length > 0 && visibleCourses.length === 0 && (
+          {courses !== undefined && courses.length > 0 && visibleCourses.length === 0 && (
             <li className="rounded-lg border border-dashed border-[var(--fn-rule)] px-4 py-6 text-center text-sm text-[var(--fn-muted)]">
               No courses in this semester.
             </li>
           )}
         </ul>
 
-        {courses !== null && courses.length > 0 && (
+        {courses !== undefined && courses.length > 0 && (
           <div className="mt-10">
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1.5">

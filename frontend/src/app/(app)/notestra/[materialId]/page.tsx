@@ -2,8 +2,10 @@
 
 import { use, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { apiFetch, logApiError } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import type { Annotation, Material } from "@/lib/types";
 import { PDFViewer } from "@/components/notestra/PDFViewer";
 import { AnnotationLayer, type NotestraTool } from "@/components/notestra/AnnotationLayer";
@@ -38,8 +40,21 @@ export default function NotestraPage({
   const { materialId } = use(params);
   const id = Number(materialId);
 
-  const [material, setMaterial] = useState<Material | null>(null);
-  const [viewerUrl, setViewerUrl] = useState<string | null>(null);
+  const materialQuery = useQuery({
+    queryKey: qk.materials.detail(id),
+    queryFn: () => apiFetch<Material>(`/api/materials/${id}`),
+  });
+  const material = materialQuery.data ?? null;
+  // staleTime/gcTime 0 — this is a signed, short-TTL URL (S3 presigned or
+  // similar); caching it across a remount risks handing PDFViewer an
+  // already-expired link instead of a fresh one.
+  const viewUrlQuery = useQuery({
+    queryKey: qk.materials.viewUrl(id),
+    queryFn: () => apiFetch<{ url: string }>(`/api/materials/${id}/view-url`),
+    staleTime: 0,
+    gcTime: 0,
+  });
+  const viewerUrl = viewUrlQuery.data?.url ?? null;
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const [page, setPage] = useState(1);
@@ -57,21 +72,16 @@ export default function NotestraPage({
   });
 
   useEffect(() => {
-    apiFetch<Material>(`/api/materials/${id}`)
-      .then(setMaterial)
-      .catch((error) => {
-        setLoadError("Couldn't load this material.");
-        logApiError(error);
-      });
-    apiFetch<{ url: string }>(`/api/materials/${id}/view-url`)
-      .then((res) => setViewerUrl(res.url))
-      .catch((error) => {
-        setLoadError("Couldn't load the viewer for this material.");
-        logApiError(error);
-      });
     apiFetch<Annotation[]>(`/api/materials/${id}/annotations`).then(sync.setInitial).catch(logApiError);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  const queryLoadError = materialQuery.isError
+    ? "Couldn't load this material."
+    : viewUrlQuery.isError
+      ? "Couldn't load the viewer for this material."
+      : null;
+  const effectiveLoadError = loadError ?? queryLoadError;
 
   useEffect(() => {
     savePosition(page, zoom);
@@ -129,8 +139,8 @@ export default function NotestraPage({
 
           <div className="relative flex-1 overflow-auto px-8 pb-24">
             <div className="flex min-h-full items-start justify-center">
-              {loadError && <p className="mt-8 text-[var(--fn-oxide)]">{loadError}</p>}
-              {!loadError && (
+              {effectiveLoadError && <p className="mt-8 text-[var(--fn-oxide)]">{effectiveLoadError}</p>}
+              {!effectiveLoadError && (
                 <div
                   className="relative rounded-2xl border bg-[var(--fn-paper)] shadow-lg"
                   style={{

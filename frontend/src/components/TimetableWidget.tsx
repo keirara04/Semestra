@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
-import { apiFetch, ApiError, logApiError } from "@/lib/api";
+import { apiFetch, ApiError } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import type { ClassSession, ClassSessionType, Course } from "@/lib/types";
 import { useActiveSemester } from "@/lib/hooks/use-active-semester";
 import { HOUR_HEIGHT_PX, hourLabel, timelineHours, timelineMinutesFromTime } from "@/lib/timeline";
@@ -58,23 +60,21 @@ function sessionPosition(session: ClassSession): { top: number; height: number }
 }
 
 export function TimetableWidget() {
+  const queryClient = useQueryClient();
   const { activeSemester } = useActiveSemester();
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [sessions, setSessions] = useState<ClassSession[] | null>(null);
+  const { data: courses = [] } = useQuery({
+    queryKey: qk.courses.all,
+    queryFn: () => apiFetch<Course[]>("/api/courses"),
+  });
+  const { data: sessions } = useQuery({
+    queryKey: qk.classSessions.all,
+    queryFn: () => apiFetch<ClassSession[]>("/api/class-sessions"),
+  });
   const [form, setForm] = useState<SessionForm | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const todayIndex = new Date().getDay();
-
-  useEffect(() => {
-    apiFetch<Course[]>("/api/courses").then(setCourses).catch(logApiError);
-    refreshSessions();
-  }, []);
-
-  function refreshSessions() {
-    apiFetch<ClassSession[]>("/api/class-sessions").then(setSessions).catch(logApiError);
-  }
 
   const semesterCourses = useMemo(
     () => courses.filter((course) => !activeSemester || course.semester_id === activeSemester.id),
@@ -89,12 +89,16 @@ export function TimetableWidget() {
   }, [sessions, semesterCourses]);
 
   async function handleCourseColourChange(courseId: number, colour: string) {
-    setCourses((current) => current.map((c) => (c.id === courseId ? { ...c, colour } : c)));
+    queryClient.setQueryData(qk.courses.all, (current: Course[] | undefined) =>
+      (current ?? []).map((c) => (c.id === courseId ? { ...c, colour } : c)),
+    );
     const updated = await apiFetch<Course>(`/api/courses/${courseId}`, {
       method: "PUT",
       body: JSON.stringify({ colour }),
     });
-    setCourses((current) => current.map((c) => (c.id === courseId ? updated : c)));
+    queryClient.setQueryData(qk.courses.all, (current: Course[] | undefined) =>
+      (current ?? []).map((c) => (c.id === courseId ? updated : c)),
+    );
   }
 
   function openNewForm() {
@@ -139,7 +143,7 @@ export function TimetableWidget() {
       } else {
         await apiFetch<ClassSession>(`/api/class-sessions/${form.id}`, { method: "PUT", body });
       }
-      refreshSessions();
+      await queryClient.invalidateQueries({ queryKey: qk.classSessions.all });
       closeForm();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong.");
@@ -153,7 +157,7 @@ export function TimetableWidget() {
     setSubmitting(true);
     try {
       await apiFetch(`/api/class-sessions/${form.id}`, { method: "DELETE" });
-      refreshSessions();
+      await queryClient.invalidateQueries({ queryKey: qk.classSessions.all });
       closeForm();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong.");
@@ -425,8 +429,8 @@ export function TimetableWidget() {
           onClose={() => setImportOpen(false)}
           onImported={() => {
             setImportOpen(false);
-            refreshSessions();
-            apiFetch<Course[]>("/api/courses").then(setCourses).catch(logApiError);
+            queryClient.invalidateQueries({ queryKey: qk.classSessions.all });
+            queryClient.invalidateQueries({ queryKey: qk.courses.all });
           }}
         />
       )}

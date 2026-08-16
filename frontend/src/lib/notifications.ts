@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 
 export interface Notification {
   id: number;
@@ -15,32 +16,21 @@ export interface Notification {
 const POLL_MS = 60_000;
 
 export function useNotifications() {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      try {
-        const data = await apiFetch<Notification[]>("/api/notifications");
-        if (!cancelled) setNotifications(data);
-      } catch {
-        // Silent — notifications are informational, not worth surfacing a fetch error.
-      }
-    }
-
-    load();
-    const interval = setInterval(load, POLL_MS);
-
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-    };
-  }, []);
+  const { data: notifications = [] } = useQuery({
+    queryKey: qk.notifications.all,
+    queryFn: () => apiFetch<Notification[]>("/api/notifications"),
+    // Own refetchInterval rather than relying on the global staleTime:
+    // notifications are the one thing in the app worth polling for
+    // freshness even while the tab sits idle on one page.
+    refetchInterval: POLL_MS,
+    staleTime: POLL_MS,
+  });
 
   async function markRead(id: number) {
-    setNotifications((current) =>
-      current.map((n) => (n.id === id ? { ...n, read_at: n.read_at ?? new Date().toISOString() } : n)),
+    queryClient.setQueryData(qk.notifications.all, (current: Notification[] | undefined) =>
+      (current ?? []).map((n) => (n.id === id ? { ...n, read_at: n.read_at ?? new Date().toISOString() } : n)),
     );
     try {
       await apiFetch(`/api/notifications/${id}/read`, { method: "POST" });

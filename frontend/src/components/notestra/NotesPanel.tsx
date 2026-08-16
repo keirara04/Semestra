@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
-import { apiFetch, ApiError, logApiError } from "@/lib/api";
+import { useState, type FormEvent } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiFetch, ApiError } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import type { MaterialNote, NoteType } from "@/lib/types";
 
 const NOTE_TYPES: NoteType[] = ["general", "exam", "concept", "question", "formula"];
@@ -16,17 +18,17 @@ interface NotesPanelProps {
 // high-frequency stroke data. See mdfile/NOTESTRA_FUNCTIONAL_SPEC.md,
 // Section 19.
 export function NotesPanel({ materialId, currentPage }: NotesPanelProps) {
-  const [notes, setNotes] = useState<MaterialNote[] | null>(null);
+  const queryClient = useQueryClient();
+  const { data: notes } = useQuery({
+    queryKey: qk.materials.notes(materialId),
+    queryFn: () => apiFetch<MaterialNote[]>(`/api/materials/${materialId}/notes`),
+  });
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [noteType, setNoteType] = useState<NoteType>("general");
   const [attachToPage, setAttachToPage] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    apiFetch<MaterialNote[]>(`/api/materials/${materialId}/notes`).then(setNotes).catch(logApiError);
-  }, [materialId]);
 
   async function handleCreate(event: FormEvent) {
     event.preventDefault();
@@ -42,7 +44,10 @@ export function NotesPanel({ materialId, currentPage }: NotesPanelProps) {
           page_number: attachToPage ? currentPage : null,
         }),
       });
-      setNotes((prev) => [...(prev ?? []), created]);
+      queryClient.setQueryData(qk.materials.notes(materialId), (current: MaterialNote[] | undefined) => [
+        ...(current ?? []),
+        created,
+      ]);
       setTitle("");
       setContent("");
     } catch (err) {
@@ -54,7 +59,9 @@ export function NotesPanel({ materialId, currentPage }: NotesPanelProps) {
 
   async function handleDelete(note: MaterialNote) {
     await apiFetch(`/api/notes/${note.id}`, { method: "DELETE" });
-    setNotes((prev) => (prev ?? []).filter((n) => n.id !== note.id));
+    queryClient.setQueryData(qk.materials.notes(materialId), (current: MaterialNote[] | undefined) =>
+      (current ?? []).filter((n) => n.id !== note.id),
+    );
   }
 
   return (

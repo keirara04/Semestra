@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { use } from "react";
 import Link from "next/link";
-import { apiFetch, ApiError, logApiError } from "@/lib/api";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiFetch, ApiError } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import type {
   Assessment,
   AssessmentType,
@@ -36,18 +38,21 @@ export default function CourseWorkspacePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const [course, setCourse] = useState<CourseWithSessions | null>(null);
-  const [courseError, setCourseError] = useState(false);
+  const queryClient = useQueryClient();
   const [tab, setTab] = useState<(typeof TABS)[number]>("Overview");
 
-  useEffect(() => {
-    apiFetch<CourseWithSessions>(`/api/courses/${id}`)
-      .then(setCourse)
-      .catch((error) => {
-        setCourseError(true);
-        logApiError(error);
-      });
-  }, [id]);
+  const courseQuery = useQuery({
+    queryKey: qk.courses.detail(id),
+    queryFn: () => apiFetch<CourseWithSessions>(`/api/courses/${id}`),
+  });
+  const course = courseQuery.data;
+  const courseError = courseQuery.isError;
+
+  function setCourse(updater: (current: CourseWithSessions) => CourseWithSessions) {
+    queryClient.setQueryData(qk.courses.detail(id), (current: CourseWithSessions | undefined) =>
+      current ? updater(current) : current,
+    );
+  }
 
   if (courseError) {
     return (
@@ -157,6 +162,7 @@ function Overview({
   const [location, setLocation] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const queryClient = useQueryClient();
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -175,6 +181,11 @@ function Overview({
         }),
       });
       onSessionCreated(created);
+      // This course's own embedded class_sessions list is a different
+      // cache entry from qk.classSessions.all (TimetableWidget, Calendar) —
+      // invalidate that one too so a session added here shows up there
+      // without waiting for its own unrelated staleTime to expire.
+      queryClient.invalidateQueries({ queryKey: qk.classSessions.all });
       setLocation("");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong.");
@@ -291,33 +302,36 @@ const ASSESSMENT_STATUS_LABEL: Record<Assessment["status"], string> = {
 // already inside one course, so the course picker from that page's add
 // form is redundant and dropped.
 function Deliverables({ courseId }: { courseId: number }) {
-  const [assessments, setAssessments] = useState<Assessment[] | null>(null);
+  const queryClient = useQueryClient();
+  // Same qk.assessments.all key the top-level Courses page and Semester
+  // page use — one shared fetch backs all three views, and a create/delete
+  // made in any of them is immediately visible in the others.
+  const { data: allAssessments } = useQuery({
+    queryKey: qk.assessments.all,
+    queryFn: () => apiFetch<Assessment[]>("/api/assessments"),
+  });
+  const assessments = allAssessments?.filter((item) => item.course_id === courseId) ?? null;
   const [type, setType] = useState<AssessmentType>("report");
   const [title, setTitle] = useState("");
   const [dueAt, setDueAt] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  function refresh() {
-    apiFetch<Assessment[]>("/api/assessments")
-      .then((list) => setAssessments(list.filter((item) => item.course_id === courseId)))
-      .catch(logApiError);
-  }
-
-  useEffect(refresh, [courseId]);
-
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
     setSubmitting(true);
     try {
-      await apiFetch<Assessment>("/api/assessments", {
+      const created = await apiFetch<Assessment>("/api/assessments", {
         method: "POST",
         body: JSON.stringify({ course_id: courseId, type, title, due_at: dueAt }),
       });
+      queryClient.setQueryData(qk.assessments.all, (current: Assessment[] | undefined) => [
+        ...(current ?? []),
+        created,
+      ]);
       setTitle("");
       setDueAt("");
-      refresh();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong.");
     } finally {
@@ -327,7 +341,9 @@ function Deliverables({ courseId }: { courseId: number }) {
 
   async function handleDelete(assessment: Assessment) {
     await apiFetch(`/api/assessments/${assessment.id}`, { method: "DELETE" });
-    setAssessments((current) => current?.filter((item) => item.id !== assessment.id) ?? null);
+    queryClient.setQueryData(qk.assessments.all, (current: Assessment[] | undefined) =>
+      (current ?? []).filter((item) => item.id !== assessment.id),
+    );
   }
 
   return (
@@ -424,35 +440,24 @@ function formatPercent(value: number | null): string {
 // qualifier; pending weight gets its own visible chip rather than a
 // silent gap, per the same section's false-precision failure mode.
 function Grades({ courseId }: { courseId: number }) {
-  const [report, setReport] = useState<GradeReport | null>(null);
-  const [items, setItems] = useState<GradeItem[]>([]);
+  const queryClient = useQueryClient();
+  const { data: report } = useQuery({
+    queryKey: qk.courses.grades(courseId),
+    queryFn: () => apiFetch<GradeReport>(`/api/courses/${courseId}/grades`),
+  });
+  // Shared qk.gradeItems.all key (also used by the Semester page's
+  // grade-weight view) — filtered to this course client-side.
+  const { data: allItems } = useQuery({
+    queryKey: qk.gradeItems.all,
+    queryFn: () => apiFetch<GradeItem[]>("/api/grade-items"),
+  });
+  const items = allItems?.filter((item) => item.course_id === courseId) ?? [];
   const [name, setName] = useState("");
   const [weighting, setWeighting] = useState("");
   const [maxScore, setMaxScore] = useState("100");
   const [achievedScore, setAchievedScore] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-
-  async function refresh() {
-    const [reportData, itemsData] = await Promise.all([
-      apiFetch<GradeReport>(`/api/courses/${courseId}/grades`),
-      apiFetch<GradeItem[]>("/api/grade-items"),
-    ]);
-    setReport(reportData);
-    setItems(itemsData.filter((item) => item.course_id === courseId));
-  }
-
-  useEffect(() => {
-    Promise.all([
-      apiFetch<GradeReport>(`/api/courses/${courseId}/grades`),
-      apiFetch<GradeItem[]>("/api/grade-items"),
-    ])
-      .then(([reportData, itemsData]) => {
-        setReport(reportData);
-        setItems(itemsData.filter((item) => item.course_id === courseId));
-      })
-      .catch(logApiError);
-  }, [courseId]);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -472,7 +477,13 @@ function Grades({ courseId }: { courseId: number }) {
       setName("");
       setWeighting("");
       setAchievedScore("");
-      await refresh();
+      // A new item changes the report's projections server-side (best
+      // case/expected/conservative, needed average) — nothing worth
+      // computing optimistically client-side, so refetch both.
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: qk.gradeItems.all }),
+        queryClient.invalidateQueries({ queryKey: qk.courses.grades(courseId) }),
+      ]);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong.");
     } finally {
@@ -626,7 +637,14 @@ const MATERIAL_TYPE_LABEL: Record<MaterialType, string> = {
 // mdfile/semester-command-center.md and "Materials list" in DESIGN.md: a
 // plain filterable list, not a card grid.
 function Materials({ courseId }: { courseId: number }) {
-  const [materials, setMaterials] = useState<Material[] | null>(null);
+  const queryClient = useQueryClient();
+  // Shared qk.materials.all key — Notestra's own page fetches the same
+  // list, so a material added or removed here is reflected there too.
+  const { data: allMaterials } = useQuery({
+    queryKey: qk.materials.all,
+    queryFn: () => apiFetch<Material[]>("/api/materials"),
+  });
+  const materials = allMaterials?.filter((item) => item.course_id === courseId) ?? null;
   const [type, setType] = useState<MaterialType>("slide");
   const [title, setTitle] = useState("");
   const [week, setWeek] = useState("");
@@ -634,12 +652,6 @@ function Materials({ courseId }: { courseId: number }) {
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    apiFetch<Material[]>("/api/materials")
-      .then((list) => setMaterials(list.filter((item) => item.course_id === courseId)))
-      .catch(logApiError);
-  }, [courseId]);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -658,7 +670,7 @@ function Materials({ courseId }: { courseId: number }) {
         method: "POST",
         body: formData,
       });
-      setMaterials((current) => [...(current ?? []), created]);
+      queryClient.setQueryData(qk.materials.all, (current: Material[] | undefined) => [...(current ?? []), created]);
       setTitle("");
       setWeek("");
       setUrl("");
@@ -672,7 +684,9 @@ function Materials({ courseId }: { courseId: number }) {
 
   async function handleDelete(material: Material) {
     await apiFetch(`/api/materials/${material.id}`, { method: "DELETE" });
-    setMaterials((current) => current?.filter((item) => item.id !== material.id) ?? null);
+    queryClient.setQueryData(qk.materials.all, (current: Material[] | undefined) =>
+      (current ?? []).filter((item) => item.id !== material.id),
+    );
   }
 
   return (
@@ -800,16 +814,17 @@ const CONFIDENCE_OPTIONS: Confidence[] = ["not_started", "learning", "comfortabl
 // vocabulary the spaced revision engine (Phase C) and Exam mode (Phase D)
 // both read from.
 function Revision({ courseId }: { courseId: number }) {
-  const [topics, setTopics] = useState<Topic[] | null>(null);
+  const queryClient = useQueryClient();
+  // Shared qk.topics.all key — the assessment detail page's own topic
+  // picker reads the same list.
+  const { data: allTopics } = useQuery({
+    queryKey: qk.topics.all,
+    queryFn: () => apiFetch<Topic[]>("/api/topics"),
+  });
+  const topics = allTopics?.filter((topic) => topic.course_id === courseId) ?? null;
   const [title, setTitle] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    apiFetch<Topic[]>("/api/topics")
-      .then((list) => setTopics(list.filter((topic) => topic.course_id === courseId)))
-      .catch(logApiError);
-  }, [courseId]);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -820,7 +835,7 @@ function Revision({ courseId }: { courseId: number }) {
         method: "POST",
         body: JSON.stringify({ course_id: courseId, title }),
       });
-      setTopics((current) => [...(current ?? []), created]);
+      queryClient.setQueryData(qk.topics.all, (current: Topic[] | undefined) => [...(current ?? []), created]);
       setTitle("");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong.");
@@ -834,7 +849,9 @@ function Revision({ courseId }: { courseId: number }) {
       method: "PUT",
       body: JSON.stringify({ confidence }),
     });
-    setTopics((current) => current?.map((item) => (item.id === topic.id ? updated : item)) ?? null);
+    queryClient.setQueryData(qk.topics.all, (current: Topic[] | undefined) =>
+      (current ?? []).map((item) => (item.id === topic.id ? updated : item)),
+    );
   }
 
   return (

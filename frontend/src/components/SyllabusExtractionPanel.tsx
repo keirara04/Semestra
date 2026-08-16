@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useQueryClient } from "@tanstack/react-query";
 import { apiFetch, ApiError } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import { useAuth } from "@/lib/auth-context";
 import type { AssessmentCandidate, Material, SyllabusDraft, TaskCandidate } from "@/lib/types";
 
@@ -23,6 +25,7 @@ interface DraftTask extends TaskCandidate {
 // for candidates still selected at that point.
 export function SyllabusExtractionPanel({ courseId, materials }: { courseId: number; materials: Material[] }) {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const pdfMaterials = materials.filter((material) => material.type === "pdf");
 
   const [source, setSource] = useState<"paste" | "material">(pdfMaterials.length > 0 ? "material" : "paste");
@@ -113,6 +116,11 @@ export function SyllabusExtractionPanel({ courseId, materials }: { courseId: num
       });
       setConfirmedCount(selectedAssessments.length + tasks.filter((t) => t.selected).length);
       setDraft(null);
+      // Newly created rows that nothing else knows about yet — the
+      // Deliverables tab, Courses page, and dashboard all read these same
+      // keys and would otherwise sit stale until an unrelated navigation.
+      queryClient.invalidateQueries({ queryKey: qk.assessments.all });
+      queryClient.invalidateQueries({ queryKey: qk.tasks.all });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Could not save the draft.");
     } finally {

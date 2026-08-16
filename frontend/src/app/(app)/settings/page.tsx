@@ -3,9 +3,11 @@
 import { Suspense, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell, Bot, CalendarDays, Clock, GraduationCap, KeyRound, TriangleAlert, UserRound } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { ApiError, apiFetch, API_URL, logApiError } from "@/lib/api";
+import { ApiError, apiFetch, API_URL } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import type { DeepWorkWindow, User } from "@/lib/types";
 
 // Each preference group reads as its own ledger card (border + faint
@@ -171,14 +173,12 @@ function SettingsForm({
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const [aiBudget, setAiBudget] = useState<{ remaining: number; limit: number } | null>(null);
+  const { data: aiBudget = null } = useQuery({
+    queryKey: qk.aiUsage,
+    queryFn: () => apiFetch<{ remaining: number; limit: number }>("/api/ai/usage"),
+    enabled: !!user.ai_syllabus_extraction_consent_at,
+  });
   const [aiSaving, setAiSaving] = useState(false);
-
-  useEffect(() => {
-    if (user.ai_syllabus_extraction_consent_at) {
-      apiFetch<{ remaining: number; limit: number }>("/api/ai/usage").then(setAiBudget).catch(logApiError);
-    }
-  }, [user.ai_syllabus_extraction_consent_at]);
 
   async function toggleAiConsent(enabled: boolean) {
     setAiSaving(true);
@@ -803,9 +803,16 @@ function SecuritySection({ user }: { user: User }) {
 function GoogleCalendarSection() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
 
-  const [connected, setConnected] = useState<boolean | null>(null);
-  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
+  // Shared qk.googleCalendarStatus key — Calendar's own page reads the
+  // same endpoint (just a narrower slice of the same response shape).
+  const { data: status } = useQuery({
+    queryKey: qk.googleCalendarStatus,
+    queryFn: () => apiFetch<{ connected: boolean; lastSyncedAt: string | null }>("/api/google-calendar/status"),
+  });
+  const connected = status?.connected ?? null;
+  const lastSyncedAt = status?.lastSyncedAt ?? null;
   const [syncing, setSyncing] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
   // Captured once from the URL at mount (lazy initializer, not an effect
@@ -814,28 +821,19 @@ function GoogleCalendarSection() {
   // router.replace() below stripping it back out of the URL.
   const [callbackResult] = useState(() => searchParams.get("google_calendar"));
 
-  function loadStatus() {
-    apiFetch<{ connected: boolean; lastSyncedAt: string | null }>("/api/google-calendar/status")
-      .then((result) => {
-        setConnected(result.connected);
-        setLastSyncedAt(result.lastSyncedAt);
-      })
-      .catch(logApiError);
-  }
-
-  useEffect(loadStatus, []);
-
   useEffect(() => {
     if (!callbackResult) return;
     router.replace("/settings");
-    if (callbackResult === "connected") loadStatus();
-  }, [callbackResult, router]);
+    if (callbackResult === "connected") {
+      queryClient.invalidateQueries({ queryKey: qk.googleCalendarStatus });
+    }
+  }, [callbackResult, router, queryClient]);
 
   async function syncNow() {
     setSyncing(true);
     try {
       await apiFetch("/api/google-calendar/sync", { method: "POST" });
-      loadStatus();
+      queryClient.invalidateQueries({ queryKey: qk.googleCalendarStatus });
     } finally {
       setSyncing(false);
     }
@@ -846,8 +844,7 @@ function GoogleCalendarSection() {
     setDisconnecting(true);
     try {
       await apiFetch("/api/google-calendar/disconnect", { method: "DELETE" });
-      setConnected(false);
-      setLastSyncedAt(null);
+      queryClient.setQueryData(qk.googleCalendarStatus, { connected: false, lastSyncedAt: null });
     } finally {
       setDisconnecting(false);
     }

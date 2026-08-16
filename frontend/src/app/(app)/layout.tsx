@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { RequireAuth } from "@/components/RequireAuth";
 import { AppShell } from "@/components/AppShell";
-import { SemestersProvider } from "@/lib/hooks/use-active-semester";
 
 // Route group (app)/ has no URL segment of its own, so there's no single
 // concrete path to type this layout against, so it uses plain ReactNode children,
@@ -9,9 +8,7 @@ import { SemestersProvider } from "@/lib/hooks/use-active-semester";
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <RequireAuth>
-      <SemestersProvider>
-        <AppShell>{children}</AppShell>
-      </SemestersProvider>
+      <AppShell>{children}</AppShell>
     </RequireAuth>
   );
 }

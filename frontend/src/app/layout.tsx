@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, DM_Sans, IBM_Plex_Mono, Caveat, Newsreader } from "next/font/google";
 import { AuthProvider } from "@/lib/auth-context";
+import { AppQueryProvider } from "@/lib/query-client";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -53,7 +54,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} ${dmSans.variable} ${ibmPlexMono.variable} ${caveat.variable} ${newsreader.variable} h-full antialiased`}
     >
       <body className="min-h-full w-full flex flex-col overflow-x-hidden">
-        <AuthProvider>{children}</AuthProvider>
+        <AppQueryProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </AppQueryProvider>
       </body>
     </html>
   );

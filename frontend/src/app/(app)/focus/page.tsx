@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { apiFetch, logApiError } from "@/lib/api";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiFetch } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import type {
   CalendarBlock,
   StudySession,
@@ -31,16 +33,14 @@ function formatElapsed(seconds: number): string {
 // timer is not the only way to read progress: elapsed/remaining are also
 // rendered as plain text for screen readers and low-motion users.
 export default function FocusPage() {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const { data: allTasks = [] } = useQuery({
+    queryKey: qk.tasks.all,
+    queryFn: () => apiFetch<Task[]>("/api/tasks"),
+  });
+  const tasks = allTasks.filter((task) => task.status === "open");
   const [session, setSession] = useState<StudySession | null>(null);
   const [ended, setEnded] = useState(false);
   const [stuck, setStuck] = useState(false);
-
-  useEffect(() => {
-    apiFetch<Task[]>("/api/tasks")
-      .then((list) => setTasks(list.filter((task) => task.status === "open")))
-      .catch(logApiError);
-  }, []);
 
   if (session && !ended) {
     return (
@@ -81,6 +81,7 @@ function StartSession({
   const [taskId, setTaskId] = useState("");
   const [minutes, setMinutes] = useState(90);
   const [submitting, setSubmitting] = useState(false);
+  const queryClient = useQueryClient();
 
   const selectedTaskId = taskId || (tasks[0] ? String(tasks[0].id) : "");
 
@@ -102,6 +103,9 @@ function StartSession({
           end_at: end.toISOString(),
         }),
       });
+      // Dashboard/Calendar read the same qk.calendarBlocks.all key — make
+      // this focus session's block visible there too.
+      queryClient.invalidateQueries({ queryKey: qk.calendarBlocks.all });
 
       const session = await apiFetch<StudySession>("/api/study-sessions/start", {
         method: "POST",

@@ -9,6 +9,7 @@ import {
   type FormEvent,
   type MouseEvent as ReactMouseEvent,
 } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   DndContext,
   PointerSensor,
@@ -17,7 +18,8 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { Check, ChevronLeft, ChevronRight, PenLine, Plus, RefreshCw, Search, X } from "lucide-react";
-import { apiFetch, ApiError, logApiError } from "@/lib/api";
+import { apiFetch, ApiError } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import type { CalendarBlock, ClassSession, DayCapacity, Task } from "@/lib/types";
 import { WeekStateMarker, weekState } from "@/components/WeekState";
 import { useActiveSemester } from "@/lib/hooks/use-active-semester";
@@ -85,12 +87,9 @@ function CalendarPageInner() {
   // first client render still agree and don't hydration-mismatch.
   const mobileViewInitialized = useRef(false);
   const [anchorDate, setAnchorDate] = useState(() => startOfMonth(new Date()));
-  const [days, setDays] = useState<DayCapacity[] | null>(null);
-  const [blocks, setBlocks] = useState<CalendarBlock[]>([]);
-  const [occurrences, setOccurrences] = useState<CalendarOccurrence[]>([]);
+  const queryClient = useQueryClient();
   const { activeSemester: semester } = useActiveSemester();
   const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set());
-  const [openTasks, setOpenTasks] = useState<Task[]>([]);
   const [editingBlockId, setEditingBlockId] = useState<number | "new" | null>(null);
   const [detailsBlockId, setDetailsBlockId] = useState<number | null>(null);
   const [editingDescription, setEditingDescription] = useState(false);
@@ -118,15 +117,13 @@ function CalendarPageInner() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [displayTimezone, setDisplayTimezone] = useState(() => systemTimezone());
-  const [googleConnected, setGoogleConnected] = useState(false);
+  const { data: googleStatus } = useQuery({
+    queryKey: qk.googleCalendarStatus,
+    queryFn: () => apiFetch<{ connected: boolean }>("/api/google-calendar/status"),
+  });
+  const googleConnected = googleStatus?.connected ?? false;
   const [googleSyncing, setGoogleSyncing] = useState(false);
   const [googleSynced, setGoogleSynced] = useState(false);
-
-  useEffect(() => {
-    apiFetch<{ connected: boolean }>("/api/google-calendar/status")
-      .then((result) => setGoogleConnected(result.connected))
-      .catch(() => setGoogleConnected(false));
-  }, []);
 
   useEffect(() => {
     if (mobileViewInitialized.current) return;
@@ -232,26 +229,38 @@ function CalendarPageInner() {
     return [gridDays[0], gridDays[gridDays.length - 1]] as const;
   }, [view, weekDays, anchorDate, gridDays]);
 
+  const [rangeStart, rangeEnd] = capacityRange;
+  const rangeStartParam = toDateParam(rangeStart);
+  const rangeEndParam = toDateParam(rangeEnd);
+
+  const { data: days = null } = useQuery({
+    queryKey: qk.calendarCapacity(rangeStartParam, rangeEndParam),
+    queryFn: () => apiFetch<DayCapacity[]>(`/api/calendar/capacity?from=${rangeStartParam}&to=${rangeEndParam}`),
+  });
+  // Not range-scoped server-side (CalendarBlockController::index returns
+  // everything the user owns) — filtered client-side per view below, and
+  // reused as-is by search, which needs blocks outside the visible range.
+  // Same qk.calendarBlocks.all key the dashboard uses, so a block created,
+  // moved, or deleted here is instantly reflected there too.
+  const { data: blocks = [] } = useQuery({
+    queryKey: qk.calendarBlocks.all,
+    queryFn: () => apiFetch<CalendarBlock[]>("/api/calendar-blocks"),
+  });
+  const { data: occurrences = [] } = useQuery({
+    queryKey: qk.calendarOccurrences(rangeStartParam, rangeEndParam),
+    queryFn: () =>
+      apiFetch<CalendarOccurrence[]>(`/api/calendar/occurrences?from=${rangeStartParam}&to=${rangeEndParam}`),
+  });
+
+  // Mutations below (create/edit/delete/reschedule a block, sync from
+  // Google, a recurring series write) can't predict every id that changed
+  // server-side — this is the "give up trying to patch the cache by hand,
+  // just refetch" escape hatch for exactly those cases.
   function load() {
-    const [rangeStart, rangeEnd] = capacityRange;
-
-    apiFetch<DayCapacity[]>(
-      `/api/calendar/capacity?from=${toDateParam(rangeStart)}&to=${toDateParam(rangeEnd)}`,
-    )
-      .then(setDays)
-      .catch(logApiError);
-    // Not range-scoped server-side (CalendarBlockController::index returns
-    // everything the user owns) — filtered client-side per view below, and
-    // reused as-is by search, which needs blocks outside the visible range.
-    apiFetch<CalendarBlock[]>("/api/calendar-blocks").then(setBlocks).catch(logApiError);
-    apiFetch<CalendarOccurrence[]>(
-      `/api/calendar/occurrences?from=${toDateParam(rangeStart)}&to=${toDateParam(rangeEnd)}`,
-    )
-      .then(setOccurrences)
-      .catch(logApiError);
+    queryClient.invalidateQueries({ queryKey: qk.calendarCapacity(rangeStartParam, rangeEndParam) });
+    queryClient.invalidateQueries({ queryKey: qk.calendarBlocks.all });
+    queryClient.invalidateQueries({ queryKey: qk.calendarOccurrences(rangeStartParam, rangeEndParam) });
   }
-
-  useEffect(load, [capacityRange]);
 
   function shiftPeriod(delta: number) {
     setNavDirection(delta > 0 ? 1 : -1);
@@ -262,12 +271,11 @@ function CalendarPageInner() {
     });
   }
 
-
-  useEffect(() => {
-    apiFetch<Task[]>("/api/tasks")
-      .then((list) => setOpenTasks(list.filter((t) => t.status === "open")))
-      .catch(logApiError);
-  }, []);
+  const { data: allTasks = [] } = useQuery({
+    queryKey: qk.tasks.all,
+    queryFn: () => apiFetch<Task[]>("/api/tasks"),
+  });
+  const openTasks = useMemo(() => allTasks.filter((t) => t.status === "open"), [allTasks]);
 
   async function showPlanSuggestions() {
     setSuggesting(true);
@@ -298,12 +306,21 @@ function CalendarPageInner() {
     }
   }
 
+  // Patches the single shared qk.calendarBlocks.all cache entry — the
+  // dashboard reads the exact same key, so a status/description/reminder
+  // change made here is visible there without it doing anything.
+  function patchBlock(updated: CalendarBlock) {
+    queryClient.setQueryData(qk.calendarBlocks.all, (current: CalendarBlock[] | undefined) =>
+      (current ?? []).map((b) => (b.id === updated.id ? updated : b)),
+    );
+  }
+
   async function updateStatus(block: CalendarBlock, status: CalendarBlock["status"]) {
     const updated = await apiFetch<CalendarBlock>(`/api/calendar-blocks/${block.id}`, {
       method: "PUT",
       body: JSON.stringify({ status }),
     });
-    setBlocks((current) => current.map((b) => (b.id === block.id ? updated : b)));
+    patchBlock(updated);
   }
 
   // Lecture/external blocks skip the full Add/Edit form (their time and
@@ -315,7 +332,7 @@ function CalendarPageInner() {
       method: "PUT",
       body: JSON.stringify({ description: description || null }),
     });
-    setBlocks((current) => current.map((b) => (b.id === block.id ? updated : b)));
+    patchBlock(updated);
   }
 
   // ClassSession's remind_minutes_before is already an offset, unlike
@@ -353,7 +370,7 @@ function CalendarPageInner() {
       method: "PUT",
       body: JSON.stringify({ remind_at: remindAt }),
     });
-    setBlocks((current) => current.map((b) => (b.id === block.id ? updated : b)));
+    patchBlock(updated);
   }
 
   function startCreate(defaultDate?: string, startTime?: string, endTime?: string) {
@@ -436,14 +453,17 @@ function CalendarPageInner() {
           // appending just the one row we got back.
           load();
         } else {
-          setBlocks((current) => [...current, created]);
+          queryClient.setQueryData(qk.calendarBlocks.all, (current: CalendarBlock[] | undefined) => [
+            ...(current ?? []),
+            created,
+          ]);
         }
       } else if (editingBlockId !== null) {
         const updated = await apiFetch<CalendarBlock>(`/api/calendar-blocks/${editingBlockId}`, {
           method: "PUT",
           body: JSON.stringify(body),
         });
-        setBlocks((current) => current.map((b) => (b.id === editingBlockId ? updated : b)));
+        patchBlock(updated);
       }
       setEditingBlockId(null);
     } catch (err) {
@@ -465,7 +485,9 @@ function CalendarPageInner() {
     await apiFetch(`/api/calendar-blocks/${block.id}${scope !== "this" ? `?scope=${scope}` : ""}`, { method: "DELETE" });
 
     if (scope === "this") {
-      setBlocks((current) => current.filter((b) => b.id !== block.id));
+      queryClient.setQueryData(qk.calendarBlocks.all, (current: CalendarBlock[] | undefined) =>
+        (current ?? []).filter((b) => b.id !== block.id),
+      );
     } else {
       // Multiple rows removed server-side and we don't know their ids
       // client-side without asking — refetch instead of guessing.
@@ -498,7 +520,7 @@ function CalendarPageInner() {
         end_at: `${toDateParam(end)}T${end.toTimeString().slice(0, 5)}`,
       }),
     });
-    setBlocks((current) => current.map((b) => (b.id === block.id ? updated : b)));
+    patchBlock(updated);
   }
 
   function handleDragEnd(event: DragEndEvent) {

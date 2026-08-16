@@ -1,10 +1,12 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import { Bell, CheckCircle2, Clock, TrendingUp, X } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { apiFetch, logApiError } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import type { CalendarBlock, DayCapacity, Today, WeeklyReview } from "@/lib/types";
 import { WEEK_STATE_LABEL, weekState, type WeekState } from "@/components/WeekState";
 import { useNotifications } from "@/lib/notifications";
@@ -132,45 +134,42 @@ export default function DashboardPage() {
 
 function DashboardPageInner() {
   const { user } = useAuth();
-  const [today, setToday] = useState<Today | null>(null);
-  const [todayError, setTodayError] = useState(false);
   const [expandedTaskId, setExpandedTaskId] = useState<number | null>(null);
-  const [pendingReview, setPendingReview] = useState<WeeklyReview | null>(null);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   // Read-only here: dashboard data (/api/today) is always "today", so a
   // switcher would only ever change this label, not any real content —
   // this just picks up ?semester= if a link arrived carrying one.
   const { activeSemester: semester } = useActiveSemester();
-  const [weekDays, setWeekDays] = useState<DayCapacity[]>([]);
-  const [weekBlocks, setWeekBlocks] = useState<CalendarBlock[]>([]);
   const { notifications, unreadCount, markRead } = useNotifications();
 
-  useEffect(() => {
-    apiFetch<Today>("/api/today")
-      .then(setToday)
-      .catch((error) => {
-        setTodayError(true);
-        logApiError(error);
-      });
-    apiFetch<WeeklyReview | null>("/api/weekly-reviews/latest")
-      .then((review) => {
-        const dismissedId = window.localStorage.getItem(REVIEW_DISMISSED_KEY);
-        if (review && String(review.id) !== dismissedId) {
-          setPendingReview(review);
-        }
-      })
-      .catch(logApiError);
+  const todayQuery = useQuery({
+    queryKey: qk.today.all,
+    queryFn: () => apiFetch<Today>("/api/today"),
+  });
+  const today = todayQuery.data;
+  const todayError = todayQuery.isError;
 
-    const weekStart = startOfWeek(new Date());
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 6);
-    apiFetch<DayCapacity[]>(
-      `/api/calendar/capacity?from=${toDateParam(weekStart)}&to=${toDateParam(weekEnd)}`,
-    )
-      .then(setWeekDays)
-      .catch(logApiError);
-    apiFetch<CalendarBlock[]>("/api/calendar-blocks").then(setWeekBlocks).catch(logApiError);
-  }, []);
+  const { data: latestReview } = useQuery({
+    queryKey: qk.weeklyReview.latest,
+    queryFn: () => apiFetch<WeeklyReview | null>("/api/weekly-reviews/latest"),
+  });
+  const dismissedId = typeof window === "undefined" ? null : window.localStorage.getItem(REVIEW_DISMISSED_KEY);
+  const pendingReview = latestReview && String(latestReview.id) !== dismissedId ? latestReview : null;
+
+  const weekStart = startOfWeek(new Date());
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+  const weekStartParam = toDateParam(weekStart);
+  const weekEndParam = toDateParam(weekEnd);
+
+  const { data: weekDays = [] } = useQuery({
+    queryKey: qk.calendarCapacity(weekStartParam, weekEndParam),
+    queryFn: () => apiFetch<DayCapacity[]>(`/api/calendar/capacity?from=${weekStartParam}&to=${weekEndParam}`),
+  });
+  const { data: weekBlocks = [] } = useQuery({
+    queryKey: qk.calendarBlocks.all,
+    queryFn: () => apiFetch<CalendarBlock[]>("/api/calendar-blocks"),
+  });
 
   if (todayError) {
     return (

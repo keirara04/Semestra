@@ -35,8 +35,16 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by($request->ip());
         });
 
+        // 60/min was tight enough to trip on ordinary use: a single page
+        // (dashboard, calendar) fans out into 4-7 parallel GETs on mount,
+        // Next dev's Strict Mode double-invokes each of those, and a user
+        // bouncing between two or three data-heavy pages crosses 60 within
+        // a minute without doing anything wrong. Per-user (not per-IP)
+        // keying already bounds a single account's runaway/malicious
+        // traffic, so raising the ceiling doesn't weaken that — it just
+        // gives real browsing patterns enough headroom.
         RateLimiter::for('api', function ($request) {
-            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+            return Limit::perMinute(180)->by($request->user()?->id ?: $request->ip());
         });
     }
 }

@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
 import { Folder, FolderOpen } from "lucide-react";
-import { apiFetch, logApiError } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import type { Course, Material, Semester } from "@/lib/types";
 import { MaterialThumbnail } from "@/components/notestra/MaterialThumbnail";
 import { MaterialQuickLook } from "@/components/notestra/MaterialQuickLook";
@@ -14,20 +16,22 @@ import { MaterialQuickLook } from "@/components/notestra/MaterialQuickLook";
 // semester, then into a folder per course/subject. Every folder (semester
 // and course alike) starts closed; nothing expands until clicked.
 export default function NotestraLandingPage() {
-  const [materials, setMaterials] = useState<Material[] | null>(null);
-  const [courses, setCourses] = useState<Course[] | null>(null);
-  const [semesters, setSemesters] = useState<Semester[] | null>(null);
+  // All three share their query key with the pages that "own" that
+  // resource (course Materials tab, Courses, Semester) — this view almost
+  // always renders from cache rather than firing its own fetch.
+  const { data: allMaterials } = useQuery({
+    queryKey: qk.materials.all,
+    queryFn: () => apiFetch<Material[]>("/api/materials"),
+  });
+  const materials = allMaterials ? allMaterials.filter((m) => m.type === "pdf") : null;
+  const { data: courses } = useQuery({ queryKey: qk.courses.all, queryFn: () => apiFetch<Course[]>("/api/courses") });
+  const { data: semesters } = useQuery({
+    queryKey: qk.semesters.all,
+    queryFn: () => apiFetch<Semester[]>("/api/semesters"),
+  });
   const [openSemesters, setOpenSemesters] = useState<Set<number>>(new Set());
   const [openCourses, setOpenCourses] = useState<Set<number>>(new Set());
   const [previewMaterial, setPreviewMaterial] = useState<Material | null>(null);
-
-  useEffect(() => {
-    apiFetch<Material[]>("/api/materials")
-      .then((list) => setMaterials(list.filter((m) => m.type === "pdf")))
-      .catch(logApiError);
-    apiFetch<Course[]>("/api/courses").then(setCourses).catch(logApiError);
-    apiFetch<Semester[]>("/api/semesters").then(setSemesters).catch(logApiError);
-  }, []);
 
   function toggle(set: Set<number>, setSet: (next: Set<number>) => void, id: number) {
     const next = new Set(set);

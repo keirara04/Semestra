@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { apiFetch, logApiError } from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
+import { apiFetch } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import type { WeeklyReview } from "@/lib/types";
 import { WEEK_STATE_LABEL, WeekStateMarker } from "@/components/WeekState";
 import { formatMinutes } from "@/lib/format";
@@ -29,18 +31,13 @@ function weekRangeLabel(weekStartDate: string): string {
 // gap happened, and whether next week is already shaping up overloaded.
 export default function ReviewPage() {
   const router = useRouter();
-  const [review, setReview] = useState<WeeklyReview | null | undefined>(undefined);
+  const reviewQuery = useQuery({
+    queryKey: qk.weeklyReview.latest,
+    queryFn: () => apiFetch<WeeklyReview | null>("/api/weekly-reviews/latest"),
+  });
+  const review = reviewQuery.data;
   const [replanning, setReplanning] = useState(false);
-  const [loadError, setLoadError] = useState(false);
-
-  useEffect(() => {
-    apiFetch<WeeklyReview | null>("/api/weekly-reviews/latest")
-      .then(setReview)
-      .catch((error) => {
-        setLoadError(true);
-        logApiError(error);
-      });
-  }, []);
+  const loadError = reviewQuery.isError;
 
   if (loadError) {
     return (

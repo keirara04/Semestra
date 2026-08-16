@@ -1,7 +1,9 @@
 "use client";
 
-import { use, useEffect, useState, type FormEvent } from "react";
-import { apiFetch, ApiError, logApiError } from "@/lib/api";
+import { use, useState, type FormEvent } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiFetch, ApiError } from "@/lib/api";
+import { qk } from "@/lib/query-keys";
 import type { Assessment, AssessmentStatus, ExamReadiness, Milestone, Topic } from "@/lib/types";
 import { formatMinutes } from "@/lib/format";
 import { ConfidenceBar } from "@/components/Confidence";
@@ -18,18 +20,21 @@ export default function AssessmentDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const [assessment, setAssessment] = useState<Assessment | null>(null);
+  const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
-  const [loadError, setLoadError] = useState(false);
 
-  useEffect(() => {
-    apiFetch<Assessment>(`/api/assessments/${id}`)
-      .then(setAssessment)
-      .catch((err) => {
-        setLoadError(true);
-        logApiError(err);
-      });
-  }, [id]);
+  const assessmentQuery = useQuery({
+    queryKey: qk.assessments.detail(id),
+    queryFn: () => apiFetch<Assessment>(`/api/assessments/${id}`),
+  });
+  const assessment = assessmentQuery.data;
+  const loadError = assessmentQuery.isError;
+
+  function setAssessment(updater: (current: Assessment) => Assessment) {
+    queryClient.setQueryData(qk.assessments.detail(id), (current: Assessment | undefined) =>
+      current ? updater(current) : current,
+    );
+  }
 
   if (loadError) {
     return (
@@ -217,17 +222,18 @@ function formatReadiness(percent: number | null): string {
 // constituent topics available on expand (which ones are dragging it
 // down), never an unexplained number.
 function ExamMode({ assessmentId, courseId }: { assessmentId: number; courseId: number }) {
-  const [readiness, setReadiness] = useState<ExamReadiness | null>(null);
-  const [courseTopics, setCourseTopics] = useState<Topic[]>([]);
-
-  function load() {
-    apiFetch<ExamReadiness>(`/api/assessments/${assessmentId}/readiness`).then(setReadiness).catch(logApiError);
-    apiFetch<Topic[]>("/api/topics")
-      .then((list) => setCourseTopics(list.filter((topic) => topic.course_id === courseId)))
-      .catch(logApiError);
-  }
-
-  useEffect(load, [assessmentId, courseId]);
+  const queryClient = useQueryClient();
+  const { data: readiness } = useQuery({
+    queryKey: qk.assessments.readiness(assessmentId),
+    queryFn: () => apiFetch<ExamReadiness>(`/api/assessments/${assessmentId}/readiness`),
+  });
+  // Shared qk.topics.all key — the course's own Revision tab reads the
+  // same list.
+  const { data: allTopics } = useQuery({
+    queryKey: qk.topics.all,
+    queryFn: () => apiFetch<Topic[]>("/api/topics"),
+  });
+  const courseTopics = allTopics?.filter((topic) => topic.course_id === courseId) ?? [];
 
   async function toggleLinked(topic: Topic) {
     const currentIds = topic.assessments?.map((a) => a.id) ?? [];
@@ -240,7 +246,13 @@ function ExamMode({ assessmentId, courseId }: { assessmentId: number; courseId: 
       method: "PUT",
       body: JSON.stringify({ assessment_ids: nextIds }),
     });
-    load();
+    // Readiness (topics-covered percent) and the topic's own linked-
+    // assessments both change server-side — neither is worth computing
+    // optimistically here, so refetch both.
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: qk.assessments.readiness(assessmentId) }),
+      queryClient.invalidateQueries({ queryKey: qk.topics.all }),
+    ]);
   }
 
   if (!readiness) return null;
